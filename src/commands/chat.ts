@@ -92,9 +92,9 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
         registry,
         context: createForgeContext({
           cwd,
-          // Aggressive: allow execute by default, but user can change via config later
-          allowWrite: true,
-          allowExecute: true,
+          // Default: read-only for safety. User can opt in with --yes or config.
+          allowWrite: false,
+          allowExecute: false,
         }),
         systemPrompt,
       });

@@ -23,8 +23,8 @@ describe('Undo system', () => {
     ) as ReverseOp;
     expect(reverseOp).toBeDefined();
     expect(reverseOp.toolName).toBe('edit_file');
-    expect((reverseOp.input as Record<string, string>).newString).toBe('foo');
-    expect((reverseOp.input as Record<string, string>).oldString).toBe('foo'); // swaps back
+    expect((reverseOp.input as Record<string, string>).oldString).toBe('bar'); // reverse: find 'bar'
+    expect((reverseOp.input as Record<string, string>).newString).toBe('foo'); // replace with 'foo'
   });
 
   it('write_file declares undoable', () => {
@@ -32,23 +32,25 @@ describe('Undo system', () => {
     expect(tool?.isUndoable?.(null as never)).toBe(true);
   });
 
-  it('write_file reverse returns edit_file delete for new files', () => {
+  it('write_file reverse returns delete_file for new files', () => {
     const tool = createDefaultToolRegistry().get('write_file')!;
     const reverseOp = tool.reverse!(
       { filePath: 'newfile.ts', content: 'export const x = 1;' },
       { title: '', output: '', metadata: { existed: false } },
     ) as ReverseOp;
     expect(reverseOp).toBeDefined();
-    expect(reverseOp.toolName).toBe('edit_file');
+    expect(reverseOp.toolName).toBe('delete_file');
     expect(reverseOp.description).toContain('delete newly created file');
   });
 
-  it('write_file reverse returns undefined for existing files (no backup yet)', () => {
+  it('write_file reverse restores original content for existing files', () => {
     const tool = createDefaultToolRegistry().get('write_file')!;
     const reverseOp = tool.reverse!(
       { filePath: 'existing.ts', content: 'new content' },
-      { title: '', output: '', metadata: { existed: true } },
-    );
-    expect(reverseOp).toBeUndefined();
+      { title: '', output: '', metadata: { existed: true, originalContent: 'old content' } },
+    ) as ReverseOp;
+    expect(reverseOp).toBeDefined();
+    expect(reverseOp.toolName).toBe('write_file');
+    expect((reverseOp.input as Record<string, string>).content).toBe('old content');
   });
 });

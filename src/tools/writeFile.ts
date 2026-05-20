@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { generateDiff, formatDiff } from '../core/diffPreview.js';
@@ -25,28 +25,40 @@ export const writeFileTool: Tool<Input> = {
 
   reverse(input: Input, result: ToolResult): ReverseOp | undefined {
     const existed = result.metadata?.existed === true;
-    if (existed) {
-      // File existed before — we can't restore the original content without a backup.
-      // For now, warn. In future we'll store backups.
-      return undefined;
+    const originalContent = result.metadata?.originalContent as string | undefined;
+
+    if (existed && originalContent !== undefined) {
+      // Restore original content
+      return {
+        toolName: 'write_file',
+        input: { filePath: input.filePath, content: originalContent },
+        description: `Undo write_file: restore original content of "${input.filePath}"`,
+      };
     }
-    // File was new — delete it
-    return {
-      toolName: 'edit_file',
-      input: { filePath: input.filePath, oldString: input.content, newString: '' },
-      description: `Undo write_file: delete newly created file "${input.filePath}"`,
-    };
+
+    if (!existed) {
+      // File was new — delete it
+      return {
+        toolName: 'delete_file',
+        input: { filePath: input.filePath },
+        description: `Undo write_file: delete newly created file "${input.filePath}"`,
+      };
+    }
+
+    // Existed but no backup available (shouldn't happen with current code)
+    return undefined;
   },
 
   async run(input, context) {
     const filePath = resolveInsideWorkspace(context.cwd, input.filePath);
 
     let output: string;
+    let originalContent: string | undefined;
     const exists = await fileExists(filePath);
 
     if (exists) {
-      const original = await readFile(filePath, 'utf8');
-      const diff = generateDiff(original, input.content);
+      originalContent = await readFile(filePath, 'utf8');
+      const diff = generateDiff(originalContent, input.content);
       output = formatDiff(diff);
     } else {
       await mkdir(path.dirname(filePath), { recursive: true });
@@ -62,6 +74,7 @@ export const writeFileTool: Tool<Input> = {
         path: filePath,
         bytes: Buffer.byteLength(input.content, 'utf8'),
         existed: exists,
+        originalContent,
       },
     };
   },

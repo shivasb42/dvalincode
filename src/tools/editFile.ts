@@ -28,8 +28,8 @@ export const editFileTool: Tool<Input> = {
       toolName: 'edit_file',
       input: {
         filePath: input.filePath,
-        oldString: input.oldString,
-        newString: input.oldString, // swap: revert newString back to oldString
+        oldString: input.newString,
+        newString: input.oldString,
       },
       description: `Undo edit_file: revert "${input.filePath}" — swap back "${input.newString.slice(0, 40)}…" → "${input.oldString.slice(0, 40)}…"`,
     };

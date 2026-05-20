@@ -1,11 +1,12 @@
 import { assertToolPermission } from '../core/permissions.js';
 import type { ForgeContext } from '../core/context.js';
+import { editFileTool } from './editFile.js';
 import { listFilesTool } from './listFiles.js';
 import { readFileTool } from './readFile.js';
 import { searchTextTool } from './searchText.js';
 import { shellTool } from './shell.js';
-import { editFileTool } from './editFile.js';
 import { writeFileTool } from './writeFile.js';
+import { deleteFileTool } from './deleteFile.js';
 import type { Tool, ToolResult } from './types.js';
 
 export class ToolRegistry {
@@ -47,6 +48,7 @@ export function createDefaultToolRegistry(): ToolRegistry {
   registry.register(searchTextTool);
   registry.register(shellTool);
   registry.register(writeFileTool);
+  registry.register(deleteFileTool);
   return registry;
 }
 
