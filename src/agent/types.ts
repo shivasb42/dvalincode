@@ -6,7 +6,7 @@ export enum TurnState {
   RESTORE = 'RESTORE',
   /** Compact/compress context if near limit */
   COMPACT = 'COMPACT',
-  /** Handle built-in commands (/compact, /retry) */
+  /** Handle built-in commands (/compact, /retry, /undo) */
   COMMAND = 'COMMAND',
   /** Build system prompt with workspace context */
   BUILD = 'BUILD',
@@ -44,4 +44,18 @@ export type LoopResult = {
   messages: ChatMessage[];
   output: string;
   iterationsUsed: number;
+};
+
+export type ToolResult = {
+  title: string;
+  output: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type UndoEntry = {
+  toolName: string;
+  input: unknown;
+  result: ToolResult;
+  reverseInput: unknown;
+  timestamp: string;
 };

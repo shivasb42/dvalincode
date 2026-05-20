@@ -1,7 +1,8 @@
 import type { ChatMessage, ChatResponse, ToolCall, ToolDef, ProviderAdapter } from '../providers/types.js';
 import type { ToolRegistry } from '../tools/registry.js';
 import type { ForgeContext } from '../core/context.js';
-import type { TurnConfig } from './types.js';
+import type { TurnConfig, UndoEntry } from './types.js';
+import type { ReverseOp } from '../tools/types.js';
 
 export type RunnerOptions = {
   provider: ProviderAdapter;
@@ -19,12 +20,48 @@ export class AgentRunner {
   private systemPrompt: string;
   private iterationCount: number = 0;
 
+  /** Stack of executed tool calls for undo support */
+  private undoStack: UndoEntry[] = [];
+
   constructor(options: RunnerOptions) {
     this.provider = options.provider;
     this.registry = options.registry;
     this.context = options.context;
     this.config = options.config;
     this.systemPrompt = options.systemPrompt;
+  }
+
+  /** Undo the last N tool calls. Returns a description of what was undone. */
+  async undoLast(count: number = 1): Promise<string> {
+    if (this.undoStack.length === 0) {
+      return 'Nothing to undo.';
+    }
+    const entries = this.undoStack.splice(-count);
+    const descriptions: string[] = [];
+    for (const entry of entries) {
+      const tool = this.registry.get(entry.toolName);
+      if (!tool || !tool.isUndoable) {
+        descriptions.push(`Cannot undo ${entry.toolName}: undo not supported.`);
+        continue;
+      }
+      const reverseOp = tool.reverse?.(entry.input, entry.result) as ReverseOp | undefined;
+      if (!reverseOp) {
+        descriptions.push(`Cannot undo ${entry.toolName}: reverse operation not available (file may have existed before).`);
+        continue;
+      }
+      try {
+        const reverseTool = this.registry.get(reverseOp.toolName);
+        if (!reverseTool) {
+          descriptions.push(`Cannot undo ${entry.toolName}: reverse tool "${reverseOp.toolName}" not found.`);
+          continue;
+        }
+        await reverseTool.run(reverseOp.input, this.context);
+        descriptions.push(`✅ ${reverseOp.description}`);
+      } catch (err) {
+        descriptions.push(`❌ Undo failed for ${entry.toolName}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+    return descriptions.join('\n');
   }
 
   /** Run a single turn: user message → LLM → (tool calls → LLM) → final response */
@@ -74,7 +111,22 @@ export class AgentRunner {
       // Execute tool calls
       for (const tc of callsToExecute) {
         try {
-          const result = await this.registry.run(tc.name, JSON.parse(tc.arguments), this.context);
+          const parsedInput = JSON.parse(tc.arguments);
+          const result = await this.registry.run(tc.name, parsedInput, this.context);
+
+          // Record undo entry for this tool call
+          this.undoStack.push({
+            toolName: tc.name,
+            input: parsedInput,
+            result: {
+              title: result.title,
+              output: result.output,
+              metadata: result.metadata,
+            },
+            reverseInput: null,
+            timestamp: new Date().toISOString(),
+          });
+
           messages.push({
             role: 'tool',
             content: `[Tool ${tc.name} result]:\n${result.output}`,

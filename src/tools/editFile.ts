@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { generateDiff, formatDiff } from '../core/diffPreview.js';
 import { resolveInsideWorkspace } from '../core/workspace.js';
-import type { Tool } from './types.js';
+import type { Tool, ReverseOp, ToolResult } from './types.js';
 
 const inputSchema = z
   .object({
@@ -20,6 +20,20 @@ export const editFileTool: Tool<Input> = {
   access: 'write',
   inputSchema,
   isConcurrencySafe: () => false,
+
+  isUndoable: () => true,
+
+  reverse(input: Input, _result: ToolResult): ReverseOp | undefined {
+    return {
+      toolName: 'edit_file',
+      input: {
+        filePath: input.filePath,
+        oldString: input.oldString,
+        newString: input.oldString, // swap: revert newString back to oldString
+      },
+      description: `Undo edit_file: revert "${input.filePath}" — swap back "${input.newString.slice(0, 40)}…" → "${input.oldString.slice(0, 40)}…"`,
+    };
+  },
   async run(input, context) {
     const filePath = resolveInsideWorkspace(context.cwd, input.filePath);
 

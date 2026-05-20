@@ -1,0 +1,36 @@
+# Community Intelligence Report
+## Sources: Reddit · Hacker News
+
+Collected: Wed May 20 22:27:20 HKT 2026
+---
+
+- [Inherited a 3-month old repo from a Vibe Engineer. Wrote the most satisfying PR in my career](https://reddit.com/r/ClaudeCode/comments/1tb7edc/inherited_a_3month_old_repo_from_a_vibe_engineer/) (↑7046, r/ClaudeCode)
+- [OK BOYS IT'S OVER.. No Subscription required.](https://reddit.com/r/ClaudeCode/comments/1spypte/ok_boys_its_over_no_subscription_required/) (↑6145, r/ClaudeCode)
+- [Anthropic just published a postmortem explaining exactly why Claude felt dumber for the past month](https://reddit.com/r/ClaudeCode/comments/1str8gi/anthropic_just_published_a_postmortem_explaining/) (↑3337, r/ClaudeCode)
+- [Doubled Rate Limits for Claude Code](https://reddit.com/r/ClaudeCode/comments/1t5hs98/doubled_rate_limits_for_claude_code/) (↑2513, r/ClaudeCode)
+- [Hugging Face co-founder says Qwen 3.6 27B running on airplane mode is close to latest Opus in Claude Code](https://reddit.com/r/ClaudeCode/comments/1t7lgeb/hugging_face_cofounder_says_qwen_36_27b_running/) (↑2075, r/ClaudeCode)
+- [Claude Code no longer listed as a feature for Claude Pro](https://reddit.com/r/ClaudeCode/comments/1ss0xsp/claude_code_no_longer_listed_as_a_feature_for/) (↑1704, r/ClaudeCode)
+- [Sr Software Engineer - Haven't written a line of code in months](https://reddit.com/r/ClaudeCode/comments/1t3yqbo/sr_software_engineer_havent_written_a_line_of/) (↑1582, r/ClaudeCode)
+- [I've had it with Claude. It has become complete garbage.](https://reddit.com/r/ClaudeCode/comments/1t4w5an/ive_had_it_with_claude_it_has_become_complete/) (↑992, r/ClaudeCode)
+- [Claude Code removed from Anthropic's Pro plan](https://reddit.com/r/ClaudeCode/comments/1ss3b0t/claude_code_removed_from_anthropics_pro_plan/) (↑677, r/ClaudeCode)
+- [20 Claude Code commands worth using.](https://reddit.com/r/ClaudeCode/comments/1t8712b/20_claude_code_commands_worth_using/) (↑623, r/ClaudeCode)
+- [Something doesn't add up...](https://reddit.com/r/ClaudeCode/comments/1t49c1p/something_doesnt_add_up/) (↑380, r/ClaudeCode)
+- [Opus 4.7: 110 threads, 2,187 comments. Unbiased analysis](https://reddit.com/r/ClaudeCode/comments/1spl706/opus_47_110_threads_2187_comments_unbiased/) (↑190, r/ClaudeCode)
+- [Anthropic shipped 4 context tools between /clear and /compact. Here's when each one wins](https://reddit.com/r/ClaudeCode/comments/1tfjhgj/anthropic_shipped_4_context_tools_between_clear/) (↑175, r/ClaudeCode)
+- [I let my interns vibe code from day one but with rules. here’s what happened after 2 months](https://reddit.com/r/ClaudeCode/comments/1sryeqw/i_let_my_interns_vibe_code_from_day_one_but_with/) (↑168, r/ClaudeCode)
+- [My opinion on Opus 4.7 after heavy use since release](https://reddit.com/r/ClaudeCode/comments/1svzil1/my_opinion_on_opus_47_after_heavy_use_since/) (↑114, r/ClaudeCode)
+- [Inherited a 3-month old repo from a Vibe Engineer. Wrote the most satisfying PR in my career](https://reddit.com/r/ClaudeCode/comments/1tb7edc/inherited_a_3month_old_repo_from_a_vibe_engineer/) (↑7055, r/ClaudeCode)
+- [OK BOYS IT'S OVER.. No Subscription required.](https://reddit.com/r/ClaudeCode/comments/1spypte/ok_boys_its_over_no_subscription_required/) (↑6142, r/ClaudeCode)
+- [Anthropic just published a postmortem explaining exactly why Claude felt dumber for the past month](https://reddit.com/r/ClaudeCode/comments/1str8gi/anthropic_just_published_a_postmortem_explaining/) (↑3329, r/ClaudeCode)
+- [Doubled Rate Limits for Claude Code](https://reddit.com/r/ClaudeCode/comments/1t5hs98/doubled_rate_limits_for_claude_code/) (↑2514, r/ClaudeCode)
+- [Hugging Face co-founder says Qwen 3.6 27B running on airplane mode is close to latest Opus in Claude Code](https://reddit.com/r/ClaudeCode/comments/1t7lgeb/hugging_face_cofounder_says_qwen_36_27b_running/) (↑2077, r/ClaudeCode)
+- [LSP integration (auto-detect + auto-install) for Codex CLI](https://github.com/openai/codex/issues/8745) (👍768)
+- [A way to exclude sensitive files](https://github.com/openai/codex/issues/2847) (👍766)
+- [Codex desktop app for Linux](https://github.com/openai/codex/issues/11023) (👍668)
+- [Please make "/undo" back](https://github.com/openai/codex/issues/9203) (👍510)
+- [Support 1M token context for GPT-5.5 in Codex](https://github.com/openai/codex/issues/19464) (👍482)
+- [Burning tokens very fast](https://github.com/openai/codex/issues/14593) (👍558)
+- [WebSocket upgrade succeeds then server closes with 1008 Policy (falls back to HTTPS)](https://github.com/openai/codex/issues/13041) (👍282)
+- [Login shells override inherited PATH in curated environments; need configurable default](https://github.com/openai/codex/issues/8922) (👍230)
+- [High GPU usage while the app is “thinking” due to tiny useless animation](https://github.com/openai/codex/issues/16857) (👍182)
+- [Search @ cannot search from directories excluded by .gitignore](https://github.com/openai/codex/issues/2952) (👍180)

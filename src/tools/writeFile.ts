@@ -3,7 +3,7 @@ import path from 'node:path';
 import { z } from 'zod';
 import { generateDiff, formatDiff } from '../core/diffPreview.js';
 import { resolveInsideWorkspace } from '../core/workspace.js';
-import type { Tool } from './types.js';
+import type { Tool, ReverseOp, ToolResult } from './types.js';
 
 const inputSchema = z
   .object({
@@ -20,6 +20,24 @@ export const writeFileTool: Tool<Input> = {
   access: 'write',
   inputSchema,
   isConcurrencySafe: () => false,
+
+  isUndoable: () => true,
+
+  reverse(input: Input, result: ToolResult): ReverseOp | undefined {
+    const existed = result.metadata?.existed === true;
+    if (existed) {
+      // File existed before — we can't restore the original content without a backup.
+      // For now, warn. In future we'll store backups.
+      return undefined;
+    }
+    // File was new — delete it
+    return {
+      toolName: 'edit_file',
+      input: { filePath: input.filePath, oldString: input.content, newString: '' },
+      description: `Undo write_file: delete newly created file "${input.filePath}"`,
+    };
+  },
+
   async run(input, context) {
     const filePath = resolveInsideWorkspace(context.cwd, input.filePath);
 
