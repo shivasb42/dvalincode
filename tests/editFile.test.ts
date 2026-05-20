@@ -24,7 +24,7 @@ function writeSync(relative: string, content: string): void {
 }
 
 beforeAll(() => {
-  tmpDir = mkdtempSync(path.join(os.tmpdir(), 'forgecode-test-'));
+  tmpDir = mkdtempSync(path.join(os.tmpdir(), 'dvalincode-test-'));
 });
 
 afterAll(async () => {

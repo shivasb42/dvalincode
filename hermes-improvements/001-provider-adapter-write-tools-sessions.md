@@ -1,4 +1,4 @@
-# ForgeCode — Phase 1 开发计划
+# DvalinCode — Phase 1 开发计划
 
 > **目标:** 从 Read-Only CLI 升级为全功能 agentic coding CLI
 > 
@@ -12,7 +12,7 @@
 
 ### Phase 1A: Provider Adapter 架构（LLM 对接能力）
 ### Phase 1B: Write Tools（write_file + edit_file + diff preview）
-### Phase 1C: Session 管理 + forgecode chat 交互模式
+### Phase 1C: Session 管理 + dvalincode chat 交互模式
 
 ---
 
@@ -227,12 +227,12 @@ export class ProviderManager {
     return [...this.providers.entries()].map(([name, adapter]) => ({ name, adapter }));
   }
 
-  /** Load from env: FORGECODE_PROVIDER, FORGECODE_API_KEY, FORGECODE_BASE_URL, FORGECODE_MODEL */
+  /** Load from env: DVALINCODE_PROVIDER, DVALINCODE_API_KEY, DVALINCODE_BASE_URL, DVALINCODE_MODEL */
   loadFromEnv(): this {
-    const providerName = process.env.FORGECODE_PROVIDER ?? 'deepseek';
-    const apiKey = process.env.FORGECODE_API_KEY;
-    const baseUrl = process.env.FORGECODE_BASE_URL;
-    const model = process.env.FORGECODE_MODEL;
+    const providerName = process.env.DVALINCODE_PROVIDER ?? 'deepseek';
+    const apiKey = process.env.DVALINCODE_API_KEY;
+    const baseUrl = process.env.DVALINCODE_BASE_URL;
+    const model = process.env.DVALINCODE_MODEL;
 
     this.addOpenAI(providerName, { apiKey, baseUrl, model });
     return this;
@@ -244,13 +244,13 @@ export class ProviderManager {
 
 ```typescript
 it('provider manager loads from env', () => {
-  process.env.FORGECODE_API_KEY = 'test-key';
-  process.env.FORGECODE_MODEL = 'test-model';
+  process.env.DVALINCODE_API_KEY = 'test-key';
+  process.env.DVALINCODE_MODEL = 'test-model';
   const mgr = new ProviderManager().loadFromEnv();
   const p = mgr.get('deepseek');
   expect(p.name).toBe('deepseek');
-  delete process.env.FORGECODE_API_KEY;
-  delete process.env.FORGECODE_MODEL;
+  delete process.env.DVALINCODE_API_KEY;
+  delete process.env.DVALINCODE_MODEL;
 });
 
 it('provider manager throws for unknown provider', () => {
@@ -397,7 +397,7 @@ describe('generateDiff', () => {
 
 describe('writeFileTool', () => {
   it('creates a new file', async () => {
-    const tmp = join(tmpdir(), `forgecode-write-${Date.now()}`);
+    const tmp = join(tmpdir(), `dvalincode-write-${Date.now()}`);
     await mkdir(tmp, { recursive: true });
     const result = await writeFileTool.run(
       { filePath: 'test.txt', content: 'hello' },
@@ -409,7 +409,7 @@ describe('writeFileTool', () => {
   });
 
   it('reports diff for existing file', async () => {
-    const tmp = join(tmpdir(), `forgecode-write-${Date.now()}`);
+    const tmp = join(tmpdir(), `dvalincode-write-${Date.now()}`);
     await mkdir(tmp, { recursive: true });
     await writeFileTool.run(
       { filePath: 'test.txt', content: 'old content' },
@@ -499,23 +499,23 @@ import { createForgeContext } from '../src/core/context.js';
 
 describe('editFileTool', () => {
   it('replaces exact text in a file', async () => {
-    const tmp = join(tmpdir(), `forgecode-edit-${Date.now()}`);
+    const tmp = join(tmpdir(), `dvalincode-edit-${Date.now()}`);
     await mkdir(tmp, { recursive: true });
     await writeFileTool.run(
       { filePath: 'greeting.txt', content: 'Hello, World!' },
       createForgeContext({ cwd: tmp }),
     );
     const result = await editFileTool.run(
-      { filePath: 'greeting.txt', oldString: 'World', newString: 'ForgeCode' },
+      { filePath: 'greeting.txt', oldString: 'World', newString: 'DvalinCode' },
       createForgeContext({ cwd: tmp }),
     );
-    expect(result.output).toContain('ForgeCode');
-    expect(await readFile(join(tmp, 'greeting.txt'), 'utf8')).toBe('Hello, ForgeCode!');
+    expect(result.output).toContain('DvalinCode');
+    expect(await readFile(join(tmp, 'greeting.txt'), 'utf8')).toBe('Hello, DvalinCode!');
     await rm(tmp, { recursive: true, force: true });
   });
 
   it('throws if oldString not found', async () => {
-    const tmp = join(tmpdir(), `forgecode-edit-${Date.now()}`);
+    const tmp = join(tmpdir(), `dvalincode-edit-${Date.now()}`);
     await mkdir(tmp, { recursive: true });
     await writeFileTool.run(
       { filePath: 'a.txt', content: 'hello' },
@@ -557,7 +557,7 @@ export function createDefaultToolRegistry(options?: { allowWrite?: boolean }): T
 
 ---
 
-## Phase 1C: Sessions + forgecode chat
+## Phase 1C: Sessions + dvalincode chat
 
 ### Task 7: Session 管理
 
@@ -585,7 +585,7 @@ export type Session = {
 };
 
 function sessionDir(): string {
-  return path.join(homedir(), '.forgecode', 'sessions');
+  return path.join(homedir(), '.dvalincode', 'sessions');
 }
 
 export async function listSessions(): Promise<Session[]> {
@@ -626,7 +626,7 @@ export async function deleteSession(id: string): Promise<void> {
 }
 
 export function createSession(cwd: string, goal?: string): Session {
-  const id = `fc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const id = `dc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const now = new Date().toISOString();
   return { id, createdAt: now, updatedAt: now, cwd, goal, messages: [] };
 }
@@ -675,9 +675,9 @@ describe('session store', () => {
 
 ---
 
-### Task 8: forgecode chat 命令
+### Task 8: dvalincode chat 命令
 
-**Objective:** `forgecode chat "你的需求"` — 整合 scanner + provider + tools 的交互模式
+**Objective:** `dvalincode chat "你的需求"` — 整合 scanner + provider + tools 的交互模式
 
 **Files:**
 - Create: `src/commands/chat.ts`
@@ -722,7 +722,7 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
 
       // Build system prompt from context
       const systemPrompt = [
-        'You are ForgeCode, a local-first coding assistant.',
+        'You are DvalinCode, a local-first coding assistant.',
         '',
         'Workspace context:',
         `- Path: ${summary.root}`,
@@ -767,9 +767,9 @@ registerChatCommand(program, registry);
 
 ---
 
-### Task 9: forgecode init 命令（配置生成器）
+### Task 9: dvalincode init 命令（配置生成器）
 
-**Objective:** `forgecode init` — 创建 `.forgecode.json` 配置文件
+**Objective:** `dvalincode init` — 创建 `.dvalincode.json` 配置文件
 
 **Files:**
 - Create: `src/commands/init.ts`
@@ -785,14 +785,14 @@ import type { Command } from 'commander';
 export function registerInitCommand(program: Command): void {
   program
     .command('init')
-    .description('Initialize forgecode configuration in this workspace')
+    .description('Initialize dvalincode configuration in this workspace')
     .action(async () => {
-      const configPath = path.resolve(process.cwd(), '.forgecode.json');
+      const configPath = path.resolve(process.cwd(), '.dvalincode.json');
       const config = {
-        provider: process.env.FORGECODE_PROVIDER ?? 'deepseek',
-        model: process.env.FORGECODE_MODEL ?? 'deepseek-chat',
+        provider: process.env.DVALINCODE_PROVIDER ?? 'deepseek',
+        model: process.env.DVALINCODE_MODEL ?? 'deepseek-chat',
         systemPrompt: [
-          'You are ForgeCode, a local-first coding assistant.',
+          'You are DvalinCode, a local-first coding assistant.',
           'Prefer reading before writing.',
           'Always generate diff previews before changes.',
           'Write clean, minimal code (Karpathy principles).',
@@ -817,8 +817,8 @@ import { Command } from 'commander';
 import { registerInitCommand } from '../src/commands/init.js';
 
 describe('init command', () => {
-  it('creates .forgecode.json in cwd', async () => {
-    const tmp = join(tmpdir(), `forgecode-init-${Date.now()}`);
+  it('creates .dvalincode.json in cwd', async () => {
+    const tmp = join(tmpdir(), `dvalincode-init-${Date.now()}`);
     await import('node:fs/promises').then(m => m.mkdir(tmp, { recursive: true }));
     const originalCwd = process.cwd;
     process.cwd = () => tmp;
@@ -828,7 +828,7 @@ describe('init command', () => {
       // Run the action directly
       const cmd = program.commands.find(c => c.name() === 'init')!;
       await cmd.parseAsync(['init'], { from: 'user' });
-      const content = await readFile(join(tmp, '.forgecode.json'), 'utf8');
+      const content = await readFile(join(tmp, '.dvalincode.json'), 'utf8');
       expect(content).toContain('"provider"');
     } finally {
       process.cwd = originalCwd;
@@ -851,5 +851,5 @@ describe('init command', () => {
 | 1B-5 | editFile 工具 | `src/tools/editFile.ts` | `tests/editFile.test.ts` |
 | 1B-6 | Registry 注册 | `src/tools/registry.ts`（修改） | 已有测试自动覆盖 |
 | 1C-7 | Session 存储 | `src/sessions/store.ts` | `tests/sessions.test.ts` |
-| 1C-8 | forgecode chat 命令 | `src/commands/chat.ts`, `src/cli.ts`（修改） | 手动验证 |
-| 1C-9 | forgecode init 命令 | `src/commands/init.ts`, `src/cli.ts`（修改） | `tests/init.test.ts` |
+| 1C-8 | dvalincode chat 命令 | `src/commands/chat.ts`, `src/cli.ts`（修改） | 手动验证 |
+| 1C-9 | dvalincode init 命令 | `src/commands/init.ts`, `src/cli.ts`（修改） | `tests/init.test.ts` |

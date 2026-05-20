@@ -26,12 +26,12 @@ export class ProviderManager {
     return [...this.providers.entries()].map(([name, adapter]) => ({ name, adapter }));
   }
 
-  /** Load from env: FORGECODE_PROVIDER, FORGECODE_API_KEY, FORGECODE_BASE_URL, FORGECODE_MODEL */
+  /** Load from env: DVALINCODE_PROVIDER, DVALINCODE_API_KEY, DVALINCODE_BASE_URL, DVALINCODE_MODEL */
   loadFromEnv(): this {
-    const providerName = process.env.FORGECODE_PROVIDER ?? 'deepseek';
-    const apiKey = process.env.FORGECODE_API_KEY;
-    const baseUrl = process.env.FORGECODE_BASE_URL;
-    const model = process.env.FORGECODE_MODEL;
+    const providerName = process.env.DVALINCODE_PROVIDER ?? 'deepseek';
+    const apiKey = process.env.DVALINCODE_API_KEY;
+    const baseUrl = process.env.DVALINCODE_BASE_URL;
+    const model = process.env.DVALINCODE_MODEL;
 
     this.addOpenAI(providerName, { apiKey, baseUrl, model });
     return this;

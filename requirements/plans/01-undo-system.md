@@ -1,7 +1,7 @@
 # Plan: Undo/Rollback System
 
 ## Goal
-Add `/undo` support to `forgecode chat` so users can revert the last tool action.
+Add `/undo` support to `dvalincode chat` so users can revert the last tool action.
 
 ## Why P1?
 - Score: 13.3 (highest in backlog)
@@ -38,7 +38,7 @@ interface Tool<Input> {
 | shell | Conditional | Warn: "Shell command executed. Undo may not fully reverse side effects." |
 
 ### CLI Integration
-- In `forgecode chat`: type `/undo` to revert the last tool call
+- In `dvalincode chat`: type `/undo` to revert the last tool call
 - Type `/undo 3` to revert the last 3 tool calls
 - Each undo is logged as a tool_result message in the session
 - Undo state only persists across a session (not across sessions)

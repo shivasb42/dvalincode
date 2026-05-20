@@ -50,7 +50,7 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
         : '';
 
       const systemPrompt = [
-        'You are ForgeCode, an AI coding assistant embedded in a CLI tool.',
+        'You are DvalinCode, an AI coding assistant embedded in a CLI tool.',
         'The user is working on the following project. You can inspect files, run commands, and make changes.',
         '',
         `Project root: ${summary.root}`,

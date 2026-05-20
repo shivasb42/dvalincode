@@ -1,6 +1,6 @@
 # Security Policy
 
-ForgeCode is early-stage software for local developer workflows.
+DvalinCode is early-stage software for local developer workflows.
 
 ## Reporting
 

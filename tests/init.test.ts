@@ -15,8 +15,8 @@ afterAll(async () => {
 });
 
 describe('init command', () => {
-  it('creates .forgecode.json with default config', async () => {
-    tmpDir = mkdtempSync(path.join(os.tmpdir(), 'forgecode-test-init-'));
+  it('creates .dvalincode.json with default config', async () => {
+    tmpDir = mkdtempSync(path.join(os.tmpdir(), 'dvalincode-test-init-'));
 
     // Override process.cwd to return our temp directory
     const originalCwd = process.cwd;
@@ -31,9 +31,9 @@ describe('init command', () => {
     try {
       const program = new Command();
       registerInitCommand(program);
-      await program.parseAsync(['node', 'forgecode', 'init']);
+      await program.parseAsync(['node', 'dvalincode', 'init']);
 
-      const configPath = path.join(tmpDir, '.forgecode.json');
+      const configPath = path.join(tmpDir, '.dvalincode.json');
       const content = await readFile(configPath, 'utf-8');
       const config = JSON.parse(content);
 
@@ -45,7 +45,7 @@ describe('init command', () => {
       expect(typeof config.systemPrompt).toBe('string');
 
       expect(logs.length).toBeGreaterThan(0);
-      expect(logs[0]).toContain('.forgecode.json');
+      expect(logs[0]).toContain('.dvalincode.json');
     } finally {
       process.cwd = originalCwd;
       console.log = originalLog;
@@ -53,22 +53,22 @@ describe('init command', () => {
   });
 
   it('reads provider and model from env vars', async () => {
-    const envDir = mkdtempSync(path.join(os.tmpdir(), 'forgecode-test-init-env-'));
+    const envDir = mkdtempSync(path.join(os.tmpdir(), 'dvalincode-test-init-env-'));
 
     const originalCwd = process.cwd;
-    const originalEnvProvider = process.env.FORGECODE_PROVIDER;
-    const originalEnvModel = process.env.FORGECODE_MODEL;
+    const originalEnvProvider = process.env.DVALINCODE_PROVIDER;
+    const originalEnvModel = process.env.DVALINCODE_MODEL;
     const cwdMock = vi.fn(() => envDir);
     process.cwd = cwdMock as typeof process.cwd;
-    process.env.FORGECODE_PROVIDER = 'openai';
-    process.env.FORGECODE_MODEL = 'gpt-4o';
+    process.env.DVALINCODE_PROVIDER = 'openai';
+    process.env.DVALINCODE_MODEL = 'gpt-4o';
 
     try {
       const program = new Command();
       registerInitCommand(program);
-      await program.parseAsync(['node', 'forgecode', 'init']);
+      await program.parseAsync(['node', 'dvalincode', 'init']);
 
-      const configPath = path.join(envDir, '.forgecode.json');
+      const configPath = path.join(envDir, '.dvalincode.json');
       const content = await readFile(configPath, 'utf-8');
       const config = JSON.parse(content);
 
@@ -76,8 +76,8 @@ describe('init command', () => {
       expect(config.model).toBe('gpt-4o');
     } finally {
       process.cwd = originalCwd;
-      process.env.FORGECODE_PROVIDER = originalEnvProvider;
-      process.env.FORGECODE_MODEL = originalEnvModel;
+      process.env.DVALINCODE_PROVIDER = originalEnvProvider;
+      process.env.DVALINCODE_MODEL = originalEnvModel;
       await rm(envDir, { recursive: true, force: true });
     }
   });

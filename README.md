@@ -1,10 +1,10 @@
-# ForgeCode
+# DvalinCode
 
 > A local-first, provider-neutral CLI foundation for agentic coding workflows.
 
-ForgeCode is an original implementation of a terminal-based coding agent. It combines a state‑machine agent loop, a typed tool system, and a provider‑neutral LLM adapter into a single, zero‑runtime‑dependency TypeScript CLI.
+DvalinCode is an original implementation of a terminal-based coding agent. It combines a state‑machine agent loop, a typed tool system, and a provider‑neutral LLM adapter into a single, zero‑runtime‑dependency TypeScript CLI.
 
-**Design philosophy:** Read the [architecture diagram](./forgecode-architecture.html) for the big picture.
+**Design philosophy:** Read the [architecture diagram](./dvalincode-architecture.html) for the big picture.
 
 ---
 
@@ -35,19 +35,19 @@ npm start -- chat "show me the test coverage"
 
 | Command | Description |
 |---------|-------------|
-| `forgecode chat <message...>` | Chat with the AI agent. Runs the full AgentLoop state machine — autoloads sessions, calls tools, saves history. |
-| `forgecode ask <goal>` | Generate a local execution brief for a coding goal using the current workspace summary. |
-| `forgecode scan [path]` | Summarize a workspace: file count, package-manager signals, top extensions, and key directories. |
-| `forgecode tools` | List all registered tools and their permission levels. |
-| `forgecode run-tool <name> -i '<json>'` | Run a registered tool directly with JSON input. |
-| `forgecode init` | Create a `.forgecode.json` config file from env vars. |
+| `dvalincode chat <message...>` | Chat with the AI agent. Runs the full AgentLoop state machine — autoloads sessions, calls tools, saves history. |
+| `dvalincode ask <goal>` | Generate a local execution brief for a coding goal using the current workspace summary. |
+| `dvalincode scan [path]` | Summarize a workspace: file count, package-manager signals, top extensions, and key directories. |
+| `dvalincode tools` | List all registered tools and their permission levels. |
+| `dvalincode run-tool <name> -i '<json>'` | Run a registered tool directly with JSON input. |
+| `dvalincode init` | Create a `.dvalincode.json` config file from env vars. |
 
 ### Chat Command Options
 
 ```
-forgecode chat "refactor the module"                  # New session
-forgecode chat --session fc_123456 "continue this"    # Resume session
-forgecode chat --model deepseek-chat "analyze this"   # Override model
+dvalincode chat "refactor the module"                  # New session
+dvalincode chat --session dc_123456 "continue this"    # Resume session
+dvalincode chat --model deepseek-chat "analyze this"   # Override model
 ```
 
 ---
@@ -57,7 +57,7 @@ forgecode chat --model deepseek-chat "analyze this"   # Override model
 ```
 ┌─────────────────────────────────────────────┐
 │             CLI Layer (commander.js)         │
-│  forgecode → chat · ask · scan · tools etc  │
+│  dvalincode → chat · ask · scan · tools etc  │
 └────────────────────┬────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────┐
@@ -80,13 +80,13 @@ forgecode chat --model deepseek-chat "analyze this"   # Override model
 └─────────────────────────────────────────────┘
 ```
 
-View the full interactive [architecture diagram](./forgecode-architecture.html) (dark‑themed SVG, open in browser).
+View the full interactive [architecture diagram](./dvalincode-architecture.html) (dark‑themed SVG, open in browser).
 
 ---
 
 ## Agent Engine
 
-ForgeCode's agent is built on two core components:
+DvalinCode's agent is built on two core components:
 
 ### AgentLoop — 8‑State State Machine
 
@@ -96,12 +96,12 @@ Each turn processes a user message through these states:
 RESTORE → COMPACT → COMMAND → BUILD → RUN → SAVE → RESPOND → DONE
 ```
 
-1. **RESTORE** — Load or restore session from `~/.forgecode/sessions/`
+1. **RESTORE** — Load or restore session from `~/.dvalincode/sessions/`
 2. **COMPACT** — If context is near the token limit, compress history
 3. **COMMAND** — Handle built‑in slash commands (`/compact`, `/retry`)
 4. **BUILD** — Construct the system prompt with workspace context + tool descriptions
 5. **RUN** — Delegate to `AgentRunner` for the LLM tool‑calling loop
-6. **SAVE** — Persist session to disk (`~/.forgecode/sessions/*.json`)
+6. **SAVE** — Persist session to disk (`~/.dvalincode/sessions/*.json`)
 7. **RESPOND** — Generate session summary for cross‑session memory
 8. **DONE** — Turn complete
 
@@ -144,31 +144,31 @@ All tools are registered centrally in `ToolRegistry` and permission‑gated via 
 
 ## Provider Layer
 
-ForgeCode is **provider‑neutral**. By default it uses:
+DvalinCode is **provider‑neutral**. By default it uses:
 
 ```
-FORGECODE_API_KEY      # API key
-FORGECODE_BASE_URL     # Base URL (default: https://api.openai.com/v1)
-FORGECODE_MODEL        # Model name (default: gpt-4o)
-FORGECODE_PROVIDER     # Provider name (default: deepseek)
+DVALINCODE_API_KEY      # API key
+DVALINCODE_BASE_URL     # Base URL (default: https://api.openai.com/v1)
+DVALINCODE_MODEL        # Model name (default: gpt-4o)
+DVALINCODE_PROVIDER     # Provider name (default: deepseek)
 ```
 
 ### Example configurations
 
 **DeepSeek (default):**
 ```
-FORGECODE_PROVIDER=deepseek
-FORGECODE_API_KEY=sk-...
-FORGECODE_BASE_URL=https://api.deepseek.com/v1
-FORGECODE_MODEL=deepseek-chat
+DVALINCODE_PROVIDER=deepseek
+DVALINCODE_API_KEY=sk-...
+DVALINCODE_BASE_URL=https://api.deepseek.com/v1
+DVALINCODE_MODEL=deepseek-chat
 ```
 
 **OpenAI:**
 ```
-FORGECODE_PROVIDER=openai
-FORGECODE_API_KEY=sk-...
-FORGECODE_BASE_URL=https://api.openai.com/v1
-FORGECODE_MODEL=gpt-4o
+DVALINCODE_PROVIDER=openai
+DVALINCODE_API_KEY=sk-...
+DVALINCODE_BASE_URL=https://api.openai.com/v1
+DVALINCODE_MODEL=gpt-4o
 ```
 
 The `ProviderAdapter` interface makes adding new providers straightforward — implement `chat()`, register with `ProviderManager`.
@@ -177,7 +177,7 @@ The `ProviderAdapter` interface makes adding new providers straightforward — i
 
 ## Session Persistence
 
-Every chat session is saved to `~/.forgecode/sessions/` as a JSON file. Sessions track:
+Every chat session is saved to `~/.dvalincode/sessions/` as a JSON file. Sessions track:
 
 - Full message history
 - Workspace context
@@ -185,7 +185,7 @@ Every chat session is saved to `~/.forgecode/sessions/` as a JSON file. Sessions
 
 Resume a session:
 ```sh
-forgecode chat --session fc_1745606400_abc123 "continue the refactor"
+dvalincode chat --session dc_1745606400_abc123 "continue the refactor"
 ```
 
 ---
@@ -214,10 +214,10 @@ Current status: **42 tests · 8 files · all green**
 
 ### Real‑world Integration Test
 
-ForgeCode has been tested end‑to‑end against the DeepSeek API with a real tool‑calling conversation:
+DvalinCode has been tested end‑to‑end against the DeepSeek API with a real tool‑calling conversation:
 
 ```
-$ forgecode chat "list all TypeScript files in the project, organized by directory"
+$ dvalincode chat "list all TypeScript files in the project, organized by directory"
 
 项目中共有 30 个 TypeScript 文件，按目录分组如下：
 
@@ -264,7 +264,7 @@ src/
 ├── index.ts             — 导出入口
 └── cli.ts               — CLI 入口与命令注册
 
---- Session: fc_1745606500_abc123 | (2 iterations) | Model: deepseek ---
+--- Session: dc_1745606500_abc123 | (2 iterations) | Model: deepseek ---
 ```
 
 The agent successfully:
@@ -276,7 +276,7 @@ The agent successfully:
 
 ## Project Status
 
-ForgeCode is in active development. Current features are stable and tested.
+DvalinCode is in active development. Current features are stable and tested.
 
 | Feature | Status |
 |---------|--------|
@@ -302,17 +302,17 @@ ForgeCode is in active development. Current features are stable and tested.
 Near‑term work:
 
 - Terminal UI with streaming output and progress indicators
-- Plugin tool loading (user‑defined tools from `~/.forgecode/tools/`)
+- Plugin tool loading (user‑defined tools from `~/.dvalincode/tools/`)
 - Context compression (smart token budget management)
 - Parallel tool execution
-- Initialization wizard (`forgecode init --interactive`)
+- Initialization wizard (`dvalincode init --interactive`)
 - Anthropic provider adapter
 
 ---
 
 ## Independence & Attribution
 
-ForgeCode is **not affiliated** with Anthropic, Claude, or Claude Code.
+DvalinCode is **not affiliated** with Anthropic, Claude, or Claude Code.
 
 The design process included studying common patterns in modern terminal coding assistants for architectural learning. The implementation is intentionally original — it uses its own naming, UI language, state machine design, and module structure. No source code, prompts, or UI text from other projects is copied.
 

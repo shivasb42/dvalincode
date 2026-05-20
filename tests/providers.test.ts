@@ -45,15 +45,15 @@ describe('ProviderAdapter interface', () => {
 
 describe('ProviderManager', () => {
   afterEach(() => {
-    delete process.env.FORGECODE_PROVIDER;
-    delete process.env.FORGECODE_API_KEY;
-    delete process.env.FORGECODE_BASE_URL;
-    delete process.env.FORGECODE_MODEL;
+    delete process.env.DVALINCODE_PROVIDER;
+    delete process.env.DVALINCODE_API_KEY;
+    delete process.env.DVALINCODE_BASE_URL;
+    delete process.env.DVALINCODE_MODEL;
   });
 
   it('provider manager loads from env', () => {
-    process.env.FORGECODE_API_KEY = 'sk-test-key';
-    process.env.FORGECODE_MODEL = 'deepseek-chat';
+    process.env.DVALINCODE_API_KEY = 'sk-test-key';
+    process.env.DVALINCODE_MODEL = 'deepseek-chat';
 
     const mgr = new ProviderManager().loadFromEnv();
     const provider = mgr.get('deepseek');

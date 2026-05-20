@@ -8,7 +8,7 @@ import type { ChatMessage } from '../src/providers/types.js';
 let tmpHome: string;
 
 beforeAll(() => {
-  tmpHome = mkdtempSync(path.join(os.tmpdir(), 'forgecode-test-sessions-'));
+  tmpHome = mkdtempSync(path.join(os.tmpdir(), 'dvalincode-test-sessions-'));
 });
 
 // Mock node:os so that homedir() points to our temp directory
@@ -36,7 +36,7 @@ import {
 describe('createSession', () => {
   it('creates a session with proper ID format', () => {
     const session = createSession('/some/cwd');
-    expect(session.id).toMatch(/^fc_\d+_[a-z0-9]{6}$/);
+    expect(session.id).toMatch(/^dc_\d+_[a-z0-9]{6}$/);
     expect(session.cwd).toBe('/some/cwd');
     expect(session.goal).toBeUndefined();
     expect(session.messages).toEqual([]);
@@ -54,7 +54,7 @@ describe('createSession', () => {
 describe('saveSession and loadSession', () => {
   it('saves and loads a session', async () => {
     const original: Session = {
-      id: 'fc_test_save_load',
+      id: 'dc_test_save_load',
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
       cwd: '/tmp',
@@ -66,7 +66,7 @@ describe('saveSession and loadSession', () => {
     await saveSession(original);
     const loaded = await loadSession(original.id);
     expect(loaded).not.toBeNull();
-    expect(loaded?.id).toBe('fc_test_save_load');
+    expect(loaded?.id).toBe('dc_test_save_load');
     expect(loaded?.cwd).toBe('/tmp');
     expect(loaded?.messages).toHaveLength(1);
     expect(loaded?.messages[0]?.content).toBe('hello');
@@ -80,7 +80,7 @@ describe('saveSession and loadSession', () => {
   it('persists the file on disk', async () => {
     const session = createSession('/test');
     await saveSession(session);
-    const dir = path.join(tmpHome, '.forgecode', 'sessions');
+    const dir = path.join(tmpHome, '.dvalincode', 'sessions');
     const content = await readFile(path.join(dir, `${session.id}.json`), 'utf-8');
     const parsed = JSON.parse(content);
     expect(parsed.id).toBe(session.id);
@@ -114,7 +114,7 @@ describe('listSessions', () => {
     const { writeFile, readFile } = await import('node:fs/promises');
     const { join } = await import('node:path');
     const { homedir } = await import('node:os');
-    const dir = join(homedir(), '.forgecode', 'sessions');
+    const dir = join(homedir(), '.dvalincode', 'sessions');
     await writeFile(join(dir, `${s1.id}.json`), JSON.stringify(s1));
     await writeFile(join(dir, `${s2.id}.json`), JSON.stringify(s2));
     await writeFile(join(dir, `${s3.id}.json`), JSON.stringify(s3));

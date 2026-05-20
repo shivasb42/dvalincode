@@ -1,11 +1,11 @@
 {
-  "name": "forgecode",
+  "name": "dvalincode",
   "version": "0.1.0",
   "description": "A local-first, provider-neutral CLI foundation for agentic coding workflows.",
   "type": "module",
   "license": "MIT",
   "bin": {
-    "forgecode": "./dist/index.js"
+    "dvalincode": "./dist/index.js"
   },
   "files": [
     "dist",

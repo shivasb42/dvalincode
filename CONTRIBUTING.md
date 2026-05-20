@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve ForgeCode.
+Thanks for helping improve DvalinCode.
 
 ## Development
 

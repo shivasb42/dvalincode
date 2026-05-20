@@ -12,7 +12,7 @@ export function buildProgram(): Command {
   const registry = createDefaultToolRegistry();
 
   program
-    .name('forgecode')
+    .name('dvalincode')
     .description('Local-first CLI foundation for agentic coding workflows')
     .version('0.1.0');
 

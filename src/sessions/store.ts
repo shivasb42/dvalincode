@@ -18,7 +18,7 @@ export type Session = {
 const STORE_VERSION = 2;
 
 function sessionDir(): string {
-  return path.join(homedir(), '.forgecode', 'sessions');
+  return path.join(homedir(), '.dvalincode', 'sessions');
 }
 
 export async function ensureSessionDir(): Promise<string> {
@@ -28,7 +28,7 @@ export async function ensureSessionDir(): Promise<string> {
 }
 
 export function createSession(cwd: string, goal?: string): Session {
-  const id = `fc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const id = `dc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const now = new Date().toISOString();
   return {
     id,

@@ -6,7 +6,7 @@ import { scanProject } from '../src/core/projectScanner.js';
 
 describe('scanProject', () => {
   it('detects TypeScript Node projects', async () => {
-    const root = join(tmpdir(), `forgecode-scan-${Date.now()}`);
+    const root = join(tmpdir(), `dvalincode-scan-${Date.now()}`);
     await mkdir(join(root, 'src'), { recursive: true });
     await writeFile(join(root, 'package.json'), JSON.stringify({ devDependencies: { typescript: '^5.0.0' } }));
     await writeFile(join(root, 'tsconfig.json'), '{}');

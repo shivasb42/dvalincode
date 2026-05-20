@@ -1,6 +1,6 @@
-# ForgeCode Design
+# DvalinCode Design
 
-ForgeCode is a small, original CLI foundation for agentic coding workflows.
+DvalinCode is a small, original CLI foundation for agentic coding workflows.
 
 ## Goals
 
@@ -19,7 +19,7 @@ ForgeCode is a small, original CLI foundation for agentic coding workflows.
 
 ## User-Facing Behavior
 
-ForgeCode starts as a normal CLI with subcommands:
+DvalinCode starts as a normal CLI with subcommands:
 
 - `scan` summarizes a project.
 - `tools` lists available capabilities.

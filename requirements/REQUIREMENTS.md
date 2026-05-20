@@ -1,4 +1,4 @@
-# ForgeCode Requirements
+# DvalinCode Requirements
 
 > Auto-generated from community intelligence pipeline.
 > Last updated: 2026-05-20
@@ -32,8 +32,8 @@ Every feature is scored on 5 dimensions (1-5):
 
 #### 1. Undo/Rollback Command (Score: 13.3)
 - **Signal**: Codex CLI users: "/undo" needs to come back (↑510). Claude Code users: destructive changes without review.
-- **What to build**: `forgecode chat` should support `/undo` — revert the last tool action. Keep a stack of tool results with reverse operations.
-- **ForgeCode advantage**: Since we have typed tools with known schemas, we can compute reverse operations:
+- **What to build**: `dvalincode chat` should support `/undo` — revert the last tool action. Keep a stack of tool results with reverse operations.
+- **DvalinCode advantage**: Since we have typed tools with known schemas, we can compute reverse operations:
 
 ```
 /edit_file "src/main.ts" old:"a()" new:"b()"  →  /undo  →  edit back old:"b()" new:"a()"
@@ -59,12 +59,12 @@ Every feature is scored on 5 dimensions (1-5):
 
 #### 4. Session Lifecycle Management (Score: 6.0)
 - **Signal**: Context management tools confusion (↑175), losing work, session fragmentation.
-- **What to build**: `forgecode sessions list`, `forgecode sessions delete`, `forgecode chat --resume` with interactive session picker. Show last N sessions on `forgecode chat` startup.
+- **What to build**: `dvalincode sessions list`, `dvalincode sessions delete`, `dvalincode chat --resume` with interactive session picker. Show last N sessions on `dvalincode chat` startup.
 - **Already partially done**: Sessions store exists (save/load/list/delete). Need CLI commands + better UX.
 
 #### 5. Approval Gates / Guardrails (Score: 4.8 / 3.8)
 - **Signal**: Vibe coding quality issues (↑7046), destructive changes without review (cross-source).
-- **What to build**: Pre-commit review mode: agent makes changes in a draft branch, user approves per-file before apply. Also: `.forgecodeignore` file for excluding sensitive paths.
+- **What to build**: Pre-commit review mode: agent makes changes in a draft branch, user approves per-file before apply. Also: `.dvalincodeignore` file for excluding sensitive paths.
 - **Already partially done**: Permission system exists (read/write/execute). Need ignore-file and review mode.
 
 #### 6. LSP Integration / Code Intelligence (Score: 4.5)
@@ -74,7 +74,7 @@ Every feature is scored on 5 dimensions (1-5):
 
 #### 7. Sensitive File Exclusion (Score: 3.8)
 - **Signal**: "A way to exclude sensitive files" (↑766).
-- **What to build**: `.forgecodeignore` file (like `.gitignore`) that the tool system respects globally. Agent cannot read/write ignored files.
+- **What to build**: `.dvalincodeignore` file (like `.gitignore`) that the tool system respects globally. Agent cannot read/write ignored files.
 
 #### 8. Large Context Support (Score: 3.3)
 - **Signal**: 1M token context request (↑482).
@@ -86,12 +86,12 @@ Every feature is scored on 5 dimensions (1-5):
 
 | Score | Requirement | Note |
 |-------|-------------|------|
-| 2.9 | Rate limit awareness | Informational (provider-side, not ForgeCode's problem to solve) |
+| 2.9 | Rate limit awareness | Informational (provider-side, not DvalinCode's problem to solve) |
 | 2.2 | .gitignore-aware search | Already partially implemented (read tool skips node_modules) |
 | 2.2 | Model comparison/benchmarks | Informational, out of scope for a coding agent |
 | 2.2 | Local model (Ollama) support | ProviderAdapter already supports this — docs gap only |
 | 2.2 | Context management UX | Session management (P2 above) covers most of this |
-| 1.2 | Command discoverability | `forgecode --help` already works, could be richer |
+| 1.2 | Command discoverability | `dvalincode --help` already works, could be richer |
 | 1.1 | Shell ENV management | Edge case, low demand |
 | 0.2 | Desktop app | Irrelevant for CLI tool |
 
