@@ -100,14 +100,24 @@ describe('listSessions', () => {
     const s2 = createSession('/b');
     const s3 = createSession('/c');
 
-    // Manually set updatedAt to control ordering
+    // Save all three first (saveSession sets updatedAt)
+    await saveSession(s1);
+    await saveSession(s2);
+    await saveSession(s3);
+
+    // Now manually set updatedAt to control ordering, then re-save
     s1.updatedAt = '2026-03-01T00:00:00.000Z';
     s2.updatedAt = '2026-02-01T00:00:00.000Z';
     s3.updatedAt = '2026-01-01T00:00:00.000Z';
 
-    await saveSession(s1);
-    await saveSession(s2);
-    await saveSession(s3);
+    // Write directly to disk to bypass saveSession's auto-update
+    const { writeFile, readFile } = await import('node:fs/promises');
+    const { join } = await import('node:path');
+    const { homedir } = await import('node:os');
+    const dir = join(homedir(), '.forgecode', 'sessions');
+    await writeFile(join(dir, `${s1.id}.json`), JSON.stringify(s1));
+    await writeFile(join(dir, `${s2.id}.json`), JSON.stringify(s2));
+    await writeFile(join(dir, `${s3.id}.json`), JSON.stringify(s3));
 
     const sessions = await listSessions();
     // Find our test sessions in the list

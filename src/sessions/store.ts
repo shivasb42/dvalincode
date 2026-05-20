@@ -1,5 +1,5 @@
 import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
-import path from 'node:path';
+import * as path from 'node:path';
 import { homedir } from 'node:os';
 import type { ChatMessage } from '../providers/types.js';
 
@@ -10,8 +10,12 @@ export type Session = {
   cwd: string;
   goal?: string;
   messages: ChatMessage[];
+  /** Short summary of the session, generated after each turn */
+  summary?: string;
   metadata?: Record<string, unknown>;
 };
+
+const STORE_VERSION = 2;
 
 function sessionDir(): string {
   return path.join(homedir(), '.forgecode', 'sessions');
@@ -37,6 +41,7 @@ export function createSession(cwd: string, goal?: string): Session {
 }
 
 export async function saveSession(session: Session): Promise<void> {
+  session.updatedAt = new Date().toISOString();
   const dir = await ensureSessionDir();
   const filePath = path.join(dir, `${session.id}.json`);
   await writeFile(filePath, JSON.stringify(session, null, 2), 'utf-8');
@@ -68,11 +73,9 @@ export async function listSessions(): Promise<Session[]> {
       const data = await readFile(path.join(dir, file), 'utf-8');
       sessions.push(JSON.parse(data) as Session);
     } catch {
-      // Skip corrupt session files
       continue;
     }
   }
-  // Sort by updatedAt descending (most recent first)
   sessions.sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
   );
@@ -83,4 +86,38 @@ export async function deleteSession(id: string): Promise<void> {
   const dir = sessionDir();
   const filePath = path.join(dir, `${id}.json`);
   await rm(filePath, { force: true });
+}
+
+/**
+ * Generate a short summary of the session's latest turn for cross-session memory.
+ * Uses the last assistant response and user message.
+ */
+export function summarizeSession(session: Session): string {
+  const recent = session.messages.slice(-4);
+  const userMsgs = recent.filter(m => m.role === 'user').slice(-2);
+  const assistantMsgs = recent.filter(m => m.role === 'assistant').slice(-2);
+  const toolMsgs = recent.filter(m => m.role === 'tool').slice(-2);
+
+  const parts: string[] = [];
+  if (userMsgs.length > 0) {
+    parts.push(`User wanted: ${truncate(userMsgs[userMsgs.length - 1].content, 120)}`);
+  }
+  if (assistantMsgs.length > 0) {
+    parts.push(`Assistant: ${truncate(assistantMsgs[assistantMsgs.length - 1].content, 200)}`);
+  }
+  if (toolMsgs.length > 0) {
+    const tools = toolMsgs
+      .map(m => m.content.match(/\[Tool (\w+) result\]/)?.[1])
+      .filter(Boolean);
+    if (tools.length > 0) {
+      parts.push(`Tools used: ${tools.join(', ')}`);
+    }
+  }
+
+  return parts.join(' | ');
+}
+
+function truncate(s: string, max: number): string {
+  if (s.length <= max) return s;
+  return s.slice(0, max) + '…';
 }

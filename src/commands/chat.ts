@@ -2,7 +2,9 @@ import type { Command } from 'commander';
 import type { ToolRegistry } from '../tools/registry.js';
 import { ProviderManager } from '../providers/manager.js';
 import { scanProject } from '../core/projectScanner.js';
-import { createSession, saveSession, loadSession } from '../sessions/store.js';
+import { AgentLoop } from '../agent/loop.js';
+import { createForgeContext } from '../core/context.js';
+import { createSession, saveSession, loadSession, summarizeSession } from '../sessions/store.js';
 
 export function registerChatCommand(program: Command, registry: ToolRegistry): void {
   program
@@ -14,7 +16,7 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
     .option('--model <name>', 'model name')
     .action(async (messageParts: string[], options: { session?: string; provider: string; model?: string }) => {
       const message = messageParts.join(' ');
-      const providerName = options.provider;
+      const cwd = process.cwd();
 
       // Load or create session
       let session;
@@ -26,15 +28,15 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
         }
         session = loaded;
       } else {
-        session = createSession(process.cwd());
+        session = createSession(cwd);
       }
 
       // Set up provider
       const manager = new ProviderManager().loadFromEnv();
-      const provider = manager.get(providerName);
+      const provider = manager.get(options.provider);
 
       // Scan workspace for context
-      const summary = await scanProject(process.cwd());
+      const summary = await scanProject(cwd);
 
       // Build available tools description
       const tools = registry.list();
@@ -42,7 +44,11 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
         .map((t) => `- ${t.name}: ${t.description} (access: ${t.access})`)
         .join('\n');
 
-      // Build system prompt
+      // Build system prompt — include session summary if available for cross-session memory
+      const sessionContext = session.summary
+        ? `\nPrevious session summary: ${session.summary}\n`
+        : '';
+
       const systemPrompt = [
         'You are an AI coding assistant. The user is working on the following project:',
         '',
@@ -52,34 +58,50 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
         `Directories: ${summary.directories.join(', ')}`,
         summary.signals.length > 0 ? `Signals: ${summary.signals.join(', ')}` : '',
         summary.packageManagers.length > 0 ? `Package manager(s): ${summary.packageManagers.join(', ')}` : '',
-        '',
+        sessionContext,
         'Available tools:',
         toolsDesc,
         '',
+        'To use a tool, include @tool(name, {...}) in your response.',
         'Use these tools when appropriate to help the user.',
       ]
         .filter(Boolean)
         .join('\n');
 
-      // Add user message to session
-      session.messages.push({ role: 'user', content: message });
-
-      // Call provider
-      const response = await provider.chat({
-        system: systemPrompt,
-        messages: session.messages,
+      // Create agent loop
+      const loop = new AgentLoop({
+        provider,
+        registry,
+        context: createForgeContext({
+          cwd,
+          // Aggressive: allow execute by default, but user can change via config later
+          allowWrite: true,
+          allowExecute: true,
+        }),
+        systemPrompt,
       });
 
-      // Add response to session
-      session.messages.push({ role: 'assistant', content: response.content });
+      // Process message through the state machine
+      const result = await loop.processMessage(message, session.messages);
+
+      // Update session with new messages
+      session.messages = result.messages;
       session.updatedAt = new Date().toISOString();
+
+      // Generate and save session summary for cross-session memory
+      session.summary = summarizeSession(session);
 
       // Save session
       await saveSession(session);
 
       // Output results
-      console.log(response.content);
+      console.log(result.output);
       console.log('');
-      console.log(`--- Session: ${session.id} | Model: ${response.model}${response.usage ? ` | Tokens: ${response.usage.inputTokens} in / ${response.usage.outputTokens} out` : ''} ---`);
+      console.log(
+        `--- Session: ${session.id} | ${result.iterationsUsed > 1 ? `(${result.iterationsUsed} iterations) ` : ''}Model: ${provider.name} ---`,
+      );
+      if (session.summary) {
+        console.log(`\n📋 Session summary: ${session.summary}`);
+      }
     });
 }

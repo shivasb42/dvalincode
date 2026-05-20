@@ -9,7 +9,7 @@ export function createOpenAICompatibleProvider(config: OpenAIConfig): ProviderAd
   const model = config.model ?? 'gpt-4o';
 
   async function chat(request: ChatRequest): Promise<ChatResponse> {
-    const body = JSON.stringify({
+    const bodyObj: Record<string, unknown> = {
       model,
       messages: [
         ...(request.system ? [{ role: 'system' as const, content: request.system }] : []),
@@ -17,7 +17,21 @@ export function createOpenAICompatibleProvider(config: OpenAIConfig): ProviderAd
       ],
       max_tokens: request.maxTokens ?? 4096,
       temperature: request.temperature ?? 0.7,
-    });
+    };
+
+    // Add tool definitions if provided
+    if (request.tools && request.tools.length > 0) {
+      bodyObj.tools = request.tools.map(t => ({
+        type: 'function',
+        function: {
+          name: t.name,
+          description: t.description,
+          parameters: t.parameters,
+        },
+      }));
+    }
+
+    const body = JSON.stringify(bodyObj);
 
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
