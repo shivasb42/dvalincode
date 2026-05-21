@@ -20,7 +20,7 @@ export const deleteFileTool: Tool<Input> = {
   isUndoable: () => false, // Can't undo a delete (no backup)
 
   async run(input, context) {
-    const filePath = resolveInsideWorkspace(context.cwd, input.filePath);
+    const filePath = await resolveInsideWorkspace(context.cwd, input.filePath);
     await stat(filePath); // throws if not exists
     await unlink(filePath);
 

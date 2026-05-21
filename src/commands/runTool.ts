@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import { createForgeContext } from '../core/context.js';
+import { createDvalinContext } from '../core/context.js';
 import type { ToolRegistry } from '../tools/registry.js';
 import { renderToolResult } from '../ui/output.js';
 
@@ -12,7 +12,7 @@ export function registerRunToolCommand(program: Command, registry: ToolRegistry)
     .option('-y, --yes', 'allow tools that execute processes or modify files', false)
     .action(async (name: string, options: { input: string; yes: boolean }) => {
       const input = parseJson(options.input);
-      const context = createForgeContext({
+      const context = createDvalinContext({
         cwd: process.cwd(),
         allowExecute: options.yes,
         allowWrite: options.yes,

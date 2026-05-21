@@ -3,16 +3,16 @@ import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createForgeContext } from '../src/core/context.js';
+import { createDvalinContext } from '../src/core/context.js';
 import { editFileTool } from '../src/tools/editFile.js';
 import { writeFileTool } from '../src/tools/writeFile.js';
 import { ToolRegistry } from '../src/tools/registry.js';
-import type { ForgeContext } from '../src/core/context.js';
+import type { DvalinContext } from '../src/core/context.js';
 
 let tmpDir: string;
 
-function makeContext(overrides?: Partial<ForgeContext>): ForgeContext {
-  return createForgeContext({ cwd: tmpDir, allowWrite: true, ...overrides });
+function makeContext(overrides?: Partial<DvalinContext>): DvalinContext {
+  return createDvalinContext({ cwd: tmpDir, allowWrite: true, ...overrides });
 }
 
 function tmpPath(relative: string): string {
@@ -107,7 +107,7 @@ describe('editFileTool', () => {
     const registry = new ToolRegistry();
     registry.register(writeFileTool);
     registry.register(editFileTool);
-    const context = createForgeContext({ cwd: tmpDir, allowWrite: false });
+    const context = createDvalinContext({ cwd: tmpDir, allowWrite: false });
 
     // First create the file via writeFileTool with allowWrite true
     const writeCtx = makeContext();

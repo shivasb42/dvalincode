@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { createForgeContext } from '../src/core/context.js';
+import { createDvalinContext } from '../src/core/context.js';
 import { ToolRegistry } from '../src/tools/registry.js';
 import type { Tool } from '../src/tools/types.js';
 
@@ -18,7 +18,7 @@ describe('ToolRegistry', () => {
     };
 
     registry.register(echoTool);
-    const result = await registry.run('echo', { text: 'hello' }, createForgeContext());
+    const result = await registry.run('echo', { text: 'hello' }, createDvalinContext());
 
     expect(result.output).toBe('hello');
   });
@@ -35,7 +35,7 @@ describe('ToolRegistry', () => {
       },
     });
 
-    await expect(registry.run('exec', {}, createForgeContext())).rejects.toThrow('execute processes');
+    await expect(registry.run('exec', {}, createDvalinContext())).rejects.toThrow('execute processes');
   });
 });
 

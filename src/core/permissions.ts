@@ -1,7 +1,7 @@
-import type { ForgeContext } from './context.js';
+import type { DvalinContext } from './context.js';
 import type { ToolAccess } from '../tools/types.js';
 
-export function assertToolPermission(access: ToolAccess, context: ForgeContext): void {
+export function assertToolPermission(access: ToolAccess, context: DvalinContext): void {
   if (access === 'write' && !context.allowWrite) {
     throw new Error('This tool can modify files. Re-run with --yes to allow write access.');
   }

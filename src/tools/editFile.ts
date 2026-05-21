@@ -35,7 +35,7 @@ export const editFileTool: Tool<Input> = {
     };
   },
   async run(input, context) {
-    const filePath = resolveInsideWorkspace(context.cwd, input.filePath);
+    const filePath = await resolveInsideWorkspace(context.cwd, input.filePath);
 
     const existing = await readFile(filePath, 'utf8');
 

@@ -6,13 +6,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { generateDiff, formatDiff } from '../src/core/diffPreview.js';
 import { writeFileTool } from '../src/tools/writeFile.js';
 import { ToolRegistry } from '../src/tools/registry.js';
-import { createForgeContext } from '../src/core/context.js';
-import type { ForgeContext } from '../src/core/context.js';
+import { createDvalinContext } from '../src/core/context.js';
+import type { DvalinContext } from '../src/core/context.js';
 
 let tmpDir: string;
 
-function makeContext(overrides?: Partial<ForgeContext>): ForgeContext {
-  return createForgeContext({ cwd: tmpDir, allowWrite: true, ...overrides });
+function makeContext(overrides?: Partial<DvalinContext>): DvalinContext {
+  return createDvalinContext({ cwd: tmpDir, allowWrite: true, ...overrides });
 }
 
 function tmpPath(relative: string): string {
@@ -99,7 +99,7 @@ describe('writeFileTool', () => {
   it('blocks write when allowWrite is false (via registry)', async () => {
     const registry = new ToolRegistry();
     registry.register(writeFileTool);
-    const context = createForgeContext({ cwd: tmpDir, allowWrite: false });
+    const context = createDvalinContext({ cwd: tmpDir, allowWrite: false });
     await expect(
       registry.run('write_file', { filePath: 'blocked.txt', content: 'nope' }, context),
     ).rejects.toThrow('write access');

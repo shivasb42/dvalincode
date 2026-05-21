@@ -5,7 +5,7 @@ import type { Tool } from './types.js';
 
 const inputSchema = z
   .object({
-    path: z.string().min(1),
+    filePath: z.string().min(1),
     offset: z.number().int().nonnegative().optional(),
     limit: z.number().int().positive().max(1000).optional(),
   })
@@ -20,18 +20,18 @@ export const readFileTool: Tool<Input> = {
   inputSchema,
   isConcurrencySafe: () => true,
   async run(input, context) {
-    const filePath = resolveInsideWorkspace(context.cwd, input.path);
-    const info = await stat(filePath);
+    const resolvedPath = await resolveInsideWorkspace(context.cwd, input.filePath);
+    const info = await stat(resolvedPath);
 
     if (info.isDirectory()) {
-      throw new Error(`Cannot read a directory as a file: ${input.path}`);
+      throw new Error(`Cannot read a directory as a file: ${input.filePath}`);
     }
 
     if (info.size > context.maxBytes) {
       throw new Error(`File is larger than the configured limit (${context.maxBytes} bytes).`);
     }
 
-    const text = await readFile(filePath, 'utf8');
+    const text = await readFile(resolvedPath, 'utf8');
     const lines = text.split(/\r?\n/);
     const start = input.offset ?? 0;
     const end = input.limit ? start + input.limit : lines.length;
@@ -39,7 +39,7 @@ export const readFileTool: Tool<Input> = {
     const numbered = selected.map((line, index) => `${String(start + index + 1).padStart(4, ' ')} | ${line}`);
 
     return {
-      title: `Read ${input.path}`,
+      title: `Read ${input.filePath}`,
       output: numbered.join('\n'),
       metadata: {
         bytes: info.size,

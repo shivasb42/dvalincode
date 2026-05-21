@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import type { ChatMessage, ChatRequest, ProviderAdapter, ChatResponse } from '../src/providers/types.js';
 import { ToolRegistry } from '../src/tools/registry.js';
-import { createForgeContext } from '../src/core/context.js';
+import { createDvalinContext } from '../src/core/context.js';
 import type { Tool } from '../src/tools/types.js';
 
 // ---------------------------------------------------------------------------
@@ -59,7 +59,7 @@ describe('AgentRunner', () => {
     const runner = new AgentRunner({
       provider,
       registry,
-      context: createForgeContext(),
+      context: createDvalinContext(),
       config: { maxIterations: 3, maxToolCallsPerTurn: 5, contextTokenLimit: 128_000, compactThreshold: 0.7 },
       systemPrompt: 'You are a coding agent.',
     });
@@ -85,7 +85,7 @@ describe('AgentRunner', () => {
     const runner = new AgentRunner({
       provider,
       registry,
-      context: createForgeContext(),
+      context: createDvalinContext(),
       config: { maxIterations: 5, maxToolCallsPerTurn: 5, contextTokenLimit: 128_000, compactThreshold: 0.7 },
       systemPrompt: 'You are helpful.',
     });
@@ -105,7 +105,7 @@ describe('AgentRunner', () => {
     const runner = new AgentRunner({
       provider,
       registry,
-      context: createForgeContext(),
+      context: createDvalinContext(),
       config: { maxIterations: 2, maxToolCallsPerTurn: 5, contextTokenLimit: 128_000, compactThreshold: 0.7 },
       systemPrompt: 'You are helpful.',
     });
@@ -129,7 +129,7 @@ describe('parseToolCalls', () => {
     const runner = new AgentRunner({
       provider: createEchoProvider(''),
       registry: new ToolRegistry(),
-      context: createForgeContext(),
+      context: createDvalinContext(),
       config: { maxIterations: 2, maxToolCallsPerTurn: 5, contextTokenLimit: 128_000, compactThreshold: 0.7 },
       systemPrompt: '',
     });
@@ -147,7 +147,7 @@ describe('parseToolCalls', () => {
     const runner = new AgentRunner({
       provider: createEchoProvider(''),
       registry: new ToolRegistry(),
-      context: createForgeContext(),
+      context: createDvalinContext(),
       config: { maxIterations: 2, maxToolCallsPerTurn: 5, contextTokenLimit: 128_000, compactThreshold: 0.7 },
       systemPrompt: '',
     });
@@ -180,7 +180,7 @@ describe('AgentLoop', () => {
     const loop = new AgentLoop({
       provider,
       registry,
-      context: createForgeContext(),
+      context: createDvalinContext(),
       systemPrompt: 'You are helpful.',
     });
 
@@ -205,7 +205,7 @@ describe('AgentLoop', () => {
     const loop = new AgentLoop({
       provider,
       registry,
-      context: createForgeContext(),
+      context: createDvalinContext(),
       systemPrompt: 'System prompt',
     });
 
@@ -235,7 +235,7 @@ describe('AgentLoop', () => {
     const loop = new AgentLoop({
       provider,
       registry,
-      context: createForgeContext(),
+      context: createDvalinContext(),
       systemPrompt: 'System prompt',
       slashCommands: [
         {

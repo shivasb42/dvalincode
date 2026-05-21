@@ -3,7 +3,7 @@ import type { ToolRegistry } from '../tools/registry.js';
 import { ProviderManager } from '../providers/manager.js';
 import { scanProject } from '../core/projectScanner.js';
 import { AgentLoop } from '../agent/loop.js';
-import { createForgeContext } from '../core/context.js';
+import { createDvalinContext } from '../core/context.js';
 import { createSession, saveSession, loadSession, summarizeSession } from '../sessions/store.js';
 
 export function registerChatCommand(program: Command, registry: ToolRegistry): void {
@@ -90,7 +90,7 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
       const loop = new AgentLoop({
         provider,
         registry,
-        context: createForgeContext({
+        context: createDvalinContext({
           cwd,
           // Default: read-only for safety. User can opt in with --yes or config.
           allowWrite: false,

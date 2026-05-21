@@ -1,18 +1,18 @@
-export type ForgeContextOptions = {
+export type DvalinContextOptions = {
   cwd?: string;
   allowWrite?: boolean;
   allowExecute?: boolean;
   maxBytes?: number;
 };
 
-export type ForgeContext = {
+export type DvalinContext = {
   cwd: string;
   allowWrite: boolean;
   allowExecute: boolean;
   maxBytes: number;
 };
 
-export function createForgeContext(options: ForgeContextOptions = {}): ForgeContext {
+export function createDvalinContext(options: DvalinContextOptions = {}): DvalinContext {
   return {
     cwd: options.cwd ?? process.cwd(),
     allowWrite: options.allowWrite ?? false,
@@ -20,4 +20,3 @@ export function createForgeContext(options: ForgeContextOptions = {}): ForgeCont
     maxBytes: options.maxBytes ?? 256_000,
   };
 }
-

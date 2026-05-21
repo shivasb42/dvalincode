@@ -50,7 +50,7 @@ export const writeFileTool: Tool<Input> = {
   },
 
   async run(input, context) {
-    const filePath = resolveInsideWorkspace(context.cwd, input.filePath);
+    const filePath = await resolveInsideWorkspace(context.cwd, input.filePath);
 
     let output: string;
     let originalContent: string | undefined;

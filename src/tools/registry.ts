@@ -1,5 +1,5 @@
 import { assertToolPermission } from '../core/permissions.js';
-import type { ForgeContext } from '../core/context.js';
+import type { DvalinContext } from '../core/context.js';
 import { editFileTool } from './editFile.js';
 import { listFilesTool } from './listFiles.js';
 import { readFileTool } from './readFile.js';
@@ -28,7 +28,7 @@ export class ToolRegistry {
     return this.tools.get(name);
   }
 
-  async run(name: string, rawInput: unknown, context: ForgeContext): Promise<ToolResult> {
+  async run(name: string, rawInput: unknown, context: DvalinContext): Promise<ToolResult> {
     const tool = this.get(name);
     if (!tool) {
       throw new Error(`Unknown tool: ${name}`);

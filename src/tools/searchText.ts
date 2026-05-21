@@ -35,7 +35,7 @@ export const searchTextTool: Tool<Input> = {
 
     for (const file of files.sort()) {
       if (matches.length >= input.limit) break;
-      const filePath = resolveInsideWorkspace(context.cwd, file);
+      const filePath = await resolveInsideWorkspace(context.cwd, file);
       const text = await readMaybeText(filePath);
       if (text === null) continue;
 

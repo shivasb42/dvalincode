@@ -1,13 +1,13 @@
 import type { ChatMessage, ChatResponse, ToolCall, ToolDef, ProviderAdapter } from '../providers/types.js';
 import type { ToolRegistry } from '../tools/registry.js';
-import type { ForgeContext } from '../core/context.js';
+import type { DvalinContext } from '../core/context.js';
 import type { TurnConfig, UndoEntry } from './types.js';
 import type { ReverseOp } from '../tools/types.js';
 
 export type RunnerOptions = {
   provider: ProviderAdapter;
   registry: ToolRegistry;
-  context: ForgeContext;
+  context: DvalinContext;
   config: TurnConfig;
   systemPrompt: string;
 };
@@ -15,7 +15,7 @@ export type RunnerOptions = {
 export class AgentRunner {
   private provider: ProviderAdapter;
   private registry: ToolRegistry;
-  private context: ForgeContext;
+  private context: DvalinContext;
   private config: TurnConfig;
   private systemPrompt: string;
   private iterationCount: number = 0;
@@ -157,7 +157,7 @@ export class AgentRunner {
     return this.registry.list().map(tool => ({
       name: tool.name,
       description: tool.description,
-      parameters: (tool.inputSchema as any)?._def ?? {},
+      parameters: tool.inputSchema.toJSONSchema?.() ?? {},
     }));
   }
 

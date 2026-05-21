@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { createDefaultToolRegistry } from '../src/tools/registry.js';
-import { createForgeContext } from '../src/core/context.js';
+import { createDvalinContext } from '../src/core/context.js';
 import type { ReverseOp } from '../src/tools/types.js';
 
-const context = createForgeContext({
+const context = createDvalinContext({
   cwd: process.cwd(),
   allowWrite: true,
   allowExecute: true,

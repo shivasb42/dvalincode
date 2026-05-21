@@ -3,12 +3,12 @@ import { AgentRunner } from './runner.js';
 import type { ChatMessage } from '../providers/types.js';
 import type { ProviderAdapter } from '../providers/types.js';
 import type { ToolRegistry } from '../tools/registry.js';
-import type { ForgeContext } from '../core/context.js';
+import type { DvalinContext } from '../core/context.js';
 
 export type AgentLoopOptions = {
   provider: ProviderAdapter;
   registry: ToolRegistry;
-  context: ForgeContext;
+  context: DvalinContext;
   systemPrompt: string;
   config?: Partial<TurnConfig>;
   slashCommands?: SlashCommand[];
@@ -17,7 +17,7 @@ export type AgentLoopOptions = {
 export class AgentLoop {
   private provider: ProviderAdapter;
   private registry: ToolRegistry;
-  private context: ForgeContext;
+  private context: DvalinContext;
   private systemPrompt: string;
   private config: TurnConfig;
   private slashCommands: Map<string, SlashCommand>;
