@@ -1,4 +1,4 @@
-import type { ServerEvent, SessionMeta } from '../types.ts';
+import type { ServerEvent, SessionMeta, AppConfig } from '../types.ts';
 
 const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
 
@@ -93,4 +93,20 @@ export async function fetchSessions(): Promise<SessionMeta[]> {
 
 export async function deleteSession(id: string): Promise<void> {
   await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+}
+
+export async function fetchConfig(): Promise<AppConfig> {
+  const res = await fetch('/api/config');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<AppConfig>;
+}
+
+export async function saveConfig(config: AppConfig): Promise<AppConfig> {
+  const res = await fetch('/api/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<AppConfig>;
 }

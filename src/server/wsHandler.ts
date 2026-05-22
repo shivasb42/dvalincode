@@ -10,6 +10,7 @@ import {
   loadSession,
   summarizeSession,
 } from '../sessions/store.js';
+import { readConfig } from './configStore.js';
 import type { AgentEvent } from '../agent/types.js';
 
 type ClientMessage = {
@@ -19,8 +20,8 @@ type ClientMessage = {
   cwd?: string;
   allowWrite?: boolean;
   allowExecute?: boolean;
+  /** Optional override — falls back to saved config */
   provider?: string;
-  model?: string;
 };
 
 type ServerMessage =
@@ -51,7 +52,6 @@ export function handleWebSocket(ws: WebSocket): void {
     if (msg.type !== 'send') return;
 
     const cwd = msg.cwd ?? process.cwd();
-    const providerName = msg.provider ?? process.env['DVALINCODE_PROVIDER'] ?? 'deepseek';
 
     // Load or create session
     let session;
@@ -67,10 +67,18 @@ export function handleWebSocket(ws: WebSocket): void {
 
     send(ws, { type: 'session_id', sessionId: session.id });
 
-    // Set up provider
+    // Set up provider — config file takes precedence over env vars
     let provider;
     try {
-      const manager = new ProviderManager().loadFromEnv();
+      const cfg = await readConfig();
+      const llm = cfg.llm;
+      const providerName = msg.provider ?? llm.provider;
+      const manager = new ProviderManager();
+      manager.addOpenAI(providerName, {
+        apiKey: llm.apiKey,
+        baseUrl: llm.baseUrl,
+        model: llm.model,
+      });
       provider = manager.get(providerName);
     } catch (err) {
       send(ws, {

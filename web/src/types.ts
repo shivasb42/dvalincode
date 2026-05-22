@@ -1,3 +1,15 @@
+export type LLMConfig = {
+  provider: string;
+  apiKey?: string;
+  apiKeySet?: boolean;
+  baseUrl?: string;
+  model?: string;
+};
+
+export type AppConfig = {
+  llm: LLMConfig;
+};
+
 export type SessionMeta = {
   id: string;
   createdAt: string;

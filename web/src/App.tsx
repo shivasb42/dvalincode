@@ -3,12 +3,15 @@ import { Sidebar } from './components/Sidebar.tsx';
 import { ChatThread } from './components/ChatThread.tsx';
 import { Composer } from './components/Composer.tsx';
 import { SettingsPanel } from './components/SettingsPanel.tsx';
+import { LLMConfigModal } from './components/LLMConfigModal.tsx';
 import { useChat } from './hooks/useChat.ts';
-import { fetchSessions } from './lib/client.ts';
+import { fetchSessions, fetchConfig } from './lib/client.ts';
 import type { ChatSettings } from './components/SettingsPanel.tsx';
 
 export default function App() {
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
+  const [showLLMConfig, setShowLLMConfig] = useState(false);
+  const [activeModel, setActiveModel] = useState('');
   const [settings, setSettings] = useState<ChatSettings>({
     cwd: '',
     allowWrite: false,
@@ -22,13 +25,20 @@ export default function App() {
     allowExecute: settings.allowExecute,
   });
 
-  // Auto-detect cwd from first session on load
+  // Auto-detect cwd from first session; load saved LLM config for topbar display
   useEffect(() => {
     fetchSessions()
       .then((sessions) => {
         if (sessions[0]?.cwd && !settings.cwd) {
           setSettings((s) => ({ ...s, cwd: sessions[0].cwd }));
         }
+      })
+      .catch(() => {});
+
+    fetchConfig()
+      .then((cfg) => {
+        setActiveModel(cfg.llm.model ?? '');
+        setSettings((s) => ({ ...s, provider: cfg.llm.provider }));
       })
       .catch(() => {});
   }, []);
@@ -51,8 +61,6 @@ export default function App() {
   }, [chat]);
 
   const handleSelectSession = useCallback((_id: string) => {
-    // For now, just start a new chat — full session restore would require
-    // loading history from the REST API and replaying into UI state
     chat.reset();
   }, [chat]);
 
@@ -60,16 +68,25 @@ export default function App() {
     (text: string) => {
       if (!chat.connected) {
         chat.connect();
-        // Give WS time to open
         setTimeout(() => chat.send(text), 300);
       } else {
         chat.send(text);
       }
-      // Refresh sidebar after turn completes
       setTimeout(() => setSidebarRefresh((n) => n + 1), 2000);
     },
     [chat],
   );
+
+  // Refresh active model display after config modal closes
+  const handleConfigClose = () => {
+    setShowLLMConfig(false);
+    fetchConfig()
+      .then((cfg) => {
+        setActiveModel(cfg.llm.model ?? '');
+        setSettings((s) => ({ ...s, provider: cfg.llm.provider }));
+      })
+      .catch(() => {});
+  };
 
   return (
     <div className="flex h-full bg-bg text-fg">
@@ -77,6 +94,7 @@ export default function App() {
         currentSessionId={chat.currentSessionId}
         onNewChat={handleNewChat}
         onSelectSession={handleSelectSession}
+        onOpenConfig={() => setShowLLMConfig(true)}
         refreshKey={sidebarRefresh}
       />
 
@@ -98,6 +116,16 @@ export default function App() {
             />
           </div>
           <div className="flex items-center gap-2">
+            {/* Active model badge */}
+            {activeModel && (
+              <button
+                onClick={() => setShowLLMConfig(true)}
+                className="text-[11px] text-muted-fg bg-[#1a1a1a] border border-border hover:border-accent/40 hover:text-fg rounded-lg px-2.5 py-1 font-mono transition-colors truncate max-w-[180px]"
+                title="Change LLM model"
+              >
+                {settings.provider} · {activeModel}
+              </button>
+            )}
             {settings.allowWrite && (
               <span className="text-[11px] text-yellow-500/80 bg-yellow-500/10 border border-yellow-500/20 rounded px-2 py-0.5">
                 writes on
@@ -122,6 +150,9 @@ export default function App() {
           disabled={false}
         />
       </div>
+
+      {/* LLM Config Modal */}
+      {showLLMConfig && <LLMConfigModal onClose={handleConfigClose} />}
     </div>
   );
 }
