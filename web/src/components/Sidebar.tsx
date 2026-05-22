@@ -70,9 +70,7 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, refreshK
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-accent/20 border border-accent/40 flex items-center justify-center text-xs font-bold text-accent">
-            D
-          </div>
+          <img src="/logo.png" alt="DvalinCode" className="w-6 h-6 rounded-md object-cover" />
           <span className="font-semibold text-sm text-fg">DvalinCode</span>
         </div>
         <button
