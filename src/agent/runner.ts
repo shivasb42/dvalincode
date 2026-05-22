@@ -1,7 +1,7 @@
 import type { ChatMessage, ChatResponse, ToolCall, ToolDef, ProviderAdapter } from '../providers/types.js';
 import type { ToolRegistry } from '../tools/registry.js';
 import type { DvalinContext } from '../core/context.js';
-import type { TurnConfig, UndoEntry } from './types.js';
+import type { TurnConfig, UndoEntry, AgentEventHandler } from './types.js';
 import type { ReverseOp } from '../tools/types.js';
 
 export type RunnerOptions = {
@@ -68,6 +68,7 @@ export class AgentRunner {
   async runTurn(
     userMessage: string,
     history: ChatMessage[],
+    onEvent?: AgentEventHandler,
   ): Promise<{ messages: ChatMessage[]; finalResponse: string; iterationsUsed: number }> {
     const messages: ChatMessage[] = [...history, { role: 'user', content: userMessage }];
     this.iterationCount = 0;
@@ -112,6 +113,7 @@ export class AgentRunner {
       for (const tc of callsToExecute) {
         try {
           const parsedInput = JSON.parse(tc.arguments);
+          onEvent?.({ type: 'tool_call', name: tc.name, id: tc.id, input: parsedInput });
           const result = await this.registry.run(tc.name, parsedInput, this.context);
 
           // Record undo entry for this tool call
@@ -127,6 +129,7 @@ export class AgentRunner {
             timestamp: new Date().toISOString(),
           });
 
+          onEvent?.({ type: 'tool_result', name: tc.name, id: tc.id, output: result.output, metadata: result.metadata });
           messages.push({
             role: 'tool',
             content: `[Tool ${tc.name} result]:\n${result.output}`,
@@ -134,9 +137,11 @@ export class AgentRunner {
             name: tc.name,
           });
         } catch (err) {
+          const error = err instanceof Error ? err.message : String(err);
+          onEvent?.({ type: 'tool_error', name: tc.name, id: tc.id, error });
           messages.push({
             role: 'tool',
-            content: `[Tool ${tc.name} error]: ${err instanceof Error ? err.message : String(err)}`,
+            content: `[Tool ${tc.name} error]: ${error}`,
             tool_call_id: tc.id,
             name: tc.name,
           });

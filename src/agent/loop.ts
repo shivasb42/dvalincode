@@ -1,4 +1,4 @@
-import { TurnState, type TurnConfig, type LoopResult, type SlashCommand, DEFAULT_TURN_CONFIG } from './types.js';
+import { TurnState, type TurnConfig, type LoopResult, type SlashCommand, type AgentEventHandler, DEFAULT_TURN_CONFIG } from './types.js';
 import { AgentRunner } from './runner.js';
 import type { ChatMessage } from '../providers/types.js';
 import type { ProviderAdapter } from '../providers/types.js';
@@ -43,7 +43,7 @@ export class AgentLoop {
   }
 
   /** Process a user message through the full state machine */
-  async processMessage(userMessage: string, history: ChatMessage[]): Promise<LoopResult> {
+  async processMessage(userMessage: string, history: ChatMessage[], onEvent?: AgentEventHandler): Promise<LoopResult> {
     let messages = [...history];
     let state: TurnState | string = TurnState.RESTORE;
 
@@ -104,7 +104,7 @@ export class AgentLoop {
             config: this.config,
             systemPrompt: this.systemPrompt,
           });
-          const result = await runner.runTurn(userMessage, messages);
+          const result = await runner.runTurn(userMessage, messages, onEvent);
           messages = result.messages;
           output = result.finalResponse;
           iterationsUsed = result.iterationsUsed;
