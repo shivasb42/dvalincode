@@ -38,6 +38,10 @@ export type ChatRequest = {
   maxTokens?: number;
   temperature?: number;
   tools?: ToolDef[];
+  /** Called with each streamed text delta (enables SSE streaming) */
+  onDelta?: (delta: string) => void;
+  /** AbortSignal to cancel the request mid-flight */
+  signal?: AbortSignal;
 };
 
 export type ChatResponse = {

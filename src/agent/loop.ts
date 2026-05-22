@@ -43,7 +43,7 @@ export class AgentLoop {
   }
 
   /** Process a user message through the full state machine */
-  async processMessage(userMessage: string, history: ChatMessage[], onEvent?: AgentEventHandler): Promise<LoopResult> {
+  async processMessage(userMessage: string, history: ChatMessage[], onEvent?: AgentEventHandler, signal?: AbortSignal): Promise<LoopResult> {
     let messages = [...history];
     let state: TurnState | string = TurnState.RESTORE;
 
@@ -104,7 +104,7 @@ export class AgentLoop {
             config: this.config,
             systemPrompt: this.systemPrompt,
           });
-          const result = await runner.runTurn(userMessage, messages, onEvent);
+          const result = await runner.runTurn(userMessage, messages, onEvent, signal);
           messages = result.messages;
           output = result.finalResponse;
           iterationsUsed = result.iterationsUsed;

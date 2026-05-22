@@ -13,24 +13,28 @@ import {
 import { readConfig } from './configStore.js';
 import type { AgentEvent } from '../agent/types.js';
 
-type ClientMessage = {
-  type: 'send';
-  content: string;
-  sessionId?: string;
-  cwd?: string;
-  allowWrite?: boolean;
-  allowExecute?: boolean;
-  /** Optional override — falls back to saved config */
-  provider?: string;
-};
+type ClientMessage =
+  | {
+      type: 'send';
+      content: string;
+      sessionId?: string;
+      cwd?: string;
+      allowWrite?: boolean;
+      allowExecute?: boolean;
+      /** Optional override — falls back to saved config */
+      provider?: string;
+    }
+  | { type: 'interrupt' };
 
 type ServerMessage =
   | { type: 'session_id'; sessionId: string }
+  | { type: 'token_delta'; content: string }
   | { type: 'tool_call'; name: string; id: string; input: unknown }
   | { type: 'tool_result'; name: string; id: string; output: string; metadata?: Record<string, unknown> }
   | { type: 'tool_error'; name: string; id: string; error: string }
   | { type: 'response'; content: string }
-  | { type: 'done'; sessionId: string; iterations: number }
+  | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
+  | { type: 'interrupted' }
   | { type: 'error'; message: string };
 
 function send(ws: WebSocket, msg: ServerMessage): void {
@@ -40,6 +44,8 @@ function send(ws: WebSocket, msg: ServerMessage): void {
 }
 
 export function handleWebSocket(ws: WebSocket): void {
+  let currentAbort: AbortController | null = null;
+
   ws.on('message', async (raw) => {
     let msg: ClientMessage;
     try {
@@ -49,7 +55,20 @@ export function handleWebSocket(ws: WebSocket): void {
       return;
     }
 
+    // ── Interrupt ─────────────────────────────────────────────
+    if (msg.type === 'interrupt') {
+      currentAbort?.abort();
+      currentAbort = null;
+      send(ws, { type: 'interrupted' });
+      return;
+    }
+
     if (msg.type !== 'send') return;
+
+    // Abort any in-flight turn before starting a new one
+    currentAbort?.abort();
+    const abort = new AbortController();
+    currentAbort = abort;
 
     const cwd = msg.cwd ?? process.cwd();
 
@@ -137,8 +156,15 @@ export function handleWebSocket(ws: WebSocket): void {
       systemPrompt,
     });
 
+    // Accumulate usage across all LLM calls in this turn
+    let totalUsage: { inputTokens: number; outputTokens: number } | undefined;
+
     const onEvent = (event: AgentEvent): void => {
+      if (abort.signal.aborted) return;
       switch (event.type) {
+        case 'token_delta':
+          send(ws, { type: 'token_delta', content: event.content });
+          break;
         case 'tool_call':
           send(ws, { type: 'tool_call', name: event.name, id: event.id, input: event.input });
           break;
@@ -158,7 +184,9 @@ export function handleWebSocket(ws: WebSocket): void {
     };
 
     try {
-      const result = await loop.processMessage(msg.content, session.messages, onEvent);
+      const result = await loop.processMessage(msg.content, session.messages, onEvent, abort.signal);
+
+      if (abort.signal.aborted) return; // Don't save or respond if interrupted
 
       session.messages = result.messages;
       session.updatedAt = new Date().toISOString();
@@ -166,12 +194,27 @@ export function handleWebSocket(ws: WebSocket): void {
       await saveSession(session);
 
       send(ws, { type: 'response', content: result.output });
-      send(ws, { type: 'done', sessionId: session.id, iterations: result.iterationsUsed });
+      send(ws, {
+        type: 'done',
+        sessionId: session.id,
+        iterations: result.iterationsUsed,
+        usage: totalUsage,
+      });
     } catch (err) {
+      if (abort.signal.aborted) {
+        send(ws, { type: 'interrupted' });
+        return;
+      }
       send(ws, {
         type: 'error',
         message: err instanceof Error ? err.message : String(err),
       });
+    } finally {
+      if (currentAbort === abort) currentAbort = null;
     }
+  });
+
+  ws.on('close', () => {
+    currentAbort?.abort();
   });
 }

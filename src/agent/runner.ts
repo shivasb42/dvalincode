@@ -69,21 +69,25 @@ export class AgentRunner {
     userMessage: string,
     history: ChatMessage[],
     onEvent?: AgentEventHandler,
+    signal?: AbortSignal,
   ): Promise<{ messages: ChatMessage[]; finalResponse: string; iterationsUsed: number }> {
     const messages: ChatMessage[] = [...history, { role: 'user', content: userMessage }];
     this.iterationCount = 0;
 
     while (this.iterationCount < this.config.maxIterations) {
+      if (signal?.aborted) throw new Error('interrupted');
       this.iterationCount++;
 
       // Build tool definitions from registry
       const toolDefs = this.buildToolDefs();
 
-      // Call LLM
+      // Call LLM (streaming if onEvent is provided)
       const response: ChatResponse = await this.provider.chat({
         system: this.systemPrompt,
         messages,
         tools: toolDefs.length > 0 ? toolDefs : undefined,
+        signal,
+        onDelta: onEvent ? (delta) => onEvent({ type: 'token_delta', content: delta }) : undefined,
       });
 
       // Add assistant message — include tool_calls if present (required by OpenAI-compatible APIs)

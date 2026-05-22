@@ -50,9 +50,7 @@ export default function App() {
 
   // Reconnect when settings change
   useEffect(() => {
-    if (!chat.connected) {
-      chat.connect();
-    }
+    if (!chat.connected) chat.connect();
   }, [settings]);
 
   const handleNewChat = useCallback(() => {
@@ -60,8 +58,8 @@ export default function App() {
     setSidebarRefresh((n) => n + 1);
   }, [chat]);
 
-  const handleSelectSession = useCallback((_id: string) => {
-    chat.reset();
+  const handleSelectSession = useCallback((id: string) => {
+    void chat.loadSession(id);
   }, [chat]);
 
   const handleSend = useCallback(
@@ -77,7 +75,6 @@ export default function App() {
     [chat],
   );
 
-  // Refresh active model display after config modal closes
   const handleConfigClose = () => {
     setShowLLMConfig(false);
     fetchConfig()
@@ -87,6 +84,8 @@ export default function App() {
       })
       .catch(() => {});
   };
+
+  const usage = chat.lastUsage;
 
   return (
     <div className="flex h-full bg-bg text-fg">
@@ -102,21 +101,26 @@ export default function App() {
       <div className="flex flex-col flex-1 min-w-0">
         {/* Topbar */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-surface">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             {chat.currentSessionId && (
-              <span className="text-xs text-muted-fg font-mono truncate max-w-[200px]">
+              <span className="text-xs text-muted-fg font-mono truncate max-w-[160px]">
                 {chat.currentSessionId}
               </span>
             )}
             <span
-              className={`inline-block w-2 h-2 rounded-full ${
+              className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
                 chat.connected ? 'bg-emerald-500' : 'bg-red-500/70'
               }`}
               title={chat.connected ? 'Connected' : 'Disconnected'}
             />
+            {usage && (
+              <span className="text-[11px] text-muted-fg/70 font-mono flex-shrink-0">
+                {(usage.inputTokens + usage.outputTokens).toLocaleString()} tok
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            {/* Active model badge */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Active model badge — clickable */}
             {activeModel && (
               <button
                 onClick={() => setShowLLMConfig(true)}
@@ -146,6 +150,7 @@ export default function App() {
         {/* Composer */}
         <Composer
           onSend={handleSend}
+          onInterrupt={chat.interrupt}
           sending={chat.sending}
           disabled={false}
         />

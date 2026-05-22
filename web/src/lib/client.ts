@@ -1,4 +1,4 @@
-import type { ServerEvent, SessionMeta, AppConfig } from '../types.ts';
+import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage } from '../types.ts';
 
 const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
 
@@ -71,6 +71,12 @@ export class DvalinClient {
     );
   }
 
+  interrupt(): void {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ type: 'interrupt' }));
+    }
+  }
+
   disconnect(): void {
     this.ws?.close();
     this.ws = null;
@@ -109,4 +115,17 @@ export async function saveConfig(config: AppConfig): Promise<AppConfig> {
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<AppConfig>;
+}
+
+export type SessionDetail = {
+  id: string;
+  cwd: string;
+  messages: BackendChatMessage[];
+  summary?: string;
+};
+
+export async function fetchSessionDetail(id: string): Promise<SessionDetail> {
+  const res = await fetch(`/api/sessions/${id}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<SessionDetail>;
 }

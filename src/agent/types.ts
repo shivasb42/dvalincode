@@ -61,6 +61,7 @@ export type UndoEntry = {
 };
 
 export type AgentEvent =
+  | { type: 'token_delta'; content: string }
   | { type: 'tool_call'; name: string; id: string; input: unknown }
   | { type: 'tool_result'; name: string; id: string; output: string; metadata?: Record<string, unknown> }
   | { type: 'tool_error'; name: string; id: string; error: string }
