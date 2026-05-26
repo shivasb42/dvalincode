@@ -36,6 +36,16 @@ export class ToolRegistry {
 
     assertToolPermission(tool.access, context);
     const input = tool.inputSchema.parse(rawInput);
+
+    // In auto-edit mode every non-read tool requires explicit user approval
+    if (context.approvalMode === 'auto-edit' && tool.access !== 'read' && context.requestApproval) {
+      const approvalId = `apv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const approved = await context.requestApproval(approvalId, name, input);
+      if (!approved) {
+        throw new Error(`User rejected: ${name}`);
+      }
+    }
+
     return tool.run(input, context);
   }
 }

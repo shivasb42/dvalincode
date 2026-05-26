@@ -48,12 +48,21 @@ export type ChatMessage =
       pending?: boolean;
     };
 
+export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto';
+
+export type PendingApproval = {
+  id: string;
+  toolName: string;
+  input: unknown;
+};
+
 export type ServerEvent =
   | { type: 'session_id'; sessionId: string }
   | { type: 'token_delta'; content: string }
   | { type: 'tool_call'; name: string; id: string; input: unknown }
   | { type: 'tool_result'; name: string; id: string; output: string; metadata?: Record<string, unknown> }
   | { type: 'tool_error'; name: string; id: string; error: string }
+  | { type: 'approval_request'; id: string; toolName: string; input: unknown }
   | { type: 'response'; content: string }
   | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
   | { type: 'interrupted' }

@@ -50,6 +50,7 @@ export class AgentLoop {
     // Pre-allocated output
     let output = '';
     let iterationsUsed = 0;
+    let usage: { inputTokens: number; outputTokens: number } | undefined;
 
     while (state !== TurnState.DONE) {
       switch (state) {
@@ -108,6 +109,7 @@ export class AgentLoop {
           messages = result.messages;
           output = result.finalResponse;
           iterationsUsed = result.iterationsUsed;
+          usage = result.usage;
           state = TurnState.SAVE;
           break;
         }
@@ -124,7 +126,7 @@ export class AgentLoop {
       }
     }
 
-    return { messages, output, iterationsUsed };
+    return { messages, output, iterationsUsed, usage };
   }
 
   private handleCompact(messages: ChatMessage[]): { messages: ChatMessage[]; output?: string } {

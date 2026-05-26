@@ -1,4 +1,4 @@
-import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage } from '../types.ts';
+import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage, ApprovalMode } from '../types.ts';
 
 const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
 
@@ -6,8 +6,7 @@ export type SendOptions = {
   content: string;
   sessionId?: string;
   cwd?: string;
-  allowWrite?: boolean;
-  allowExecute?: boolean;
+  approvalMode?: ApprovalMode;
   provider?: string;
 };
 
@@ -64,8 +63,7 @@ export class DvalinClient {
         content: opts.content,
         sessionId: opts.sessionId,
         cwd: opts.cwd,
-        allowWrite: opts.allowWrite ?? false,
-        allowExecute: opts.allowExecute ?? false,
+        approvalMode: opts.approvalMode ?? 'readonly',
         provider: opts.provider,
       }),
     );
@@ -74,6 +72,12 @@ export class DvalinClient {
   interrupt(): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type: 'interrupt' }));
+    }
+  }
+
+  sendApprovalResponse(id: string, approved: boolean): void {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ type: 'approval_response', id, approved }));
     }
   }
 

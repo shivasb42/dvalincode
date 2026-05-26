@@ -1,12 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
 import { client, fetchSessionDetail } from '../lib/client.ts';
-import type { ChatMessage, ToolCallEvent, ServerEvent, BackendChatMessage } from '../types.ts';
+import type { ChatMessage, ToolCallEvent, ServerEvent, BackendChatMessage, ApprovalMode, PendingApproval } from '../types.ts';
 
 export type UseChatOptions = {
   sessionId?: string;
   cwd?: string;
-  allowWrite?: boolean;
-  allowExecute?: boolean;
+  approvalMode?: ApprovalMode;
 };
 
 export type UsageStats = {
@@ -91,6 +90,7 @@ export function useChat(opts: UseChatOptions = {}) {
   const [sending, setSending] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(opts.sessionId);
   const [lastUsage, setLastUsage] = useState<UsageStats | undefined>();
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
   const pendingToolCallsRef = useRef<Map<string, ToolCallEvent>>(new Map());
 
   const connect = useCallback(() => {
@@ -125,6 +125,10 @@ export function useChat(opts: UseChatOptions = {}) {
             });
             break;
           }
+
+          case 'approval_request':
+            setPendingApprovals((prev) => [...prev, { id: event.id, toolName: event.toolName, input: event.input }]);
+            break;
 
           case 'tool_result':
             pendingToolCallsRef.current.set(event.id, {
@@ -181,6 +185,7 @@ export function useChat(opts: UseChatOptions = {}) {
             });
             if (event.usage) setLastUsage(event.usage);
             pendingToolCallsRef.current.clear();
+            setPendingApprovals([]);
             setSending(false);
             break;
 
@@ -194,6 +199,7 @@ export function useChat(opts: UseChatOptions = {}) {
               return prev;
             });
             pendingToolCallsRef.current.clear();
+            setPendingApprovals([]);
             setSending(false);
             break;
 
@@ -227,8 +233,7 @@ export function useChat(opts: UseChatOptions = {}) {
           content,
           sessionId: currentSessionId,
           cwd: opts.cwd,
-          allowWrite: opts.allowWrite,
-          allowExecute: opts.allowExecute,
+          approvalMode: opts.approvalMode,
         });
       } catch (err) {
         setMessages((prev) => [
@@ -238,8 +243,13 @@ export function useChat(opts: UseChatOptions = {}) {
         setSending(false);
       }
     },
-    [sending, currentSessionId, opts.cwd, opts.allowWrite, opts.allowExecute],
+    [sending, currentSessionId, opts.cwd, opts.approvalMode],
   );
+
+  const respondToApproval = useCallback((id: string, approved: boolean) => {
+    setPendingApprovals((prev) => prev.filter((a) => a.id !== id));
+    client.sendApprovalResponse(id, approved);
+  }, []);
 
   const interrupt = useCallback(() => {
     client.interrupt();
@@ -266,5 +276,5 @@ export function useChat(opts: UseChatOptions = {}) {
     setLastUsage(undefined);
   }, []);
 
-  return { messages, connected, sending, currentSessionId, lastUsage, connect, send, interrupt, loadSession, reset };
+  return { messages, connected, sending, currentSessionId, lastUsage, pendingApprovals, connect, send, interrupt, loadSession, reset, respondToApproval };
 }

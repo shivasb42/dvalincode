@@ -44,6 +44,7 @@ export type LoopResult = {
   messages: ChatMessage[];
   output: string;
   iterationsUsed: number;
+  usage?: { inputTokens: number; outputTokens: number };
 };
 
 export type ToolResult = {

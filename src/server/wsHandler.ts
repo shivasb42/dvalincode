@@ -21,10 +21,12 @@ type ClientMessage =
       cwd?: string;
       allowWrite?: boolean;
       allowExecute?: boolean;
+      approvalMode?: 'readonly' | 'auto-edit' | 'full-auto';
       /** Optional override — falls back to saved config */
       provider?: string;
     }
-  | { type: 'interrupt' };
+  | { type: 'interrupt' }
+  | { type: 'approval_response'; id: string; approved: boolean };
 
 type ServerMessage =
   | { type: 'session_id'; sessionId: string }
@@ -32,6 +34,7 @@ type ServerMessage =
   | { type: 'tool_call'; name: string; id: string; input: unknown }
   | { type: 'tool_result'; name: string; id: string; output: string; metadata?: Record<string, unknown> }
   | { type: 'tool_error'; name: string; id: string; error: string }
+  | { type: 'approval_request'; id: string; toolName: string; input: unknown }
   | { type: 'response'; content: string }
   | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
   | { type: 'interrupted' }
@@ -45,6 +48,8 @@ function send(ws: WebSocket, msg: ServerMessage): void {
 
 export function handleWebSocket(ws: WebSocket): void {
   let currentAbort: AbortController | null = null;
+  // Pending approval Promises keyed by approval id
+  const pendingApprovals = new Map<string, (approved: boolean) => void>();
 
   ws.on('message', async (raw) => {
     let msg: ClientMessage;
@@ -60,6 +65,16 @@ export function handleWebSocket(ws: WebSocket): void {
       currentAbort?.abort();
       currentAbort = null;
       send(ws, { type: 'interrupted' });
+      return;
+    }
+
+    // ── Approval response ─────────────────────────────────────
+    if (msg.type === 'approval_response') {
+      const resolve = pendingApprovals.get(msg.id);
+      if (resolve) {
+        pendingApprovals.delete(msg.id);
+        resolve(msg.approved);
+      }
       return;
     }
 
@@ -145,19 +160,34 @@ export function handleWebSocket(ws: WebSocket): void {
       .filter(Boolean)
       .join('\n');
 
+    // Build requestApproval callback — sends approval_request and waits for client response
+    const requestApproval = (id: string, toolName: string, input: unknown): Promise<boolean> => {
+      return new Promise((resolve) => {
+        if (abort.signal.aborted) { resolve(false); return; }
+        pendingApprovals.set(id, resolve);
+        send(ws, { type: 'approval_request', id, toolName, input });
+        // Auto-deny if the turn is aborted while waiting
+        abort.signal.addEventListener('abort', () => {
+          if (pendingApprovals.has(id)) {
+            pendingApprovals.delete(id);
+            resolve(false);
+          }
+        }, { once: true });
+      });
+    };
+
     const loop = new AgentLoop({
       provider,
       registry,
       context: createDvalinContext({
         cwd,
-        allowWrite: msg.allowWrite ?? false,
-        allowExecute: msg.allowExecute ?? false,
+        approvalMode: msg.approvalMode,
+        allowWrite: msg.allowWrite,
+        allowExecute: msg.allowExecute,
+        requestApproval,
       }),
       systemPrompt,
     });
-
-    // Accumulate usage across all LLM calls in this turn
-    let totalUsage: { inputTokens: number; outputTokens: number } | undefined;
 
     const onEvent = (event: AgentEvent): void => {
       if (abort.signal.aborted) return;
@@ -198,7 +228,7 @@ export function handleWebSocket(ws: WebSocket): void {
         type: 'done',
         sessionId: session.id,
         iterations: result.iterationsUsed,
-        usage: totalUsage,
+        usage: result.usage,
       });
     } catch (err) {
       if (abort.signal.aborted) {

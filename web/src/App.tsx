@@ -4,9 +4,12 @@ import { ChatThread } from './components/ChatThread.tsx';
 import { Composer } from './components/Composer.tsx';
 import { SettingsPanel } from './components/SettingsPanel.tsx';
 import { LLMConfigModal } from './components/LLMConfigModal.tsx';
+import { ApprovalDialog } from './components/ApprovalDialog.tsx';
+import { ApprovalModeSwitch } from './components/ApprovalModeSwitch.tsx';
 import { useChat } from './hooks/useChat.ts';
 import { fetchSessions, fetchConfig } from './lib/client.ts';
 import type { ChatSettings } from './components/SettingsPanel.tsx';
+import type { ApprovalMode } from './types.ts';
 
 export default function App() {
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
@@ -14,15 +17,13 @@ export default function App() {
   const [activeModel, setActiveModel] = useState('');
   const [settings, setSettings] = useState<ChatSettings>({
     cwd: '',
-    allowWrite: false,
-    allowExecute: false,
     provider: 'deepseek',
+    approvalMode: 'readonly',
   });
 
   const chat = useChat({
     cwd: settings.cwd || undefined,
-    allowWrite: settings.allowWrite,
-    allowExecute: settings.allowExecute,
+    approvalMode: settings.approvalMode,
   });
 
   // Auto-detect cwd from first session; load saved LLM config for topbar display
@@ -114,12 +115,19 @@ export default function App() {
               title={chat.connected ? 'Connected' : 'Disconnected'}
             />
             {usage && (
-              <span className="text-[11px] text-muted-fg/70 font-mono flex-shrink-0">
+              <span
+                className="text-[11px] text-muted-fg/70 font-mono flex-shrink-0"
+                title={`Input: ${usage.inputTokens.toLocaleString()} · Output: ${usage.outputTokens.toLocaleString()}`}
+              >
                 {(usage.inputTokens + usage.outputTokens).toLocaleString()} tok
               </span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            <ApprovalModeSwitch
+              value={settings.approvalMode}
+              onChange={(mode: ApprovalMode) => setSettings((s) => ({ ...s, approvalMode: mode }))}
+            />
             {/* Active model badge — clickable */}
             {activeModel && (
               <button
@@ -129,16 +137,6 @@ export default function App() {
               >
                 {settings.provider} · {activeModel}
               </button>
-            )}
-            {settings.allowWrite && (
-              <span className="text-[11px] text-yellow-500/80 bg-yellow-500/10 border border-yellow-500/20 rounded px-2 py-0.5">
-                writes on
-              </span>
-            )}
-            {settings.allowExecute && (
-              <span className="text-[11px] text-orange-500/80 bg-orange-500/10 border border-orange-500/20 rounded px-2 py-0.5">
-                exec on
-              </span>
             )}
             <SettingsPanel settings={settings} onChange={setSettings} />
           </div>
@@ -158,6 +156,14 @@ export default function App() {
 
       {/* LLM Config Modal */}
       {showLLMConfig && <LLMConfigModal onClose={handleConfigClose} />}
+
+      {/* Approval dialogs — show one at a time (oldest first) */}
+      {chat.pendingApprovals[0] && (
+        <ApprovalDialog
+          approval={chat.pendingApprovals[0]}
+          onRespond={chat.respondToApproval}
+        />
+      )}
     </div>
   );
 }
