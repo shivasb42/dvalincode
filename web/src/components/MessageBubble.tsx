@@ -31,7 +31,7 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   return (
     <div className="mb-6 animate-fade-in">
       <div className="flex items-center gap-2 mb-2">
-        <img src="/logo.png" alt="DvalinCode" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+        <img src="/logo.svg" alt="DvalinCode" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
         <span className="text-xs text-muted-fg font-medium">DvalinCode</span>
         {pending && (
           <span className="text-xs text-accent/60 animate-pulse">thinking…</span>
