@@ -40,6 +40,41 @@ export class AgentLoop {
       description: 'Compress conversation context',
       handler: (_args, messages) => this.handleCompact(messages),
     });
+    this.slashCommands.set('help', {
+      name: 'help',
+      description: 'List available slash commands',
+      handler: (_args, messages) => ({
+        messages,
+        output: [
+          '**Available slash commands:**',
+          '',
+          '| Command | Description |',
+          '|---------|-------------|',
+          '| `/clear` | Clear conversation (client-side) |',
+          '| `/compact` | Compress context to save tokens |',
+          '| `/git` | Show git branch, commits, changed files |',
+          '| `/plan` | Plan the task before executing |',
+          '| `/help` | Show this help |',
+        ].join('\n'),
+      }),
+    });
+    this.slashCommands.set('git', {
+      name: 'git',
+      description: 'Show git status',
+      handler: (_args, messages) => ({
+        messages: [...messages, { role: 'user' as const, content: 'Run git_status to show the current git branch, recent commits, and changed files.' }],
+      }),
+    });
+    this.slashCommands.set('plan', {
+      name: 'plan',
+      description: 'Plan before executing',
+      handler: (args, messages) => ({
+        messages: [...messages, {
+          role: 'user' as const,
+          content: `Create a detailed step-by-step plan for the following task. List each step clearly with a numbered list. Do NOT execute any steps yet — only plan.\n\nTask: ${args || '(describe the task)'}`,
+        }],
+      }),
+    });
   }
 
   /** Process a user message through the full state machine */

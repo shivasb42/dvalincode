@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, MessageSquare, ChevronLeft, ChevronRight, Settings2 } from 'lucide-react';
 import { fetchSessions, deleteSession } from '../lib/client.ts';
+import { ModeSwitcher } from './ModeSwitcher.tsx';
 import type { SessionMeta } from '../types.ts';
+import type { AgentMode } from '../types.ts';
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -19,9 +21,19 @@ type Props = {
   onSelectSession: (id: string) => void;
   onOpenConfig: () => void;
   refreshKey?: number;
+  mode: AgentMode;
+  onModeChange: (m: AgentMode) => void;
 };
 
-export function Sidebar({ currentSessionId, onNewChat, onSelectSession, onOpenConfig, refreshKey }: Props) {
+export function Sidebar({
+  currentSessionId,
+  onNewChat,
+  onSelectSession,
+  onOpenConfig,
+  refreshKey,
+  mode,
+  onModeChange,
+}: Props) {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -45,6 +57,7 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, onOpenCo
     if (id === currentSessionId) onNewChat();
   };
 
+  /* ── Collapsed state ─────────────────────────────────────────── */
   if (collapsed) {
     return (
       <div className="flex flex-col items-center w-12 h-full bg-surface border-r border-border py-3 gap-3 flex-shrink-0">
@@ -74,6 +87,7 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, onOpenCo
     );
   }
 
+  /* ── Expanded state ──────────────────────────────────────────── */
   return (
     <div className="flex flex-col w-60 h-full bg-surface border-r border-border flex-shrink-0">
       {/* Header */}
@@ -88,6 +102,11 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, onOpenCo
         >
           <ChevronLeft size={14} />
         </button>
+      </div>
+
+      {/* Mode switcher — top-left, full width */}
+      <div className="px-3 py-2 border-b border-border">
+        <ModeSwitcher value={mode} onChange={onModeChange} fullWidth />
       </div>
 
       {/* New chat button */}
@@ -108,10 +127,13 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, onOpenCo
         ) : (
           <div className="flex flex-col gap-0.5">
             {sessions.map((s) => (
-              <button
+              <div
                 key={s.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => onSelectSession(s.id)}
-                className={`group w-full text-left px-3 py-2 rounded-lg transition-colors flex items-start gap-2 ${
+                onKeyDown={(e) => e.key === 'Enter' && onSelectSession(s.id)}
+                className={`group w-full text-left px-3 py-2 rounded-lg transition-colors flex items-start gap-2 cursor-pointer ${
                   s.id === currentSessionId
                     ? 'bg-accent/10 border border-accent/20 text-fg'
                     : 'hover:bg-[#1a1a1a] text-muted-fg hover:text-fg border border-transparent'
@@ -134,7 +156,7 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, onOpenCo
                 >
                   <Trash2 size={12} />
                 </button>
-              </button>
+              </div>
             ))}
           </div>
         )}

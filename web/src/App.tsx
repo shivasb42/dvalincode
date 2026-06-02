@@ -5,9 +5,9 @@ import { Composer } from './components/Composer.tsx';
 import { SettingsPanel } from './components/SettingsPanel.tsx';
 import { LLMConfigModal } from './components/LLMConfigModal.tsx';
 import { ApprovalDialog } from './components/ApprovalDialog.tsx';
-import { ModeSwitcher } from './components/ModeSwitcher.tsx';
 import { useChat } from './hooks/useChat.ts';
 import { fetchSessions, fetchConfig, fetchGitInfo } from './lib/client.ts';
+import { estimateCost, formatCost } from './lib/pricing.ts';
 import type { ChatSettings } from './components/SettingsPanel.tsx';
 import type { AgentMode, ApprovalMode } from './types.ts';
 
@@ -23,6 +23,7 @@ export default function App() {
   const [activeModel, setActiveModel] = useState('');
   const [mode, setMode] = useState<AgentMode>('code');
   const [gitBranch, setGitBranch] = useState<string | null>(null);
+  const [sessionCost, setSessionCost] = useState(0);
   const [settings, setSettings] = useState<ChatSettings>({
     cwd: '',
     provider: 'deepseek',
@@ -73,6 +74,7 @@ export default function App() {
 
   const handleNewChat = useCallback(() => {
     chat.reset();
+    setSessionCost(0);
     setSidebarRefresh((n) => n + 1);
   }, [chat]);
 
@@ -110,6 +112,13 @@ export default function App() {
 
   const usage = chat.lastUsage;
 
+  // Accumulate cost whenever a turn finishes
+  useEffect(() => {
+    if (!usage) return;
+    const turnCost = estimateCost(usage.inputTokens, usage.outputTokens, activeModel);
+    setSessionCost((c) => c + turnCost);
+  }, [usage, activeModel]);
+
   return (
     <div className="flex h-full bg-bg text-fg">
       <Sidebar
@@ -118,6 +127,8 @@ export default function App() {
         onSelectSession={handleSelectSession}
         onOpenConfig={() => setShowLLMConfig(true)}
         refreshKey={sidebarRefresh}
+        mode={mode}
+        onModeChange={handleModeChange}
       />
 
       {/* Main area */}
@@ -146,15 +157,19 @@ export default function App() {
             )}
             {usage && (
               <span
-                className="text-[11px] text-muted-fg/70 font-mono flex-shrink-0"
+                className="text-[11px] text-muted-fg/70 font-mono flex-shrink-0 flex items-center gap-1.5"
                 title={`Input: ${usage.inputTokens.toLocaleString()} · Output: ${usage.outputTokens.toLocaleString()}`}
               >
-                {(usage.inputTokens + usage.outputTokens).toLocaleString()} tok
+                <span>{(usage.inputTokens + usage.outputTokens).toLocaleString()} tok</span>
+                {sessionCost > 0 && (
+                  <span className="text-emerald-500/70" title={`Session cost: ${formatCost(sessionCost)}`}>
+                    · {formatCost(sessionCost)}
+                  </span>
+                )}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <ModeSwitcher value={mode} onChange={handleModeChange} />
             {/* Active model badge */}
             {activeModel && (
               <button
@@ -175,6 +190,7 @@ export default function App() {
         {/* Composer */}
         <Composer
           onSend={handleSend}
+          onClear={handleNewChat}
           onInterrupt={chat.interrupt}
           sending={chat.sending}
           disabled={false}
