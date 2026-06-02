@@ -3,12 +3,13 @@ import { Send, Square } from 'lucide-react';
 
 type Props = {
   onSend: (text: string) => void;
+  onInterrupt?: () => void;
   disabled?: boolean;
   sending?: boolean;
   placeholder?: string;
 };
 
-export function Composer({ onSend, disabled, sending, placeholder }: Props) {
+export function Composer({ onSend, onInterrupt, disabled, sending, placeholder }: Props) {
   const [text, setText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -50,17 +51,23 @@ export function Composer({ onSend, disabled, sending, placeholder }: Props) {
           rows={1}
           className="flex-1 bg-transparent resize-none outline-none text-fg placeholder-muted-fg text-sm leading-relaxed min-h-[24px] disabled:opacity-50"
         />
-        <button
-          onClick={submit}
-          disabled={!text.trim() || disabled}
-          className="flex-shrink-0 w-8 h-8 rounded-lg bg-accent/90 hover:bg-accent disabled:bg-muted/30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-        >
-          {sending ? (
-            <Square size={13} className="text-white fill-white" />
-          ) : (
+        {sending ? (
+          <button
+            onClick={onInterrupt}
+            title="Stop generation"
+            className="flex-shrink-0 w-8 h-8 rounded-lg bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-colors"
+          >
+            <Square size={12} className="text-white fill-white" />
+          </button>
+        ) : (
+          <button
+            onClick={submit}
+            disabled={!text.trim() || disabled}
+            className="flex-shrink-0 w-8 h-8 rounded-lg bg-accent/90 hover:bg-accent disabled:bg-muted/30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+          >
             <Send size={13} className="text-white" />
-          )}
-        </button>
+          </button>
+        )}
       </div>
       <p className="text-[11px] text-muted-fg mt-2 text-center">
         Enter to send · Shift+Enter for newline

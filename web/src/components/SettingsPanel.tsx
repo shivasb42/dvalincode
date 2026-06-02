@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { X, Settings } from 'lucide-react';
+import type { ApprovalMode } from '../types.ts';
 
 export type ChatSettings = {
   cwd: string;
-  allowWrite: boolean;
-  allowExecute: boolean;
   provider: string;
+  approvalMode: ApprovalMode;
 };
 
 type Props = {
@@ -75,32 +75,9 @@ export function SettingsPanel({ settings, onChange }: Props) {
                 />
               </label>
 
-              <div className="flex flex-col gap-2">
-                <span className="text-xs text-muted-fg font-medium">Permissions</span>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={draft.allowWrite}
-                    onChange={(e) => setDraft({ ...draft, allowWrite: e.target.checked })}
-                    className="w-4 h-4 accent-[#818cf8]"
-                  />
-                  <span className="text-sm text-fg">Allow file writes & edits</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={draft.allowExecute}
-                    onChange={(e) => setDraft({ ...draft, allowExecute: e.target.checked })}
-                    className="w-4 h-4 accent-[#818cf8]"
-                  />
-                  <span className="text-sm text-fg">Allow shell execution</span>
-                </label>
-                {(draft.allowWrite || draft.allowExecute) && (
-                  <p className="text-xs text-yellow-500/80 bg-yellow-500/10 border border-yellow-500/20 rounded px-2 py-1">
-                    Granting these permissions lets the AI modify files and run commands.
-                  </p>
-                )}
-              </div>
+              <p className="text-xs text-muted-fg/60 bg-[#0f0f0f] border border-border rounded px-2.5 py-2">
+                Approval mode is controlled by the switcher in the top bar.
+              </p>
             </div>
 
             <div className="flex justify-end gap-2 px-5 py-4 border-t border-border">

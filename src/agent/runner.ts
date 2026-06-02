@@ -69,22 +69,34 @@ export class AgentRunner {
     userMessage: string,
     history: ChatMessage[],
     onEvent?: AgentEventHandler,
-  ): Promise<{ messages: ChatMessage[]; finalResponse: string; iterationsUsed: number }> {
+    signal?: AbortSignal,
+  ): Promise<{ messages: ChatMessage[]; finalResponse: string; iterationsUsed: number; usage?: { inputTokens: number; outputTokens: number } }> {
     const messages: ChatMessage[] = [...history, { role: 'user', content: userMessage }];
     this.iterationCount = 0;
+    let totalUsage: { inputTokens: number; outputTokens: number } | undefined;
 
     while (this.iterationCount < this.config.maxIterations) {
+      if (signal?.aborted) throw new Error('interrupted');
       this.iterationCount++;
 
       // Build tool definitions from registry
       const toolDefs = this.buildToolDefs();
 
-      // Call LLM
+      // Call LLM (streaming if onEvent is provided)
       const response: ChatResponse = await this.provider.chat({
         system: this.systemPrompt,
         messages,
         tools: toolDefs.length > 0 ? toolDefs : undefined,
+        signal,
+        onDelta: onEvent ? (delta) => onEvent({ type: 'token_delta', content: delta }) : undefined,
       });
+
+      // Accumulate token usage across all iterations
+      if (response.usage) {
+        if (!totalUsage) totalUsage = { inputTokens: 0, outputTokens: 0 };
+        totalUsage.inputTokens += response.usage.inputTokens;
+        totalUsage.outputTokens += response.usage.outputTokens;
+      }
 
       // Add assistant message — include tool_calls if present (required by OpenAI-compatible APIs)
       const assistantMsg: ChatMessage = {
@@ -103,7 +115,7 @@ export class AgentRunner {
       }
       if (toolCalls.length === 0) {
         // No tool calls — this is the final response
-        return { messages, finalResponse: response.content, iterationsUsed: this.iterationCount };
+        return { messages, finalResponse: response.content, iterationsUsed: this.iterationCount, usage: totalUsage };
       }
 
       // Cap tool calls per turn
@@ -155,6 +167,7 @@ export class AgentRunner {
       messages,
       finalResponse: lastMsg?.content ?? 'Max iterations reached without final response.',
       iterationsUsed: this.iterationCount,
+      usage: totalUsage,
     };
   }
 

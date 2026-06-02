@@ -318,6 +318,58 @@ The design process included studying common patterns in modern terminal coding a
 
 ---
 
+## Install
+
+### Standalone binary (no Node required)
+
+Download the binary for your platform from the [Releases page](../../releases), then make it executable and put it on your `PATH`:
+
+```sh
+# macOS (Apple Silicon)
+curl -L -o dvalincode https://github.com/OWNER/dvalincode/releases/latest/download/dvalincode-macos-arm64
+chmod +x dvalincode
+sudo mv dvalincode /usr/local/bin/
+
+# Linux (x64)
+curl -L -o dvalincode https://github.com/OWNER/dvalincode/releases/latest/download/dvalincode-linux-x64
+chmod +x dvalincode
+sudo mv dvalincode /usr/local/bin/
+```
+
+Available targets: `macos-arm64`, `macos-x64`, `linux-arm64`, `linux-x64`.
+
+Verify the download against `SHA256SUMS.txt`:
+
+```sh
+shasum -a 256 -c SHA256SUMS.txt        # macOS
+sha256sum -c SHA256SUMS.txt            # Linux
+```
+
+> **macOS Gatekeeper:** the binary is unsigned, so the first run may be blocked.
+> Clear the quarantine flag with `xattr -d com.apple.quarantine ./dvalincode`,
+> or allow it under System Settings → Privacy & Security.
+
+### From npm
+
+```sh
+npm install -g dvalincode
+```
+
+### Build binaries yourself
+
+Requires [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`). Bun
+cross-compiles every target from a single machine — no per-platform runner needed.
+
+```sh
+npm run build:binaries            # all targets → dist-bin/
+npm run build:binaries:darwin     # macOS only
+npm run build:binaries:linux      # Linux only
+```
+
+Artifacts and a `SHA256SUMS.txt` checksum file land in `dist-bin/`.
+
+---
+
 ## License
 
 MIT

@@ -43,13 +43,14 @@ export class AgentLoop {
   }
 
   /** Process a user message through the full state machine */
-  async processMessage(userMessage: string, history: ChatMessage[], onEvent?: AgentEventHandler): Promise<LoopResult> {
+  async processMessage(userMessage: string, history: ChatMessage[], onEvent?: AgentEventHandler, signal?: AbortSignal): Promise<LoopResult> {
     let messages = [...history];
     let state: TurnState | string = TurnState.RESTORE;
 
     // Pre-allocated output
     let output = '';
     let iterationsUsed = 0;
+    let usage: { inputTokens: number; outputTokens: number } | undefined;
 
     while (state !== TurnState.DONE) {
       switch (state) {
@@ -104,10 +105,11 @@ export class AgentLoop {
             config: this.config,
             systemPrompt: this.systemPrompt,
           });
-          const result = await runner.runTurn(userMessage, messages, onEvent);
+          const result = await runner.runTurn(userMessage, messages, onEvent, signal);
           messages = result.messages;
           output = result.finalResponse;
           iterationsUsed = result.iterationsUsed;
+          usage = result.usage;
           state = TurnState.SAVE;
           break;
         }
@@ -124,7 +126,7 @@ export class AgentLoop {
       }
     }
 
-    return { messages, output, iterationsUsed };
+    return { messages, output, iterationsUsed, usage };
   }
 
   private handleCompact(messages: ChatMessage[]): { messages: ChatMessage[]; output?: string } {

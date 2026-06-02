@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, MessageSquare, ChevronLeft, ChevronRight, Settings2 } from 'lucide-react';
 import { fetchSessions, deleteSession } from '../lib/client.ts';
 import type { SessionMeta } from '../types.ts';
 
@@ -17,10 +17,11 @@ type Props = {
   currentSessionId?: string;
   onNewChat: () => void;
   onSelectSession: (id: string) => void;
+  onOpenConfig: () => void;
   refreshKey?: number;
 };
 
-export function Sidebar({ currentSessionId, onNewChat, onSelectSession, refreshKey }: Props) {
+export function Sidebar({ currentSessionId, onNewChat, onSelectSession, onOpenConfig, refreshKey }: Props) {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -61,6 +62,14 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, refreshK
         >
           <Plus size={16} />
         </button>
+        <div className="flex-1" />
+        <button
+          onClick={onOpenConfig}
+          className="p-2 rounded-lg hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors"
+          title="LLM Configuration"
+        >
+          <Settings2 size={16} />
+        </button>
       </div>
     );
   }
@@ -70,9 +79,7 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, refreshK
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-accent/20 border border-accent/40 flex items-center justify-center text-xs font-bold text-accent">
-            D
-          </div>
+          <img src="/logo.svg" alt="DvalinCode" className="w-6 h-6 rounded-md object-cover" />
           <span className="font-semibold text-sm text-fg">DvalinCode</span>
         </div>
         <button
@@ -95,7 +102,7 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, refreshK
       </div>
 
       {/* Session list */}
-      <div className="flex-1 overflow-y-auto px-2 pb-2">
+      <div className="flex-1 overflow-y-auto px-2">
         {sessions.length === 0 ? (
           <p className="text-xs text-muted-fg px-3 py-4 text-center">No sessions yet</p>
         ) : (
@@ -131,6 +138,17 @@ export function Sidebar({ currentSessionId, onNewChat, onSelectSession, refreshK
             ))}
           </div>
         )}
+      </div>
+
+      {/* Footer — LLM config */}
+      <div className="border-t border-border px-3 py-2">
+        <button
+          onClick={onOpenConfig}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors text-sm"
+        >
+          <Settings2 size={14} />
+          LLM Configuration
+        </button>
       </div>
     </div>
   );

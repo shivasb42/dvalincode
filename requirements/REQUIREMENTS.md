@@ -1,7 +1,7 @@
 # DvalinCode Requirements
 
 > Auto-generated from community intelligence pipeline.
-> Last updated: 2026-05-20
+> Last updated: 2026-05-21
 
 ## Priority Framework (First Principles)
 
@@ -96,6 +96,67 @@ Every feature is scored on 5 dimensions (1-5):
 | 0.2 | Desktop app | Irrelevant for CLI tool |
 
 ---
+---
+|
+|### P2 — Nice to Have (New, 2026-05-21)
+|
+|#### 9. LSP Integration (Score: 6.7) ⬆️ Updated from 4.5
+|- **Signal**: Codex CLI #8745 (↑774 — up from ↑768 last week). Growing demand for auto-detect + auto-install LSP.
+|- **What to build**: Auto-detect project LSP, pipe diagnostics to agent for context-aware code analysis.
+|- **Note**: Already listed as P2 #6 (Score: 4.5). Updated score reflects increased community demand.
+|
+|#### 10. Claude Code Exodus / Google-Play-Safe Positioning (Score: 6.7)
+|- **Signal**: Claude Code removed from Pro plan (↑1704). Growing dissatisfaction — "I've had it with Claude" (↑987), "Something doesn't add up" (↑384).
+|- **What to build**: Capitalize on Claude dissatisfaction. Emphasize DvalinCode's provider-neutrality, no-rate-limit model. Not a feature per se — a messaging/positioning opportunity.
+|- **Why now**: Anthropic just made Claude Code Pro-only. Competitors are bleeding users. This is a strategic window.
+|
+|#### 11. Sensitive File Exclusion — Score Upgrade (Was P2 #7, score 3.8 → new score: 5.0)
+|- **Signal**: Codex CLI #2847 (↑770 — up from ↑766 last week). Consistent demand.
+|- **What to build**: `.dvalincodeignore` file (like `.gitignore`) that the tool system respects globally.
+|- **Recommendation**: Merge with P2 #5 (Approval Gates) since both are about execution safety and share similar mechanisms.
+|
+|#### 12. Vibe Coding Guardrails Amplification (Score: 5.5)
+|- **Signal**: "Inherited a vibe-coded repo" hit ↑7061. This is the #1 post on r/ClaudeCode this cycle. Vibe coding quality issues (↑7046) remain the top complaint.
+|- **What to build**: Strengthen existing Approval Gates / Guardrails initiative (P2 #5). Add a `dvalincode review` command that analyzes generated code quality before committing. Post-vibe-code audit tooling.
+|- **DvalinCode angle**: Position as "the agent that writes maintainable code" vs. the Wild West of vibe coding.
+|
+|#### 13. Provider-Neutral — Qwen/Ollama Integration Docs (Score: 5.5)
+|- **Signal**: Hugging Face co-founder says Qwen 3.6 27B ≈ Opus in Claude Code (↑2069). "This new model is insane" (↑2005). Local model movement is accelerating.
+|- **What to build**: Write the Ollama/local model integration guide. Add a `--provider` flag override. This is already mostly done — just a docs/CLI gap.
+|- **Already done**: ProviderAdapter, ProviderManager, OpenAI-compatible adapter.
+|
+|### New Items (P3)
+|
+|#### My opinion on Opus 4.7 after heavy use since release (Score: 2.0)
+|- **Source**: https://reddit.com/r/ClaudeCode/comments/1svzil1/my_opinion_
+|- **Pain**: 2/5, **Align**: 3/5, **Cost**: 3/5, **Risk**: 3/5, **Gap**: 3/5
+|- **Note**: Personal opinion, no actionable signal.
+|
+|#### Login shells override inherited PATH (Score: 1.5)
+|- **Source**: https://github.com/openai/codex/issues/8922
+|- **Pain**: 2/5, **Align**: 1/5, **Cost**: 2/5, **Risk**: 4/5, **Gap**: 2/5
+|- **Note**: Codex-specific config issue. DvalinCode uses Hermes runtime with explicit tool env. Not relevant.
+|
+|#### WebSocket upgrade policy error (Score: 1.2)
+|- **Source**: https://github.com/openai/codex/issues/13041
+|- **Pain**: 1/5, **Align**: 1/5, **Cost**: 2/5, **Risk**: 4/5, **Gap**: 2/5
+|- **Note**: Codex infrastructure bug. Not applicable to DvalinCode.
+|
+|#### High GPU usage from animation (Score: 0.5)
+|- **Source**: https://github.com/openai/codex/issues/16857
+|- **Pain**: 1/5, **Align**: 1/5, **Cost**: 3/5, **Risk**: 4/5, **Gap**: 1/5
+|- **Note**: Codex terminal UI issue. DvalinCode is CLI-first, irrelevant.
+|
+|#### Codex desktop app for Linux (Score: 0.2)
+|- **Source**: https://github.com/openai/codex/issues/11023
+|- **Pain**: 2/5, **Align**: 1/5, **Cost**: 2/5, **Risk**: 4/5, **Gap**: 1/5
+|- **Note**: Desktop app is philosophically incompatible with DvalinCode's CLI-first, lightweight approach.
+|
+|#### I let my interns vibe code from day one but with rules (Score: 2.5)
+|- **Source**: https://reddit.com/r/ClaudeCode/comments/1sryeqw
+|- **Pain**: 2/5, **Align**: 4/5, **Cost**: 3/5, **Risk**: 4/5, **Gap**: 3/5
+|- **Note**: Interesting case study about structured vibe coding. Could inform guardrails feature. Informational.
+
 
 ## Source Log
 
@@ -112,6 +173,23 @@ Every feature is scored on 5 dimensions (1-5):
 | 2026-05-20 | Reddit r/ClaudeCode | Context tool confusion (↑175) | P2 |
 | 2026-05-20 | Reddit r/ClaudeCode | Provider lock-in / vendor independence | P2 |
 | 2026-05-20 | HN Search | Agent coding tool discussions | P2 |
+
+|| 2026-05-21 | Reddit r/ClaudeCode | LSP integration demand update (↑774, up from ↑768) | P2 |
+|| 2026-05-21 | Reddit r/ClaudeCode | Claude Code removed from Pro plan (↑1704) — positioning opportunity | P2 |
+|| 2026-05-21 | GitHub CodexCLI #2847 | Sensitive file exclusion update (↑770, up from ↑766) | P2 |
+|| 2026-05-21 | Reddit r/ClaudeCode | Vibe coding aftermath horror post (↑7061) — guardrails signal | P2 |
+|| 2026-05-21 | Reddit r/ClaudeCode | Qwen 3.6 ≈ Opus quality (↑2069) — local model docs priority | P2 |
+|| 2026-05-21 | Reddit r/ClaudeCode | "This new model is insane" (↑2005) — local model trend | P3 |
+|| 2026-05-21 | Reddit r/ClaudeCode | "I've had it with Claude" (↑987) — vendor lock-in anxiety | P3 |
+|| 2026-05-21 | Reddit r/ClaudeCode | Sr Engineer wrote zero code for months (↑1588) | P3 |
+|| 2026-05-21 | Reddit r/ClaudeCode | "Something doesn't add up" (↑384) — Claude trust erosion | P3 |
+|| 2026-05-21 | Reddit r/ClaudeCode | Anthropic postmortem: Claude quality regression (↑3340) | P3 |
+|| 2026-05-21 | Reddit r/ClaudeCode | Structured vibe coding case study (↑167) | P3 |
+|| 2026-05-21 | Reddit r/ClaudeCode | Opus 4.7 opinion (↑116) — no actionable signal | P3 |
+|| 2026-05-21 | GitHub CodexCLI #8922 | Login shell PATH override (↑230) — not DvalinCode-relevant | P3 |
+|| 2026-05-21 | GitHub CodexCLI #13041 | WebSocket policy error (↑282) — Codex infra bug | P3 |
+|| 2026-05-21 | GitHub CodexCLI #16857 | GPU animation usage (↑182) — not DvalinCode-relevant | P3 |
+|| 2026-05-21 | GitHub CodexCLI #11023 | Desktop app for Linux (↑674) — incompatible philosophy | P3 |
 
 ## Shipped
 
