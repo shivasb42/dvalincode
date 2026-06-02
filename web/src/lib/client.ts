@@ -141,3 +141,15 @@ export async function fetchFiles(cwd: string): Promise<string[]> {
   if (!res.ok) return [];
   return res.json() as Promise<string[]>;
 }
+
+export type GitInfo = { branch: string | null; lastCommit: string | null };
+
+export async function fetchGitInfo(cwd: string): Promise<GitInfo> {
+  try {
+    const res = await fetch(`/api/git?cwd=${encodeURIComponent(cwd)}`);
+    if (!res.ok) return { branch: null, lastCommit: null };
+    return res.json() as Promise<GitInfo>;
+  } catch {
+    return { branch: null, lastCommit: null };
+  }
+}

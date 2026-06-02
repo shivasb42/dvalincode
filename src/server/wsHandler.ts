@@ -1,5 +1,9 @@
 import { readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import path from 'node:path';
+
+const execAsync = promisify(execFile);
 import type { WebSocket } from 'ws';
 import { ProviderManager } from '../providers/manager.js';
 import { scanProject } from '../core/projectScanner.js';
@@ -69,6 +73,10 @@ function send(ws: WebSocket, msg: ServerMessage): void {
   if (ws.readyState === 1 /* OPEN */) {
     ws.send(JSON.stringify(msg));
   }
+}
+
+async function readTextFileSafe(filePath: string): Promise<string | null> {
+  try { return await readFile(filePath, 'utf8'); } catch { return null; }
 }
 
 /** Expand @filepath references in the user's message by injecting file contents. */
@@ -186,6 +194,23 @@ export function handleWebSocket(ws: WebSocket): void {
     const summary = await scanProject(cwd);
     const sessionContext = session.summary ? `\nPrevious session summary: ${session.summary}\n` : '';
 
+    // ── AGENTS.md project memory ─────────────────────────────────────────────
+    const agentsMd = await readTextFileSafe(path.join(cwd, 'AGENTS.md'));
+    const projectInstructions = agentsMd
+      ? `\n=== PROJECT INSTRUCTIONS (from AGENTS.md) ===\n${agentsMd}\n`
+      : '';
+
+    // ── Git context ──────────────────────────────────────────────────────────
+    let gitContext = '';
+    try {
+      const branch = (await execAsync('git', ['branch', '--show-current'], { cwd })).stdout.trim();
+      const status = (await execAsync('git', ['status', '--porcelain'], { cwd })).stdout.trim();
+      const changedCount = status ? status.split('\n').length : 0;
+      gitContext = `\nGit branch: ${branch || '(detached)'}${changedCount > 0 ? ` · ${changedCount} changed file(s)` : ' · clean'}\n`;
+    } catch {
+      // Not a git repo — silently skip
+    }
+
     const systemPrompt = [
       'You are DvalinCode, an AI coding assistant.',
       MODE_PROMPT[mode],
@@ -194,6 +219,8 @@ export function handleWebSocket(ws: WebSocket): void {
       `Files: ${summary.fileCount} files`,
       `Package manager(s): ${summary.packageManagers.join(', ') || 'none'}`,
       summary.signals.length > 0 ? `Signals: ${summary.signals.join(', ')}` : '',
+      gitContext,
+      projectInstructions,
       sessionContext,
       '',
       '=== TOOLS ===',

@@ -8,6 +8,7 @@ import { sessionsRouter } from './routes/sessions.js';
 import { toolsRouter } from './routes/tools.js';
 import { configRouter } from './routes/config.js';
 import { filesRouter } from './routes/files.js';
+import { gitRouter } from './routes/git.js';
 import { handleWebSocket } from './wsHandler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,6 +24,7 @@ app.use('/api/sessions', sessionsRouter);
 app.use('/api/tools', toolsRouter);
 app.use('/api/config', configRouter);
 app.use('/api/files', filesRouter);
+app.use('/api/git', gitRouter);
 
 // Serve built frontend in production
 const webDist = path.join(__dirname, '../../web/dist');

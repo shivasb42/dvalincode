@@ -7,7 +7,7 @@ import { LLMConfigModal } from './components/LLMConfigModal.tsx';
 import { ApprovalDialog } from './components/ApprovalDialog.tsx';
 import { ModeSwitcher } from './components/ModeSwitcher.tsx';
 import { useChat } from './hooks/useChat.ts';
-import { fetchSessions, fetchConfig } from './lib/client.ts';
+import { fetchSessions, fetchConfig, fetchGitInfo } from './lib/client.ts';
 import type { ChatSettings } from './components/SettingsPanel.tsx';
 import type { AgentMode, ApprovalMode } from './types.ts';
 
@@ -22,6 +22,7 @@ export default function App() {
   const [showLLMConfig, setShowLLMConfig] = useState(false);
   const [activeModel, setActiveModel] = useState('');
   const [mode, setMode] = useState<AgentMode>('code');
+  const [gitBranch, setGitBranch] = useState<string | null>(null);
   const [settings, setSettings] = useState<ChatSettings>({
     cwd: '',
     provider: 'deepseek',
@@ -39,7 +40,9 @@ export default function App() {
     fetchSessions()
       .then((sessions) => {
         if (sessions[0]?.cwd && !settings.cwd) {
-          setSettings((s) => ({ ...s, cwd: sessions[0].cwd }));
+          const cwd = sessions[0].cwd;
+          setSettings((s) => ({ ...s, cwd }));
+          fetchGitInfo(cwd).then((g) => setGitBranch(g.branch)).catch(() => {});
         }
       })
       .catch(() => {});
@@ -61,6 +64,12 @@ export default function App() {
   useEffect(() => {
     if (!chat.connected) chat.connect();
   }, [settings, mode]);
+
+  // Refresh git branch whenever cwd changes
+  useEffect(() => {
+    if (!settings.cwd) return;
+    fetchGitInfo(settings.cwd).then((g) => setGitBranch(g.branch)).catch(() => {});
+  }, [settings.cwd]);
 
   const handleNewChat = useCallback(() => {
     chat.reset();
@@ -127,6 +136,14 @@ export default function App() {
               }`}
               title={chat.connected ? 'Connected' : 'Disconnected'}
             />
+            {gitBranch && (
+              <span className="text-[11px] text-muted-fg/80 font-mono flex-shrink-0 flex items-center gap-1">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" className="opacity-60">
+                  <path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h1.5v2.128a2.251 2.251 0 1 0 1.5 0V8.5h1.5a2.25 2.25 0 0 0 2.25-2.25v-.878a2.25 2.25 0 1 0-1.5 0v.878a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 5 6.25v-.878zm3.75 7.378a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zm3-8.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0z"/>
+                </svg>
+                {gitBranch}
+              </span>
+            )}
             {usage && (
               <span
                 className="text-[11px] text-muted-fg/70 font-mono flex-shrink-0"

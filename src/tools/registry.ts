@@ -7,6 +7,7 @@ import { searchTextTool } from './searchText.js';
 import { shellTool } from './shell.js';
 import { writeFileTool } from './writeFile.js';
 import { deleteFileTool } from './deleteFile.js';
+import { gitStatusTool } from './gitStatus.js';
 import type { Tool, ToolResult } from './types.js';
 
 export class ToolRegistry {
@@ -61,6 +62,7 @@ export class ToolRegistry {
 export function createDefaultToolRegistry(): ToolRegistry {
   const registry = new ToolRegistry();
   registry.register(editFileTool);
+  registry.register(gitStatusTool);
   registry.register(listFilesTool);
   registry.register(readFileTool);
   registry.register(searchTextTool);
