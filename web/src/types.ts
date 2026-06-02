@@ -49,6 +49,9 @@ export type ChatMessage =
     };
 
 export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto';
+export type AgentMode = 'chat' | 'cowork' | 'code';
+
+export type DiffLine = { type: 'add' | 'remove' | 'keep'; content: string };
 
 export type PendingApproval = {
   id: string;

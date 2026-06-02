@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { sessionsRouter } from './routes/sessions.js';
 import { toolsRouter } from './routes/tools.js';
 import { configRouter } from './routes/config.js';
+import { filesRouter } from './routes/files.js';
 import { handleWebSocket } from './wsHandler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/tools', toolsRouter);
 app.use('/api/config', configRouter);
+app.use('/api/files', filesRouter);
 
 // Serve built frontend in production
 const webDist = path.join(__dirname, '../../web/dist');

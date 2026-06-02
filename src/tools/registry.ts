@@ -11,6 +11,12 @@ import type { Tool, ToolResult } from './types.js';
 
 export class ToolRegistry {
   private readonly tools = new Map<string, Tool<unknown>>();
+  private allowedToolNames: Set<string> | null = null;
+
+  /** Restrict which tools are visible / executable. Pass null to allow all. */
+  setAllowedTools(names: string[] | null): void {
+    this.allowedToolNames = names ? new Set(names) : null;
+  }
 
   register<Input>(tool: Tool<Input>): void {
     if (this.tools.has(tool.name)) {
@@ -21,10 +27,12 @@ export class ToolRegistry {
   }
 
   list(): Tool<unknown>[] {
-    return [...this.tools.values()].sort((a, b) => a.name.localeCompare(b.name));
+    const all = [...this.tools.values()].sort((a, b) => a.name.localeCompare(b.name));
+    return this.allowedToolNames ? all.filter(t => this.allowedToolNames!.has(t.name)) : all;
   }
 
   get(name: string): Tool<unknown> | undefined {
+    if (this.allowedToolNames && !this.allowedToolNames.has(name)) return undefined;
     return this.tools.get(name);
   }
 

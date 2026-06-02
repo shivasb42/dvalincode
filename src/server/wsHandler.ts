@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import type { WebSocket } from 'ws';
 import { ProviderManager } from '../providers/manager.js';
 import { scanProject } from '../core/projectScanner.js';
@@ -13,6 +15,29 @@ import {
 import { readConfig } from './configStore.js';
 import type { AgentEvent } from '../agent/types.js';
 
+type AgentMode = 'chat' | 'cowork' | 'code';
+
+const MODE_TOOLS: Record<AgentMode, string[] | null> = {
+  chat:   ['read_file', 'list_files', 'search_text'],
+  cowork: null, // all tools
+  code:   null, // all tools
+};
+
+const MODE_APPROVAL: Record<AgentMode, 'readonly' | 'auto-edit' | 'full-auto'> = {
+  chat:   'readonly',
+  cowork: 'auto-edit',
+  code:   'full-auto',
+};
+
+const MODE_PROMPT: Record<AgentMode, string> = {
+  chat:
+    'You are in Chat mode. Answer questions, explain code, and discuss ideas. Do NOT write, edit, delete files or run shell commands — read-only tools only.',
+  cowork:
+    'You are in Cowork mode. Work collaboratively. Briefly explain your plan before making changes. Prefer focused, surgical edits. File writes and shell commands require user approval.',
+  code:
+    'You are in Code mode. Work autonomously to complete the task efficiently. Use all available tools as needed.',
+};
+
 type ClientMessage =
   | {
       type: 'send';
@@ -22,7 +47,7 @@ type ClientMessage =
       allowWrite?: boolean;
       allowExecute?: boolean;
       approvalMode?: 'readonly' | 'auto-edit' | 'full-auto';
-      /** Optional override — falls back to saved config */
+      mode?: AgentMode;
       provider?: string;
     }
   | { type: 'interrupt' }
@@ -46,9 +71,33 @@ function send(ws: WebSocket, msg: ServerMessage): void {
   }
 }
 
+/** Expand @filepath references in the user's message by injecting file contents. */
+async function expandAtMentions(content: string, cwd: string): Promise<string> {
+  const mentionRegex = /@([\w./\-]+)/g;
+  const mentions = [...content.matchAll(mentionRegex)];
+  if (mentions.length === 0) return content;
+
+  let result = content;
+  for (const match of mentions) {
+    const relPath = match[1];
+    const absPath = path.resolve(cwd, relPath);
+    // Safety: must stay inside cwd
+    if (!absPath.startsWith(path.resolve(cwd))) continue;
+    try {
+      const fileContent = await readFile(absPath, 'utf8');
+      result = result.replace(
+        match[0],
+        `<file path="${relPath}">\n\`\`\`\n${fileContent}\n\`\`\`\n</file>`,
+      );
+    } catch {
+      // File not found — leave mention as-is
+    }
+  }
+  return result;
+}
+
 export function handleWebSocket(ws: WebSocket): void {
   let currentAbort: AbortController | null = null;
-  // Pending approval Promises keyed by approval id
   const pendingApprovals = new Map<string, (approved: boolean) => void>();
 
   ws.on('message', async (raw) => {
@@ -60,7 +109,6 @@ export function handleWebSocket(ws: WebSocket): void {
       return;
     }
 
-    // ── Interrupt ─────────────────────────────────────────────
     if (msg.type === 'interrupt') {
       currentAbort?.abort();
       currentAbort = null;
@@ -68,7 +116,6 @@ export function handleWebSocket(ws: WebSocket): void {
       return;
     }
 
-    // ── Approval response ─────────────────────────────────────
     if (msg.type === 'approval_response') {
       const resolve = pendingApprovals.get(msg.id);
       if (resolve) {
@@ -80,12 +127,13 @@ export function handleWebSocket(ws: WebSocket): void {
 
     if (msg.type !== 'send') return;
 
-    // Abort any in-flight turn before starting a new one
     currentAbort?.abort();
     const abort = new AbortController();
     currentAbort = abort;
 
     const cwd = msg.cwd ?? process.cwd();
+    const mode: AgentMode = msg.mode ?? 'code';
+    const approvalMode = msg.approvalMode ?? MODE_APPROVAL[mode];
 
     // Load or create session
     let session;
@@ -101,7 +149,7 @@ export function handleWebSocket(ws: WebSocket): void {
 
     send(ws, { type: 'session_id', sessionId: session.id });
 
-    // Set up provider — config file takes precedence over env vars
+    // Set up provider
     let provider;
     try {
       const cfg = await readConfig();
@@ -122,21 +170,25 @@ export function handleWebSocket(ws: WebSocket): void {
       return;
     }
 
-    // Scan workspace
-    const summary = await scanProject(cwd);
+    // Expand @mentions in user message
+    const userContent = await expandAtMentions(msg.content, cwd);
+
+    // Build tool registry filtered by mode
     const registry = createDefaultToolRegistry();
+    const allowedTools = MODE_TOOLS[mode];
+    registry.setAllowedTools(allowedTools);
+
     const tools = registry.list();
     const toolsDesc = tools
       .map((t) => `- ${t.name}: ${t.description} (access: ${t.access})`)
       .join('\n');
 
-    const sessionContext = session.summary
-      ? `\nPrevious session summary: ${session.summary}\n`
-      : '';
+    const summary = await scanProject(cwd);
+    const sessionContext = session.summary ? `\nPrevious session summary: ${session.summary}\n` : '';
 
     const systemPrompt = [
       'You are DvalinCode, an AI coding assistant.',
-      'The user is working on the following project. You can inspect files, run commands, and make changes.',
+      MODE_PROMPT[mode],
       '',
       `Project root: ${summary.root}`,
       `Files: ${summary.fileCount} files`,
@@ -144,9 +196,8 @@ export function handleWebSocket(ws: WebSocket): void {
       summary.signals.length > 0 ? `Signals: ${summary.signals.join(', ')}` : '',
       sessionContext,
       '',
-      '=== HOW TO USE TOOLS ===',
-      '',
-      `You have ${tools.length} tools available. To use a tool, embed this syntax in your response:`,
+      '=== TOOLS ===',
+      `You have ${tools.length} tools available. Use this syntax in your response:`,
       '',
       '@tool("tool_name", {"param": "value"})',
       '',
@@ -154,19 +205,17 @@ export function handleWebSocket(ws: WebSocket): void {
       toolsDesc,
       '',
       'RULES:',
-      '- Always use read tools first to understand the codebase before making changes.',
+      '- Always read files before modifying them.',
       '- Prefer focused, surgical changes.',
     ]
       .filter(Boolean)
       .join('\n');
 
-    // Build requestApproval callback — sends approval_request and waits for client response
     const requestApproval = (id: string, toolName: string, input: unknown): Promise<boolean> => {
       return new Promise((resolve) => {
         if (abort.signal.aborted) { resolve(false); return; }
         pendingApprovals.set(id, resolve);
         send(ws, { type: 'approval_request', id, toolName, input });
-        // Auto-deny if the turn is aborted while waiting
         abort.signal.addEventListener('abort', () => {
           if (pendingApprovals.has(id)) {
             pendingApprovals.delete(id);
@@ -181,9 +230,7 @@ export function handleWebSocket(ws: WebSocket): void {
       registry,
       context: createDvalinContext({
         cwd,
-        approvalMode: msg.approvalMode,
-        allowWrite: msg.allowWrite,
-        allowExecute: msg.allowExecute,
+        approvalMode,
         requestApproval,
       }),
       systemPrompt,
@@ -198,15 +245,18 @@ export function handleWebSocket(ws: WebSocket): void {
         case 'tool_call':
           send(ws, { type: 'tool_call', name: event.name, id: event.id, input: event.input });
           break;
-        case 'tool_result':
+        case 'tool_result': {
+          // Strip large/internal-only fields before sending over WebSocket
+          const { originalContent: _omit, ...safeMetadata } = (event.metadata ?? {}) as Record<string, unknown> & { originalContent?: unknown };
           send(ws, {
             type: 'tool_result',
             name: event.name,
             id: event.id,
             output: event.output,
-            metadata: event.metadata,
+            metadata: Object.keys(safeMetadata).length > 0 ? safeMetadata : undefined,
           });
           break;
+        }
         case 'tool_error':
           send(ws, { type: 'tool_error', name: event.name, id: event.id, error: event.error });
           break;
@@ -214,9 +264,9 @@ export function handleWebSocket(ws: WebSocket): void {
     };
 
     try {
-      const result = await loop.processMessage(msg.content, session.messages, onEvent, abort.signal);
+      const result = await loop.processMessage(userContent, session.messages, onEvent, abort.signal);
 
-      if (abort.signal.aborted) return; // Don't save or respond if interrupted
+      if (abort.signal.aborted) return;
 
       session.messages = result.messages;
       session.updatedAt = new Date().toISOString();

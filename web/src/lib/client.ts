@@ -1,4 +1,4 @@
-import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage, ApprovalMode } from '../types.ts';
+import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage, ApprovalMode, AgentMode } from '../types.ts';
 
 const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
 
@@ -7,6 +7,7 @@ export type SendOptions = {
   sessionId?: string;
   cwd?: string;
   approvalMode?: ApprovalMode;
+  mode?: AgentMode;
   provider?: string;
 };
 
@@ -63,7 +64,8 @@ export class DvalinClient {
         content: opts.content,
         sessionId: opts.sessionId,
         cwd: opts.cwd,
-        approvalMode: opts.approvalMode ?? 'readonly',
+        approvalMode: opts.approvalMode,
+        mode: opts.mode ?? 'code',
         provider: opts.provider,
       }),
     );
@@ -132,4 +134,10 @@ export async function fetchSessionDetail(id: string): Promise<SessionDetail> {
   const res = await fetch(`/api/sessions/${id}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<SessionDetail>;
+}
+
+export async function fetchFiles(cwd: string): Promise<string[]> {
+  const res = await fetch(`/api/files?cwd=${encodeURIComponent(cwd)}`);
+  if (!res.ok) return [];
+  return res.json() as Promise<string[]>;
 }

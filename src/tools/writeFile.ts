@@ -54,15 +54,16 @@ export const writeFileTool: Tool<Input> = {
 
     let output: string;
     let originalContent: string | undefined;
+    let diff: ReturnType<typeof generateDiff> | undefined;
     const exists = await fileExists(filePath);
 
     if (exists) {
       originalContent = await readFile(filePath, 'utf8');
-      const diff = generateDiff(originalContent, input.content);
+      diff = generateDiff(originalContent, input.content);
       output = formatDiff(diff);
     } else {
       await mkdir(path.dirname(filePath), { recursive: true });
-      output = `Creating new file: ${input.filePath}`;
+      output = `Created new file: ${input.filePath}`;
     }
 
     await writeFile(filePath, input.content, 'utf8');
@@ -71,10 +72,11 @@ export const writeFileTool: Tool<Input> = {
       title: `Write ${input.filePath}`,
       output,
       metadata: {
-        path: filePath,
+        path: input.filePath,
         bytes: Buffer.byteLength(input.content, 'utf8'),
         existed: exists,
-        originalContent,
+        originalContent,  // kept for undo; stripped before WebSocket send
+        diff,
       },
     };
   },

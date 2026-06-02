@@ -5,28 +5,36 @@ import { Composer } from './components/Composer.tsx';
 import { SettingsPanel } from './components/SettingsPanel.tsx';
 import { LLMConfigModal } from './components/LLMConfigModal.tsx';
 import { ApprovalDialog } from './components/ApprovalDialog.tsx';
-import { ApprovalModeSwitch } from './components/ApprovalModeSwitch.tsx';
+import { ModeSwitcher } from './components/ModeSwitcher.tsx';
 import { useChat } from './hooks/useChat.ts';
 import { fetchSessions, fetchConfig } from './lib/client.ts';
 import type { ChatSettings } from './components/SettingsPanel.tsx';
-import type { ApprovalMode } from './types.ts';
+import type { AgentMode, ApprovalMode } from './types.ts';
+
+const MODE_APPROVAL: Record<AgentMode, ApprovalMode> = {
+  chat:   'readonly',
+  cowork: 'auto-edit',
+  code:   'full-auto',
+};
 
 export default function App() {
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [showLLMConfig, setShowLLMConfig] = useState(false);
   const [activeModel, setActiveModel] = useState('');
+  const [mode, setMode] = useState<AgentMode>('code');
   const [settings, setSettings] = useState<ChatSettings>({
     cwd: '',
     provider: 'deepseek',
-    approvalMode: 'readonly',
+    approvalMode: 'full-auto',
   });
 
   const chat = useChat({
     cwd: settings.cwd || undefined,
-    approvalMode: settings.approvalMode,
+    approvalMode: MODE_APPROVAL[mode],
+    mode,
   });
 
-  // Auto-detect cwd from first session; load saved LLM config for topbar display
+  // Auto-detect cwd from first session; load saved LLM config
   useEffect(() => {
     fetchSessions()
       .then((sessions) => {
@@ -49,10 +57,10 @@ export default function App() {
     chat.connect();
   }, [chat.connect]);
 
-  // Reconnect when settings change
+  // Reconnect when settings / mode change
   useEffect(() => {
     if (!chat.connected) chat.connect();
-  }, [settings]);
+  }, [settings, mode]);
 
   const handleNewChat = useCallback(() => {
     chat.reset();
@@ -75,6 +83,11 @@ export default function App() {
     },
     [chat],
   );
+
+  const handleModeChange = useCallback((m: AgentMode) => {
+    setMode(m);
+    setSettings((s) => ({ ...s, approvalMode: MODE_APPROVAL[m] }));
+  }, []);
 
   const handleConfigClose = () => {
     setShowLLMConfig(false);
@@ -124,11 +137,8 @@ export default function App() {
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <ApprovalModeSwitch
-              value={settings.approvalMode}
-              onChange={(mode: ApprovalMode) => setSettings((s) => ({ ...s, approvalMode: mode }))}
-            />
-            {/* Active model badge — clickable */}
+            <ModeSwitcher value={mode} onChange={handleModeChange} />
+            {/* Active model badge */}
             {activeModel && (
               <button
                 onClick={() => setShowLLMConfig(true)}
@@ -151,13 +161,14 @@ export default function App() {
           onInterrupt={chat.interrupt}
           sending={chat.sending}
           disabled={false}
+          cwd={settings.cwd || undefined}
         />
       </div>
 
       {/* LLM Config Modal */}
       {showLLMConfig && <LLMConfigModal onClose={handleConfigClose} />}
 
-      {/* Approval dialogs — show one at a time (oldest first) */}
+      {/* Approval dialog */}
       {chat.pendingApprovals[0] && (
         <ApprovalDialog
           approval={chat.pendingApprovals[0]}
