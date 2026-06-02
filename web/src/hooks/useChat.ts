@@ -1,11 +1,12 @@
 import { useState, useCallback, useRef } from 'react';
 import { client, fetchSessionDetail } from '../lib/client.ts';
-import type { ChatMessage, ToolCallEvent, ServerEvent, BackendChatMessage, ApprovalMode, PendingApproval } from '../types.ts';
+import type { ChatMessage, ToolCallEvent, ServerEvent, BackendChatMessage, ApprovalMode, AgentMode, PendingApproval } from '../types.ts';
 
 export type UseChatOptions = {
   sessionId?: string;
   cwd?: string;
   approvalMode?: ApprovalMode;
+  mode?: AgentMode;
 };
 
 export type UsageStats = {
@@ -234,6 +235,7 @@ export function useChat(opts: UseChatOptions = {}) {
           sessionId: currentSessionId,
           cwd: opts.cwd,
           approvalMode: opts.approvalMode,
+          mode: opts.mode,
         });
       } catch (err) {
         setMessages((prev) => [

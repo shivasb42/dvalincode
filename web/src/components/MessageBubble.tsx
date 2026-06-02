@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import { AgentActivity } from './AgentActivity.tsx';
 import type { ChatMessage } from '../types.ts';
 
@@ -51,7 +52,12 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
           <ThinkingDots />
         ) : content ? (
           <div className="prose text-sm">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
         ) : null}
       </div>

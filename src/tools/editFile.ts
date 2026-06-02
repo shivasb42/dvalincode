@@ -62,10 +62,11 @@ export const editFileTool: Tool<Input> = {
       title: `Edit ${input.filePath}`,
       output,
       metadata: {
-        path: filePath,
+        path: input.filePath,
         bytesBefore: Buffer.byteLength(existing, 'utf8'),
         bytesAfter: Buffer.byteLength(updated, 'utf8'),
         occurrences,
+        diff,
       },
     };
   },

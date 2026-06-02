@@ -101,3 +101,21 @@ body {
 }
 .prose th { background: #111; color: #aaa; font-weight: 500; }
 .prose hr { border: none; border-top: 1px solid #222; margin: 1em 0; }
+
+/* ── Syntax highlighting (highlight.js dark theme overrides) ── */
+.hljs { background: transparent; color: #e5e5e5; }
+.hljs-comment, .hljs-quote            { color: #6a737d; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag,
+.hljs-built_in, .hljs-name            { color: #ff7b72; }
+.hljs-string, .hljs-attr,
+.hljs-selector-attr                   { color: #a5d6ff; }
+.hljs-number, .hljs-literal,
+.hljs-regexp                          { color: #79c0ff; }
+.hljs-title, .hljs-section,
+.hljs-type                            { color: #d2a8ff; }
+.hljs-variable, .hljs-template-variable { color: #ffa657; }
+.hljs-meta                            { color: #e3b341; }
+.hljs-addition                        { color: #aff5b4; background: #033a16; }
+.hljs-deletion                        { color: #ffdcd7; background: #67060c; }
+.hljs-emphasis                        { font-style: italic; }
+.hljs-strong                          { font-weight: bold; }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronRight, Terminal, CheckCircle, XCircle, Loader } from 'lucide-react';
-import type { ToolCallEvent } from '../types.ts';
+import type { ToolCallEvent, DiffLine } from '../types.ts';
+import { DiffViewer } from './DiffViewer.tsx';
 
 const TOOL_ICONS: Record<string, string> = {
   read_file: '📄',
@@ -51,15 +52,21 @@ function ToolCallItem({ tc }: { tc: ToolCallEvent }) {
             </pre>
           </div>
 
-          {/* Output */}
-          {(tc.output || tc.error) && (
+          {/* Diff viewer for write/edit tools */}
+          {Array.isArray(tc.metadata?.diff) && (
+            <div className="border-t border-border px-3 py-2">
+              <DiffViewer
+                diff={tc.metadata!.diff as DiffLine[]}
+                filePath={typeof tc.metadata!.path === 'string' ? tc.metadata!.path : undefined}
+              />
+            </div>
+          )}
+
+          {/* Raw output / error (skip output for write tools that already show diff) */}
+          {(tc.error || (tc.output && !tc.metadata?.diff)) && (
             <div className="border-t border-border px-3 py-2">
               <div className="text-muted-fg mb-1">
-                {tc.error ? (
-                  <span className="text-red-400">error</span>
-                ) : (
-                  'output'
-                )}
+                {tc.error ? <span className="text-red-400">error</span> : 'output'}
               </div>
               <pre className="font-mono text-fg overflow-x-auto whitespace-pre-wrap break-all leading-relaxed max-h-64">
                 {tc.error ?? tc.output}
