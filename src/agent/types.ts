@@ -37,7 +37,9 @@ export const DEFAULT_TURN_CONFIG: TurnConfig = {
 export type SlashCommand = {
   name: string;
   description: string;
-  handler: (args: string, messages: ChatMessage[]) => { messages: ChatMessage[]; output?: string };
+  handler: (args: string, messages: ChatMessage[]) =>
+    | { messages: ChatMessage[]; output?: string }
+    | Promise<{ messages: ChatMessage[]; output?: string }>;
 };
 
 export type LoopResult = {

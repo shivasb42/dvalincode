@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import fg from 'fast-glob';
 import { z } from 'zod';
 import { resolveInsideWorkspace } from '../core/workspace.js';
+import { loadIgnorePatterns } from '../core/ignorefile.js';
 import type { Tool } from './types.js';
 
 const inputSchema = z
@@ -22,12 +23,13 @@ export const searchTextTool: Tool<Input> = {
   inputSchema,
   isConcurrencySafe: () => true,
   async run(input, context) {
+    const userIgnore = await loadIgnorePatterns(context.cwd);
     const files = await fg(input.pattern, {
       cwd: context.cwd,
       dot: true,
       onlyFiles: true,
       followSymbolicLinks: false,
-      ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**', '**/coverage/**'],
+      ignore: ['**/.git/**', '**/node_modules/**', '**/dist/**', '**/coverage/**', ...userIgnore],
     });
 
     const needle = input.caseSensitive ? input.query : input.query.toLowerCase();

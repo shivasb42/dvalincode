@@ -1,4 +1,4 @@
-import { TurnState, type TurnConfig, type LoopResult, type SlashCommand, type AgentEventHandler, DEFAULT_TURN_CONFIG } from './types.js';
+import { TurnState, type TurnConfig, type LoopResult, type SlashCommand, type AgentEventHandler, DEFAULT_TURN_CONFIG, type UndoEntry } from './types.js';
 import { AgentRunner } from './runner.js';
 import type { ChatMessage } from '../providers/types.js';
 import type { ProviderAdapter } from '../providers/types.js';
@@ -21,6 +21,7 @@ export class AgentLoop {
   private systemPrompt: string;
   private config: TurnConfig;
   private slashCommands: Map<string, SlashCommand>;
+  private sharedUndoStack: UndoEntry[] = [];
 
   constructor(options: AgentLoopOptions) {
     this.provider = options.provider;
@@ -37,8 +38,26 @@ export class AgentLoop {
     // Register built-in commands
     this.slashCommands.set('compact', {
       name: 'compact',
-      description: 'Compress conversation context',
-      handler: (_args, messages) => this.handleCompact(messages),
+      description: 'Compress conversation context using LLM summarization',
+      handler: async (_args, messages) => this.handleCompact(messages),
+    });
+    this.slashCommands.set('undo', {
+      name: 'undo',
+      description: 'Undo the last N tool calls (default: 1)',
+      handler: async (args, messages) => {
+        const count = parseInt(args.trim(), 10);
+        const n = Number.isFinite(count) && count > 0 ? count : 1;
+        const runner = new AgentRunner({
+          provider: this.provider,
+          registry: this.registry,
+          context: this.context,
+          config: this.config,
+          systemPrompt: this.systemPrompt,
+          sharedUndoStack: this.sharedUndoStack,
+        });
+        const undoOutput = await runner.undoLast(n);
+        return { messages, output: undoOutput };
+      },
     });
     this.slashCommands.set('help', {
       name: 'help',
@@ -52,6 +71,7 @@ export class AgentLoop {
           '|---------|-------------|',
           '| `/clear` | Clear conversation (client-side) |',
           '| `/compact` | Compress context to save tokens |',
+          '| `/undo [N]` | Undo the last N tool calls (default: 1) |',
           '| `/git` | Show git branch, commits, changed files |',
           '| `/plan` | Plan the task before executing |',
           '| `/help` | Show this help |',
@@ -95,15 +115,8 @@ export class AgentLoop {
         }
 
         case TurnState.COMPACT: {
-          // TODO: implement context compression using LLM summarization
-          // For now, slice older messages if too many
-          if (messages.length > 50) {
-            const keep = messages.slice(-40);
-            messages = [
-              { role: 'system', content: '[Previous context was compacted. Summary: ...]' },
-              ...keep,
-            ];
-          }
+          const compacted = await this.handleCompact(messages);
+          messages = compacted.messages;
           state = TurnState.BUILD;
           break;
         }
@@ -116,7 +129,7 @@ export class AgentLoop {
             const args = spaceIdx === -1 ? '' : userMessage.slice(spaceIdx + 1);
             const cmd = this.slashCommands.get(cmdName);
             if (cmd) {
-              const result = cmd.handler(args, messages);
+              const result = await Promise.resolve(cmd.handler(args, messages));
               messages = result.messages;
               if (result.output) output = result.output;
               state = TurnState.DONE;
@@ -139,6 +152,7 @@ export class AgentLoop {
             context: this.context,
             config: this.config,
             systemPrompt: this.systemPrompt,
+            sharedUndoStack: this.sharedUndoStack,
           });
           const result = await runner.runTurn(userMessage, messages, onEvent, signal);
           messages = result.messages;
@@ -164,17 +178,46 @@ export class AgentLoop {
     return { messages, output, iterationsUsed, usage };
   }
 
-  private handleCompact(messages: ChatMessage[]): { messages: ChatMessage[]; output?: string } {
+  private async handleCompact(messages: ChatMessage[]): Promise<{ messages: ChatMessage[]; output?: string }> {
     if (messages.length <= 10) {
       return { messages, output: 'Context is already small enough.' };
     }
-    // Simple compact: keep system + last N user/assistant exchanges
-    const systemMsg = messages.find(m => m.role === 'system');
-    const recentMessages = messages.filter(m => m.role !== 'system').slice(-20);
-    const kept = systemMsg ? [systemMsg, ...recentMessages] : recentMessages;
-    return {
-      messages: kept,
-      output: `Compacted: reduced from ${messages.length} to ${kept.length} messages.`,
-    };
+
+    const conversationText = messages
+      .filter(m => m.role !== 'system')
+      .map(m => `[${m.role}]: ${m.content}`)
+      .join('\n\n');
+
+    try {
+      const summaryResponse = await this.provider.chat({
+        system: 'You are a session summarizer for an AI coding assistant. Be concise.',
+        messages: [
+          {
+            role: 'user',
+            content: `Summarize this conversation into a structured summary with these sections:\n1. Goal\n2. Completed\n3. Decisions\n4. CurrentState\n5. Pending\n\nConversation:\n${conversationText}`,
+          },
+        ],
+      });
+
+      const systemMsg = messages.find(m => m.role === 'system');
+      const summaryMsg: ChatMessage = {
+        role: 'assistant',
+        content: `[Conversation summary]\n${summaryResponse.content}`,
+      };
+      const kept = systemMsg ? [systemMsg, summaryMsg] : [summaryMsg];
+      return {
+        messages: kept,
+        output: `Compacted: reduced from ${messages.length} to ${kept.length} messages using LLM summarization.`,
+      };
+    } catch {
+      // Fallback: keep last 20 messages
+      const systemMsg = messages.find(m => m.role === 'system');
+      const recentMessages = messages.filter(m => m.role !== 'system').slice(-20);
+      const kept = systemMsg ? [systemMsg, ...recentMessages] : recentMessages;
+      return {
+        messages: kept,
+        output: `Compacted (fallback): reduced from ${messages.length} to ${kept.length} messages.`,
+      };
+    }
   }
 }

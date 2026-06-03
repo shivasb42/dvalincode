@@ -112,6 +112,12 @@ export default function App() {
 
   const usage = chat.lastUsage;
 
+  // Total tool calls in current session (live progress tracking)
+  const totalTools = chat.messages.reduce((sum, msg) => {
+    if (msg.role === 'assistant') return sum + msg.toolCalls.length;
+    return sum;
+  }, 0);
+
   // Accumulate cost whenever a turn finishes
   useEffect(() => {
     if (!usage) return;
@@ -155,6 +161,11 @@ export default function App() {
                 {gitBranch}
               </span>
             )}
+            {totalTools > 0 && (
+              <span className="text-[11px] text-muted-fg/60 font-mono flex-shrink-0">
+                {totalTools} tool{totalTools === 1 ? '' : 's'}
+              </span>
+            )}
             {usage && (
               <span
                 className="text-[11px] text-muted-fg/70 font-mono flex-shrink-0 flex items-center gap-1.5"
@@ -185,7 +196,12 @@ export default function App() {
         </div>
 
         {/* Thread */}
-        <ChatThread messages={chat.messages} connected={chat.connected} />
+        <ChatThread
+          messages={chat.messages}
+          connected={chat.connected}
+          mode={mode}
+          onProceed={handleSend}
+        />
 
         {/* Composer */}
         <Composer

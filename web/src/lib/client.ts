@@ -153,3 +153,40 @@ export async function fetchGitInfo(cwd: string): Promise<GitInfo> {
     return { branch: null, lastCommit: null };
   }
 }
+
+// ── Profiles ─────────────────────────────────────────────────────────────────
+
+export type Profile = {
+  provider: string;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+};
+
+export async function fetchProfiles(): Promise<Record<string, Profile>> {
+  try {
+    const res = await fetch('/api/config/profiles');
+    if (!res.ok) return {};
+    return res.json() as Promise<Record<string, Profile>>;
+  } catch {
+    return {};
+  }
+}
+
+export async function saveProfile(name: string, profile: Profile): Promise<void> {
+  await fetch(`/api/config/profiles/${encodeURIComponent(name)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(profile),
+  });
+}
+
+export async function deleteProfile(name: string): Promise<void> {
+  await fetch(`/api/config/profiles/${encodeURIComponent(name)}`, { method: 'DELETE' });
+}
+
+export async function applyProfile(name: string): Promise<AppConfig> {
+  const res = await fetch(`/api/config/profiles/${encodeURIComponent(name)}/apply`, { method: 'POST' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<AppConfig>;
+}

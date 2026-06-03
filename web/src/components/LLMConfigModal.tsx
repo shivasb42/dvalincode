@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { X, Eye, EyeOff, Check, Loader, AlertTriangle, ChevronRight } from 'lucide-react';
-import { fetchConfig, saveConfig } from '../lib/client.ts';
+import { X, Eye, EyeOff, Check, Loader, AlertTriangle, ChevronRight, BookMarked, Trash2, Plus } from 'lucide-react';
+import { fetchConfig, saveConfig, fetchProfiles, saveProfile, deleteProfile, applyProfile } from '../lib/client.ts';
 import type { LLMConfig } from '../types.ts';
+import type { Profile } from '../lib/client.ts';
 
 // ── Provider presets ──────────────────────────────────────────────────────────
 
@@ -167,22 +168,26 @@ export function LLMConfigModal({ onClose }: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
+  // Profiles state
+  const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [newProfileName, setNewProfileName] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+
   const activeProvider = PROVIDERS.find((p) => p.id === draft.provider) ?? PROVIDERS[PROVIDERS.length - 1];
 
-  // Load existing config on mount
+  // Load existing config + profiles on mount
   useEffect(() => {
-    fetchConfig()
-      .then((cfg) => {
+    Promise.all([fetchConfig(), fetchProfiles()])
+      .then(([cfg, profs]) => {
         setDraft({
           provider: cfg.llm.provider,
           apiKey: cfg.llm.apiKeySet ? '••••••••' : '',
           baseUrl: cfg.llm.baseUrl ?? activeProvider.baseUrl,
           model: cfg.llm.model ?? activeProvider.models[0]?.model ?? '',
         });
+        setProfiles(profs);
       })
-      .catch(() => {
-        // backend not running — use defaults
-      })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
@@ -198,6 +203,44 @@ export function LLMConfigModal({ onClose }: Props) {
   };
 
   const selectModel = (model: string) => setDraft((d) => ({ ...d, model }));
+
+  const handleSaveProfile = async () => {
+    const name = newProfileName.trim();
+    if (!name) return;
+    setSavingProfile(true);
+    try {
+      const profile: Profile = {
+        provider: draft.provider,
+        apiKey: draft.apiKey?.startsWith('••') ? undefined : draft.apiKey || undefined,
+        baseUrl: draft.baseUrl || undefined,
+        model: draft.model || undefined,
+      };
+      await saveProfile(name, profile);
+      setProfiles((p) => ({ ...p, [name]: profile }));
+      setNewProfileName('');
+    } catch { /* ignore */ } finally { setSavingProfile(false); }
+  };
+
+  const handleApplyProfile = async (name: string) => {
+    try {
+      await applyProfile(name);
+      const p = profiles[name];
+      if (!p) return;
+      setDraft({
+        provider: p.provider,
+        apiKey: p.apiKey ?? '',
+        baseUrl: p.baseUrl ?? '',
+        model: p.model ?? '',
+      });
+    } catch { /* ignore */ }
+  };
+
+  const handleDeleteProfile = async (name: string) => {
+    try {
+      await deleteProfile(name);
+      setProfiles((p) => { const n = { ...p }; delete n[name]; return n; });
+    } catch { /* ignore */ }
+  };
 
   const handleSave = async () => {
     if (!(draft.model ?? '').trim()) { setError('Model name is required'); return; }
@@ -346,6 +389,63 @@ export function LLMConfigModal({ onClose }: Props) {
                   </div>
                 )}
               </section>
+
+            {/* ── Profiles ── */}
+            <section className="flex flex-col gap-3 pt-2 border-t border-[#1e1e1e]">
+              <h3 className="text-xs font-semibold text-muted-fg uppercase tracking-wider flex items-center gap-1.5">
+                <BookMarked size={11} />
+                Saved Profiles
+              </h3>
+
+              {Object.keys(profiles).length === 0 ? (
+                <p className="text-xs text-muted-fg/60 italic">No profiles saved yet.</p>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                  {Object.entries(profiles).map(([name, p]) => (
+                    <div key={name} className="flex items-center gap-2 bg-[#0f0f0f] border border-[#222] rounded-lg px-3 py-2">
+                      <ProviderIcon id={p.provider} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold text-fg truncate">{name}</div>
+                        <div className="text-[11px] text-muted-fg font-mono truncate">
+                          {p.provider} · {p.model ?? '—'}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => void handleApplyProfile(name)}
+                        className="text-[11px] px-2 py-1 rounded border border-accent/30 text-accent hover:bg-accent/10 transition-colors"
+                      >
+                        Apply
+                      </button>
+                      <button
+                        onClick={() => void handleDeleteProfile(name)}
+                        className="p-1 text-muted-fg hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Save current as profile */}
+              <div className="flex items-center gap-2">
+                <input
+                  value={newProfileName}
+                  onChange={(e) => setNewProfileName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveProfile(); }}
+                  placeholder="Profile name…"
+                  className="flex-1 bg-[#0a0a0a] border border-[#222] rounded-lg px-3 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40"
+                />
+                <button
+                  onClick={() => void handleSaveProfile()}
+                  disabled={!newProfileName.trim() || savingProfile}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-[#333] text-muted-fg hover:text-fg hover:border-accent/40 disabled:opacity-40 transition-colors"
+                >
+                  {savingProfile ? <Loader size={11} className="animate-spin" /> : <Plus size={11} />}
+                  Save
+                </button>
+              </div>
+            </section>
 
             </div>
           )}
