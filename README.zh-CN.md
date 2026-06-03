@@ -6,6 +6,8 @@
 
 <p align="center">
   <a href="https://github.com/arthurpanhku/dvalincode/releases/latest"><img src="https://img.shields.io/github/v/release/arthurpanhku/dvalincode?style=for-the-badge&color=818cf8&label=Release" alt="Release"></a>
+  <a href="https://github.com/arthurpanhku/dvalincode/releases"><img src="https://img.shields.io/github/downloads/arthurpanhku/dvalincode/total?style=for-the-badge&color=blue&label=Downloads" alt="Downloads"></a>
+  <a href="#-测试"><img src="https://img.shields.io/badge/Tests-47%20%2F%2047%20%E2%9C%93-success?style=for-the-badge" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License"></a>
   <a href="#-一行安装"><img src="https://img.shields.io/badge/Platforms-macOS%20·%20Windows%20·%20Linux-blue?style=for-the-badge" alt="Platforms"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Lang-English-blue?style=for-the-badge" alt="English"></a>
@@ -30,6 +32,16 @@
 <tr><td><b>🪶 零依赖二进制</b></td><td>每平台单文件可执行程序 ~25MB。无需 Node、Python、Docker。启动后自动打开浏览器。</td></tr>
 <tr><td><b>🔐 本地优先</b></td><td>Session、配置、Profile 均保存在 <code>~/.dvalincode/</code>。<code>.dvalincodeignore</code> 阻止 Agent 访问敏感文件。仓库根目录的 <code>AGENTS.md</code> 作为项目级持久指令自动加载。</td></tr>
 </table>
+
+---
+
+## ⭐ v0.3.0 新功能
+
+> [完整更新日志 →](https://github.com/arthurpanhku/dvalincode/releases/tag/v0.3.0)
+
+- **模式感知的侧边栏** —— Chat 显示快速提示 **Templates**，Cowork 显示 **Projects** 文件夹树，Code 显示自定义 **Routines**（一键命令如 "Run tests" / "Git status" / "Type check"）。可在侧栏中添加自己的 Routine，保存在 `localStorage`。
+- **一行安装脚本** —— `curl … | bash` 自动检测系统和架构，将二进制放入 `~/.dvalincode/`，自动配置 `PATH`，无需任何包管理器依赖。
+- **营销级 README** —— 嵌入 GIF 演示；中文版完整对照；6 行卖点表让用户 30 秒看懂项目。
 
 ---
 
@@ -204,18 +216,72 @@ bash scripts/build-release.sh windows   # 仅 Windows
 
 ## 🌐 Providers
 
-DvalinCode 支持任意 OpenAI 兼容端点。内置预设：
+DvalinCode 支持任意 OpenAI 兼容端点。内置预设，按价格排序：
 
-| Provider | 说明 |
-|---|---|
-| **DeepSeek** | `deepseek-chat`、`deepseek-coder`、`deepseek-reasoner` —— 便宜且强大 |
-| **OpenAI** | `gpt-4o`、`gpt-4o-mini`、`o1`、`o3-mini` |
-| **Groq** | Llama 3.3 70B、Mixtral —— 最快的开源模型 |
-| **OpenRouter** | 200+ 模型，包括 Claude、Gemini、Llama |
-| **Ollama** | 本地模型 —— `qwen2.5-coder`、`llama3.2`、`codellama`（无需 API Key）|
-| **Custom** | 任意 OpenAI 兼容的 base URL |
+| Provider | 最便宜模型 | 输入 / 输出价格 | 说明 |
+|---|---|---|---|
+| **Groq** | `llama-3.1-8b-instant` | 免费额度 | 最快的开源模型 —— Llama 3.3 70B、Mixtral |
+| **Ollama** | `qwen2.5-coder` | $0（本地）| 无需 API Key，本机运行 |
+| **DeepSeek** | `deepseek-chat` | $0.14 / $0.28 每 1M | 便宜且强；v3 几乎媲美 GPT-4 质量 |
+| **OpenRouter** | `google/gemini-2.0-flash-001` | $0.10 / $0.40 每 1M | 200+ 模型，包括 Claude、Gemini、Llama |
+| **OpenAI** | `gpt-4o-mini` | $0.15 / $0.60 每 1M | 可靠；`o1` 用于深度推理 |
+| **Custom** | — | 取决于服务方 | 任意 OpenAI 兼容 base URL |
 
-全部在 GUI 的 **LLM Configuration** 弹窗里配置。
+DvalinCode 顶栏实时显示本 session 的费用 —— 在 **LLM Configuration** 中切换 Provider、保存命名 Profile、实时比较。
+
+---
+
+## ❓ 常见问题
+
+<details>
+<summary><b>会把我的代码发送到第三方吗？</b></summary>
+<br>
+只发送 Agent 向你配置的 LLM 发送的内容。Session、配置、Profile 全部保存在本地 <code>~/.dvalincode/</code>。如需排除敏感文件，在仓库根目录放置 <code>.dvalincodeignore</code>（语法同 gitignore）。
+</details>
+
+<details>
+<summary><b>没 API Key 能用吗？</b></summary>
+<br>
+能 —— 用 Ollama。本地拉模型（<code>ollama pull qwen2.5-coder</code>），在 LLM Configuration 中选择 <b>Ollama</b> Provider。无需 Key、无需网络、无 Token 费用。
+</details>
+
+<details>
+<summary><b>为什么三种模式？只用一种不行吗？</b></summary>
+<br>
+每种模式有不同的<b>工具权限</b>和<b>安全默认值</b>：Chat 只读；Cowork 每次写入都需要批准；Code 全自动。三种模式还有不同的侧边栏（Templates / Projects / Routines）面向不同工作流。任何时候都可切换 —— 对话延续。
+</details>
+
+<details>
+<summary><b>Shell 工具有沙箱吗？</b></summary>
+<br>
+macOS 上有 —— 每次 <code>shell</code> 调用都包在 <code>sandbox-exec</code> 里，profile <i>拒绝网络访问</i>，仅允许写入 <code>cwd</code>、<code>/tmp</code>、<code>/var</code>。Linux 和 Windows 沙箱已规划中。
+</details>
+
+<details>
+<summary><b>会不会不经询问就覆盖我的文件？</b></summary>
+<br>
+取决于模式。<b>Chat</b> 永不写入；<b>Cowork</b> 每个文件都需逐一批准（批准前可见红绿 diff）；<b>Code</b> 全自动 —— 适合受信任的任务或在 feature 分支上使用。
+</details>
+
+<details>
+<summary><b>macOS 二进制无法打开 —— "未验证的开发者"</b></summary>
+<br>
+二进制未签名。执行一次清除隔离标记：
+<pre><code>xattr -dr com.apple.quarantine ~/.dvalincode/bin/dvalincode</code></pre>
+或在 Finder 中右键 → 打开 → 确认。
+</details>
+
+<details>
+<summary><b>Code 模式怎么保存 Routine？</b></summary>
+<br>
+切到 Code 模式，点击侧栏 "ROUTINES" 旁的 <b>+</b>。输入名字（如 "Deploy preview"）和 prompt 或斜杠命令（如 "<code>/git</code>" 或 "构建项目并部署到 staging"）。Routine 保存在浏览器 <code>localStorage</code>。
+</details>
+
+<details>
+<summary><b><code>AGENTS.md</code> 每轮都会发送吗？</b></summary>
+<br>
+是的 —— DvalinCode 每轮对话前读取项目根目录的 <code>AGENTS.md</code>，注入系统 prompt 的 <code>=== PROJECT INSTRUCTIONS ===</code> 段。保持精简 —— 它会占用 token 预算。
+</details>
 
 ---
 
