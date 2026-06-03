@@ -1,375 +1,254 @@
-# DvalinCode
+<p align="center">
+  <img src="assets/hero.png" alt="DvalinCode" width="100%">
+</p>
 
-> A local-first, provider-neutral CLI foundation for agentic coding workflows.
+<h1 align="center">DvalinCode</h1>
 
-DvalinCode is an original implementation of a terminal-based coding agent. It combines a state‑machine agent loop, a typed tool system, and a provider‑neutral LLM adapter into a single, zero‑runtime‑dependency TypeScript CLI.
+<p align="center">
+  <a href="https://github.com/arthurpanhku/dvalincode/releases/latest"><img src="https://img.shields.io/github/v/release/arthurpanhku/dvalincode?style=for-the-badge&color=818cf8&label=Release" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License"></a>
+  <a href="#-quick-install"><img src="https://img.shields.io/badge/Platforms-macOS%20·%20Windows%20·%20Linux-blue?style=for-the-badge" alt="Platforms"></a>
+  <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
+</p>
 
-**Design philosophy:** Read the [architecture diagram](./dvalincode-architecture.html) for the big picture.
+<p align="center">
+  <b>A local-first, provider-neutral AI coding agent with three modes —</b><br>
+  <b>Chat for questions, Cowork for plan-then-execute, Code for autonomous work.</b>
+</p>
 
----
-
-## Quick Start
-
-```sh
-npm install
-npm run build
-```
-
-Run in development mode:
-
-```sh
-npm run dev -- chat "list all TypeScript files in the project"
-npm run dev -- scan
-npm run dev -- tools
-```
-
-After building:
-
-```sh
-npm start -- chat "show me the test coverage"
-```
+<p align="center">
+  Bring your own model — DeepSeek, OpenAI, Claude (via OpenRouter), Groq, Ollama, or any OpenAI-compatible endpoint. Switch with one click, no code changes, no lock-in.
+</p>
 
 ---
 
-## Commands
+<table>
+<tr><td><b>🗨️ Chat mode</b></td><td>Read-only Q&A with one-click prompt templates — explain a codebase, find TODOs, review changes, write tests. The agent can read files and search, but never writes.</td></tr>
+<tr><td><b>👥 Cowork mode</b></td><td>Plan-then-execute. The agent drafts a numbered plan, you click <b>Proceed</b>, and every file write asks for explicit approval — with an inline red/green diff before you say yes.</td></tr>
+<tr><td><b>⚡ Code mode</b></td><td>Autonomous agent with full tool access. Run tests, type-check, build, lint — one click via the <b>Routines</b> panel. macOS shell calls run inside a <code>sandbox-exec</code> profile with network denied.</td></tr>
+<tr><td><b>🎯 First-class GUI</b></td><td>Modern web UI with code highlighting, file <code>@</code>-references, <code>/</code> slash commands, Git branch indicator, live token + cost counter, multi-profile LLM config.</td></tr>
+<tr><td><b>🪶 Zero-dependency binary</b></td><td>Single ~25MB executable per platform. No Node, no Python, no Docker. Auto-opens your browser on launch.</td></tr>
+<tr><td><b>🔐 Local-first</b></td><td>Sessions, config, and profiles live in <code>~/.dvalincode/</code>. <code>.dvalincodeignore</code> blocks the agent from reading sensitive files. <code>AGENTS.md</code> in your repo becomes persistent project instructions.</td></tr>
+</table>
+
+---
+
+## 📸 Preview
+
+**Switching modes — each mode has its own sidebar:**
+
+<p align="center">
+  <img src="assets/modes.gif" alt="Mode switching" width="100%">
+</p>
+
+**Slash commands & file references in the composer:**
+
+<p align="center">
+  <img src="assets/slash.gif" alt="Slash commands and @ file references" width="100%">
+</p>
+
+---
+
+## 🚀 Quick Install
+
+### macOS / Linux (one-liner)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/arthurpanhku/dvalincode/main/scripts/install.sh | bash
+```
+
+Detects your OS + arch, downloads the right binary, installs to `~/.dvalincode/`, and adds it to your `PATH`. After reload:
+
+```sh
+source ~/.zshrc    # or ~/.bashrc
+dvalincode         # starts the server, opens your browser
+```
+
+### Windows
+
+Download `dvalincode-v*-windows-x64.zip` from [Releases](https://github.com/arthurpanhku/dvalincode/releases/latest), unzip, then double-click `start.bat`.
+
+### Manual download
+
+Grab the archive for your platform from the [Releases page](https://github.com/arthurpanhku/dvalincode/releases/latest):
+
+| Platform | Archive |
+|---|---|
+| macOS Apple Silicon (M1/M2/M3) | `dvalincode-v*-macos-arm64.tar.gz` |
+| macOS Intel | `dvalincode-v*-macos-x64.tar.gz` |
+| Windows x64 | `dvalincode-v*-windows-x64.zip` |
+| Linux ARM64 | `dvalincode-v*-linux-arm64.tar.gz` |
+| Linux x64 | `dvalincode-v*-linux-x64.tar.gz` |
+
+Verify against `SHA256SUMS.txt` (included in each release).
+
+> **macOS Gatekeeper:** binaries are unsigned. On first run, either clear the quarantine flag with `xattr -dr com.apple.quarantine ~/.dvalincode/bin/dvalincode`, or right-click → Open in Finder once.
+
+---
+
+## 🎬 First-time setup
+
+After install, run `dvalincode` and:
+
+1. The server starts on `http://localhost:3000` and your browser opens automatically.
+2. Click **LLM Configuration** in the sidebar (bottom-left).
+3. Pick a provider, paste your API key, choose a model, hit **Save**.
+4. Optional: save the current config as a named profile (e.g. `fast`, `cheap`, `local-ollama`) to switch quickly later.
+
+That's it — start chatting in the composer at the bottom.
+
+---
+
+## ✨ Features
+
+| Category | Feature | Notes |
+|---|---|---|
+| **Modes** | Chat / Cowork / Code | Each with a distinct sidebar (Templates / Projects / Routines) and tool-access policy |
+| **Composer** | `@` file references | Type `@` for a fuzzy file search; selected files get inlined into the prompt |
+| | `/` slash commands | `/clear` `/compact` `/git` `/plan` `/undo` `/help` |
+| | Multiline + interrupt | <kbd>Shift</kbd>+<kbd>Enter</kbd> for newline, stop button to abort mid-stream |
+| **Tool UI** | Inline diffs | `edit_file` and `write_file` results render as red/green unified diff, default folded |
+| | Approval dialog with diff | Cowork mode shows the diff *before* the change is applied |
+| | Live tool counter + token + cost | Topbar shows session totals in real time |
+| **Agent** | LLM-based context compaction | `/compact` summarises into Goal / Completed / Decisions / Pending |
+| | Persistent undo stack | `/undo [N]` reverses the last N tool calls |
+| | Git awareness | Branch name in topbar; `git_status` tool; git context auto-injected into prompt |
+| | `AGENTS.md` project memory | Per-repo persistent instructions, auto-loaded each turn |
+| **Security** | macOS shell sandbox | `sandbox-exec` denies network; allows writes only inside cwd + `/tmp` |
+| | `.dvalincodeignore` | gitignore-style exclusion; blocks `read_file` / `list_files` / `search_text` |
+| | Per-action approval | Approve/deny each write / delete / shell call in Cowork mode |
+| **Providers** | OpenAI-compatible endpoints | DeepSeek · OpenAI · Groq · OpenRouter · Ollama · custom |
+| | Multi-profile config | Save and switch between named (provider, model, API key) sets |
+| **Sessions** | Auto-save + restore | All sessions persisted to `~/.dvalincode/sessions/` as JSON |
+| | LLM summary memory | Cross-session summary keeps the agent oriented after restart |
+
+---
+
+## ⌨️ Slash Commands
 
 | Command | Description |
-|---------|-------------|
-| `dvalincode chat <message...>` | Chat with the AI agent. Runs the full AgentLoop state machine — autoloads sessions, calls tools, saves history. |
-| `dvalincode ask <goal>` | Generate a local execution brief for a coding goal using the current workspace summary. |
-| `dvalincode scan [path]` | Summarize a workspace: file count, package-manager signals, top extensions, and key directories. |
-| `dvalincode tools` | List all registered tools and their permission levels. |
-| `dvalincode run-tool <name> -i '<json>'` | Run a registered tool directly with JSON input. |
-| `dvalincode init` | Create a `.dvalincode.json` config file from env vars. |
-
-### Chat Command Options
-
-```
-dvalincode chat "refactor the module"                  # New session
-dvalincode chat --session dc_123456 "continue this"    # Resume session
-dvalincode chat --model deepseek-chat "analyze this"   # Override model
-```
+|---|---|
+| `/clear` | Clear the current conversation (client-side, starts a fresh session) |
+| `/compact` | LLM-based context compaction — replaces history with a structured summary |
+| `/undo [N]` | Reverse the last N tool calls (default 1) |
+| `/git` | Run `git_status` and show branch, recent commits, changed files |
+| `/plan <task>` | Ask the agent to plan the task step-by-step *without* executing |
+| `/help` | Show all available slash commands |
 
 ---
 
-## Architecture
+## 🛠️ Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│             CLI Layer (commander.js)         │
-│  dvalincode → chat · ask · scan · tools etc  │
-└────────────────────┬────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────┐
-│              Agent Engine                    │
-│  ┌──────────┐   ┌──────────────┐            │
-│  │ Loop     │──▶│ Runner       │──▶ Provider │
-│  │ 8-state  │   │ tool-calling │   Adapter   │
-│  │ machine  │   │ loop         │   (API)     │
-│  └──────────┘   └──────────────┘            │
-│  ┌──────────┐   ┌──────────────┐            │
-│  │ Session  │   │ Summary      │            │
-│  │ Store    │   │ Memory       │            │
-│  └──────────┘   └──────────────┘            │
-└────────────────────┬────────────────────────┘
-                     │ run()
-┌────────────────────▼────────────────────────┐
-│              Tool System                     │
-│  ToolRegistry → read · write · execute       │
-│  (Zod schemas · permission-gated)           │
-└─────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│  Browser GUI (React + TypeScript + Tailwind, Vite)      │
+│  ChatThread · Composer · DiffViewer · PlanCard · …      │
+└──────────────────────────┬──────────────────────────────┘
+                  HTTP / WebSocket
+┌──────────────────────────▼──────────────────────────────┐
+│  Express + ws server (single binary via Bun --compile)  │
+│  /api/sessions · /api/config · /api/files · /api/git    │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────┐
+│                    Agent Engine                          │
+│  AgentLoop (8-state machine) → AgentRunner              │
+│  Streaming · Interrupt · Undo stack · LLM compaction    │
+└──────────────────────────┬──────────────────────────────┘
+                           │ run()
+┌──────────────────────────▼──────────────────────────────┐
+│  ToolRegistry — Zod schemas + permission gating         │
+│  read_file · list_files · search_text · git_status ·    │
+│  write_file · edit_file · delete_file · shell           │
+└─────────────────────────────────────────────────────────┘
 ```
 
-View the full interactive [architecture diagram](./dvalincode-architecture.html) (dark‑themed SVG, open in browser).
-
----
-
-## Agent Engine
-
-DvalinCode's agent is built on two core components:
-
-### AgentLoop — 8‑State State Machine
-
-Each turn processes a user message through these states:
+### Agent Loop — 8 States
 
 ```
 RESTORE → COMPACT → COMMAND → BUILD → RUN → SAVE → RESPOND → DONE
 ```
 
-1. **RESTORE** — Load or restore session from `~/.dvalincode/sessions/`
-2. **COMPACT** — If context is near the token limit, compress history
-3. **COMMAND** — Handle built‑in slash commands (`/compact`, `/retry`)
-4. **BUILD** — Construct the system prompt with workspace context + tool descriptions
-5. **RUN** — Delegate to `AgentRunner` for the LLM tool‑calling loop
-6. **SAVE** — Persist session to disk (`~/.dvalincode/sessions/*.json`)
-7. **RESPOND** — Generate session summary for cross‑session memory
-8. **DONE** — Turn complete
-
-### AgentRunner — Tool‑Calling Loop
-
-The runner calls the LLM in a loop:
-
-1. Send history + system prompt + tool definitions
-2. Parse tool calls from the response (native `function_calls` API → fallback `@tool()` text syntax)
-3. Execute each tool via `ToolRegistry` (with permission checks)
-4. Feed results back to the LLM
-5. Repeat until max iterations or no tool calls
-
-Supports both OpenAI‑compatible **native function calling** and a **`@tool()` text syntax** for models that don't support function calling:
-
-```
-@tool("list_files", {"pattern": "src/**/*.ts"})
-@tool("read_file", {"filePath": "src/index.ts"})
-@tool("shell", {"command": "npm test"})
-```
+1. **RESTORE** — Load session from `~/.dvalincode/sessions/`
+2. **COMPACT** — If context near the limit, compress history (LLM summary)
+3. **COMMAND** — Handle built-in slash commands
+4. **BUILD** — Assemble system prompt (mode prompt + project + git + AGENTS.md)
+5. **RUN** — Delegate to `AgentRunner` for the LLM tool-calling loop
+6. **SAVE** — Persist session
+7. **RESPOND** — Generate cross-session summary memory
+8. **DONE**
 
 ---
 
-## Tool System
+## 🧪 Tests
 
-Each tool declares typed inputs via **Zod schemas**, a permission level, and a `run()` function:
-
-| Tool | Access | Purpose |
-|------|--------|---------|
-| `list_files` | Read | List files by glob pattern |
-| `read_file` | Read | Read a UTF‑8 file inside the workspace |
-| `search_text` | Read | Search matching lines in text files |
-| `write_file` | Write | Write a file with diff preview |
-| `edit_file` | Write | Find‑and‑replace edit with diff preview |
-| `shell` | Execute | Run a process (requires `--yes` or agent permission) |
-
-All tools are registered centrally in `ToolRegistry` and permission‑gated via `ForgeContext`.
-
----
-
-## Provider Layer
-
-DvalinCode is **provider‑neutral**. By default it uses:
-
-```
-DVALINCODE_API_KEY      # API key
-DVALINCODE_BASE_URL     # Base URL (default: https://api.openai.com/v1)
-DVALINCODE_MODEL        # Model name (default: gpt-4o)
-DVALINCODE_PROVIDER     # Provider name (default: deepseek)
-```
-
-### Example configurations
-
-**DeepSeek (default):**
-```
-DVALINCODE_PROVIDER=deepseek
-DVALINCODE_API_KEY=sk-...
-DVALINCODE_BASE_URL=https://api.deepseek.com/v1
-DVALINCODE_MODEL=deepseek-chat
-```
-
-**OpenAI:**
-```
-DVALINCODE_PROVIDER=openai
-DVALINCODE_API_KEY=sk-...
-DVALINCODE_BASE_URL=https://api.openai.com/v1
-DVALINCODE_MODEL=gpt-4o
-```
-
-The `ProviderAdapter` interface makes adding new providers straightforward — implement `chat()`, register with `ProviderManager`.
-
----
-
-## Session Persistence
-
-Every chat session is saved to `~/.dvalincode/sessions/` as a JSON file. Sessions track:
-
-- Full message history
-- Workspace context
-- Auto‑generated summary for cross‑session memory
-
-Resume a session:
 ```sh
-dvalincode chat --session dc_1745606400_abc123 "continue the refactor"
-```
-
----
-
-## Test Suite
-
-```
 npm test
 ```
 
-Current status: **42 tests · 8 files · all green**
-
-```
- ✓ tests/init.test.ts         (2 tests)
- ✓ tests/projectScanner.test.ts (1 test)
- ✓ tests/sessions.test.ts     (9 tests)
- ✓ tests/registry.test.ts     (2 tests)
- ✓ tests/writeFile.test.ts    (7 tests)
- ✓ tests/editFile.test.ts     (7 tests)
- ✓ tests/agent.test.ts        (8 tests)
- ✓ tests/providers.test.ts    (6 tests)
-
- Test Files  8 passed (8)
-      Tests  42 passed (42)
-```
-
-### Real‑world Integration Test
-
-DvalinCode has been tested end‑to‑end against the DeepSeek API with a real tool‑calling conversation:
-
-```
-$ dvalincode chat "list all TypeScript files in the project, organized by directory"
-
-项目中共有 30 个 TypeScript 文件，按目录分组如下：
-
-src/
-├── core/
-│   ├── context.ts       — ForgeContext & tool runtime
-│   ├── diffPreview.ts   — 行级差异生成器
-│   ├── permissions.ts   — 读写执行权限控制
-│   ├── projectScanner.ts— 工作区分析器
-│   └── workspace.ts     — 路径安全解析
-
-├── agent/
-│   ├── types.ts         — TurnState 枚举、配置类型
-│   ├── loop.ts          — AgentLoop 8状态机
-│   └── runner.ts        — 工具调用循环引擎
-
-├── providers/
-│   ├── types.ts         — 统一 ProviderAdapter 接口
-│   ├── manager.ts       — 多 Provider 注册与发现
-│   ├── openaiCompatible.ts — OpenAI 兼容 API 适配器
-│   └── localPlanner.ts  — 本地执行计划生成
-
-├── tools/
-│   ├── types.ts         — Tool 接口定义
-│   ├── registry.ts      — 工具注册中心
-│   ├── listFiles.ts     — 文件枚举
-│   ├── readFile.ts      — 文件读取
-│   ├── writeFile.ts     — 文件写入（带差异预览）
-│   ├── editFile.ts      — 精确查找替换编辑
-│   ├── searchText.ts    — 文本搜索
-│   └── shell.ts         — 进程执行
-
-├── commands/
-│   ├── chat.ts          — chat 命令（完整 AgentLoop）
-│   ├── ask.ts           — ask 命令（本地计划）
-│   ├── init.ts          — 项目初始化
-│   ├── runTool.ts       — 直接工具调用
-│   ├── scan.ts          — 工作区扫描
-│   └── tools.ts         — 工具列表
-
-├── ui/
-│   └── output.ts        — 输出格式化
-
-├── index.ts             — 导出入口
-└── cli.ts               — CLI 入口与命令注册
-
---- Session: dc_1745606500_abc123 | (2 iterations) | Model: deepseek ---
-```
-
-The agent successfully:
-- Called `list_files` via native function calling ✅
-- Received results and organized them by directory ✅
-- Completed in **2 iterations** (1 tool call + 1 final response) ✅
+**47 tests · 9 files · all green.**
 
 ---
 
-## Project Status
+## 🏗️ Build from source
 
-DvalinCode is in active development. Current features are stable and tested.
+Requires [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`).
 
-| Feature | Status |
-|---------|--------|
-| CLI commands (chat, scan, tools, init, run-tool) | ✅ |
-| AgentLoop state machine (8 states) | ✅ |
-| AgentRunner tool‑calling loop | ✅ |
-| ProviderAdapter + OpenAI‑compatible provider | ✅ |
-| Native function calling (`tool_calls` API) | ✅ |
-| @tool() text syntax fallback | ✅ |
-| Session persistence (save/load/list/delete) | ✅ |
-| Cross‑session summary memory | ✅ |
-| Write/edit tools with diff preview | ✅ |
-| Read tools (list, read, search) | ✅ |
-| Shell execution tool | ✅ |
-| ProviderManager (env var config) | ✅ |
-| Project scanner (signals, depext) | ✅ |
-| Permission system (read/write/execute) | ✅ |
-| 42 tests, all passing | ✅ |
-| Real end‑to‑end integration tested | ✅ |
+```sh
+git clone https://github.com/arthurpanhku/dvalincode
+cd dvalincode
+npm install
+npm run dev:all                 # start backend (3001) + Vite (5173)
+```
 
-### Roadmap
+Build release binaries for every platform:
 
-Near‑term work:
-
-- Terminal UI with streaming output and progress indicators
-- Plugin tool loading (user‑defined tools from `~/.dvalincode/tools/`)
-- Context compression (smart token budget management)
-- Parallel tool execution
-- Initialization wizard (`dvalincode init --interactive`)
-- Anthropic provider adapter
+```sh
+bash scripts/build-release.sh   # → release/ with tar.gz / zip + SHA256SUMS.txt
+bash scripts/build-release.sh darwin    # macOS only
+bash scripts/build-release.sh windows   # Windows only
+```
 
 ---
 
-## Independence & Attribution
+## 🌐 Providers
 
-DvalinCode is **not affiliated** with Anthropic, Claude, or Claude Code.
+DvalinCode supports any OpenAI-compatible endpoint. Built-in presets:
 
-The design process included studying common patterns in modern terminal coding assistants for architectural learning. The implementation is intentionally original — it uses its own naming, UI language, state machine design, and module structure. No source code, prompts, or UI text from other projects is copied.
+| Provider | Notes |
+|---|---|
+| **DeepSeek** | `deepseek-chat`, `deepseek-coder`, `deepseek-reasoner` — cheap and capable |
+| **OpenAI** | `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini` |
+| **Groq** | Llama 3.3 70B, Mixtral — fastest open models |
+| **OpenRouter** | 200+ models including Claude, Gemini, Llama |
+| **Ollama** | Local models — `qwen2.5-coder`, `llama3.2`, `codellama` (no API key needed) |
+| **Custom** | Any OpenAI-compatible base URL |
 
----
-
-## Install
-
-### Standalone binary (no Node required)
-
-Download the binary for your platform from the [Releases page](../../releases), then make it executable and put it on your `PATH`:
-
-```sh
-# macOS (Apple Silicon)
-curl -L -o dvalincode https://github.com/OWNER/dvalincode/releases/latest/download/dvalincode-macos-arm64
-chmod +x dvalincode
-sudo mv dvalincode /usr/local/bin/
-
-# Linux (x64)
-curl -L -o dvalincode https://github.com/OWNER/dvalincode/releases/latest/download/dvalincode-linux-x64
-chmod +x dvalincode
-sudo mv dvalincode /usr/local/bin/
-```
-
-Available targets: `macos-arm64`, `macos-x64`, `linux-arm64`, `linux-x64`.
-
-Verify the download against `SHA256SUMS.txt`:
-
-```sh
-shasum -a 256 -c SHA256SUMS.txt        # macOS
-sha256sum -c SHA256SUMS.txt            # Linux
-```
-
-> **macOS Gatekeeper:** the binary is unsigned, so the first run may be blocked.
-> Clear the quarantine flag with `xattr -d com.apple.quarantine ./dvalincode`,
-> or allow it under System Settings → Privacy & Security.
-
-### From npm
-
-```sh
-npm install -g dvalincode
-```
-
-### Build binaries yourself
-
-Requires [Bun](https://bun.sh) (`curl -fsSL https://bun.sh/install | bash`). Bun
-cross-compiles every target from a single machine — no per-platform runner needed.
-
-```sh
-npm run build:binaries            # all targets → dist-bin/
-npm run build:binaries:darwin     # macOS only
-npm run build:binaries:linux      # Linux only
-```
-
-Artifacts and a `SHA256SUMS.txt` checksum file land in `dist-bin/`.
+All configured via the **LLM Configuration** modal in the GUI.
 
 ---
 
-## License
+## 🤝 Contributing
 
-MIT
+Contributions welcome. The codebase is intentionally small and surgical — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+```sh
+git clone https://github.com/arthurpanhku/dvalincode
+cd dvalincode && npm install
+npm test                # 47/47 ✅
+npm run typecheck
+```
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+
+## 🔗 Independence & Attribution
+
+DvalinCode is **not affiliated** with Anthropic, Claude, OpenAI, or any other vendor.
+
+The design process included studying common patterns in modern coding agents (Codex CLI, Claude Code, Hermes Agent, etc.) for architectural learning. The implementation is intentionally original — its own state machine, UI language, tool schemas, and module layout. No source code, prompts, or UI text from other projects is copied.

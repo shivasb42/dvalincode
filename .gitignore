@@ -12,3 +12,6 @@ coverage/
 *.log
 npm-debug.log*
 
+
+# Release build artifacts
+release/
