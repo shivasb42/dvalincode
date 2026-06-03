@@ -132,6 +132,7 @@ export default function App() {
         onNewChat={handleNewChat}
         onSelectSession={handleSelectSession}
         onOpenConfig={() => setShowLLMConfig(true)}
+        onSend={handleSend}
         refreshKey={sidebarRefresh}
         mode={mode}
         onModeChange={handleModeChange}

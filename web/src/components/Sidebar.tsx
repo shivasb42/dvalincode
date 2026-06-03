@@ -1,25 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, MessageSquare, ChevronLeft, ChevronRight, Settings2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings2 } from 'lucide-react';
 import { fetchSessions, deleteSession } from '../lib/client.ts';
 import { ModeSwitcher } from './ModeSwitcher.tsx';
-import type { SessionMeta } from '../types.ts';
-import type { AgentMode } from '../types.ts';
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
+import { SidebarChat } from './SidebarChat.tsx';
+import { SidebarCowork } from './SidebarCowork.tsx';
+import { SidebarCode } from './SidebarCode.tsx';
+import type { SessionMeta, AgentMode } from '../types.ts';
 
 type Props = {
   currentSessionId?: string;
   onNewChat: () => void;
   onSelectSession: (id: string) => void;
   onOpenConfig: () => void;
+  onSend: (text: string) => void;
   refreshKey?: number;
   mode: AgentMode;
   onModeChange: (m: AgentMode) => void;
@@ -30,6 +23,7 @@ export function Sidebar({
   onNewChat,
   onSelectSession,
   onOpenConfig,
+  onSend,
   refreshKey,
   mode,
   onModeChange,
@@ -39,8 +33,7 @@ export function Sidebar({
 
   const load = async () => {
     try {
-      const data = await fetchSessions();
-      setSessions(data);
+      setSessions(await fetchSessions());
     } catch {
       // server not available
     }
@@ -68,13 +61,6 @@ export function Sidebar({
         >
           <ChevronRight size={16} />
         </button>
-        <button
-          onClick={onNewChat}
-          className="p-2 rounded-lg hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors"
-          title="New chat"
-        >
-          <Plus size={16} />
-        </button>
         <div className="flex-1" />
         <button
           onClick={onOpenConfig}
@@ -91,7 +77,7 @@ export function Sidebar({
   return (
     <div className="flex flex-col w-60 h-full bg-surface border-r border-border flex-shrink-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-2">
           <img src="/logo.svg" alt="DvalinCode" className="w-6 h-6 rounded-md object-cover" />
           <span className="font-semibold text-sm text-fg">DvalinCode</span>
@@ -104,66 +90,46 @@ export function Sidebar({
         </button>
       </div>
 
-      {/* Mode switcher — top-left, full width */}
-      <div className="px-3 py-2 border-b border-border">
+      {/* Mode switcher — full width */}
+      <div className="px-3 py-2 border-b border-border flex-shrink-0">
         <ModeSwitcher value={mode} onChange={onModeChange} fullWidth />
       </div>
 
-      {/* New chat button */}
-      <div className="px-3 py-2">
-        <button
-          onClick={onNewChat}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-border hover:border-accent/40 hover:bg-accent/5 text-muted-fg hover:text-fg transition-all text-sm"
-        >
-          <Plus size={14} />
-          New chat
-        </button>
-      </div>
-
-      {/* Session list */}
-      <div className="flex-1 overflow-y-auto px-2">
-        {sessions.length === 0 ? (
-          <p className="text-xs text-muted-fg px-3 py-4 text-center">No sessions yet</p>
-        ) : (
-          <div className="flex flex-col gap-0.5">
-            {sessions.map((s) => (
-              <div
-                key={s.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onSelectSession(s.id)}
-                onKeyDown={(e) => e.key === 'Enter' && onSelectSession(s.id)}
-                className={`group w-full text-left px-3 py-2 rounded-lg transition-colors flex items-start gap-2 cursor-pointer ${
-                  s.id === currentSessionId
-                    ? 'bg-accent/10 border border-accent/20 text-fg'
-                    : 'hover:bg-[#1a1a1a] text-muted-fg hover:text-fg border border-transparent'
-                }`}
-              >
-                <MessageSquare size={13} className="mt-0.5 flex-shrink-0 opacity-60" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium truncate leading-tight">
-                    {s.summary
-                      ? s.summary.replace(/^User wanted: /, '').slice(0, 40)
-                      : s.cwd.split('/').pop() ?? s.id}
-                  </div>
-                  <div className="text-[11px] text-muted-fg mt-0.5">
-                    {timeAgo(s.updatedAt)} · {s.messageCount} msg
-                  </div>
-                </div>
-                <button
-                  onClick={(e) => void handleDelete(e, s.id)}
-                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:text-red-400 transition-all flex-shrink-0"
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-          </div>
+      {/* Mode-specific content — fills remaining height */}
+      <div className="flex flex-col flex-1 min-h-0">
+        {mode === 'chat' && (
+          <SidebarChat
+            sessions={sessions}
+            currentSessionId={currentSessionId}
+            onNewChat={onNewChat}
+            onSelectSession={onSelectSession}
+            onDeleteSession={handleDelete}
+            onSend={onSend}
+          />
+        )}
+        {mode === 'cowork' && (
+          <SidebarCowork
+            sessions={sessions}
+            currentSessionId={currentSessionId}
+            onNewChat={onNewChat}
+            onSelectSession={onSelectSession}
+            onDeleteSession={handleDelete}
+          />
+        )}
+        {mode === 'code' && (
+          <SidebarCode
+            sessions={sessions}
+            currentSessionId={currentSessionId}
+            onNewChat={onNewChat}
+            onSelectSession={onSelectSession}
+            onDeleteSession={handleDelete}
+            onSend={onSend}
+          />
         )}
       </div>
 
       {/* Footer — LLM config */}
-      <div className="border-t border-border px-3 py-2">
+      <div className="border-t border-border px-3 py-2 flex-shrink-0">
         <button
           onClick={onOpenConfig}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors text-sm"
