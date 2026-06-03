@@ -6,6 +6,8 @@
 
 <p align="center">
   <a href="https://github.com/arthurpanhku/dvalincode/releases/latest"><img src="https://img.shields.io/github/v/release/arthurpanhku/dvalincode?style=for-the-badge&color=818cf8&label=Release" alt="Release"></a>
+  <a href="https://github.com/arthurpanhku/dvalincode/releases"><img src="https://img.shields.io/github/downloads/arthurpanhku/dvalincode/total?style=for-the-badge&color=blue&label=Downloads" alt="Downloads"></a>
+  <a href="#-tests"><img src="https://img.shields.io/badge/Tests-47%20%2F%2047%20%E2%9C%93-success?style=for-the-badge" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License"></a>
   <a href="#-quick-install"><img src="https://img.shields.io/badge/Platforms-macOS%20·%20Windows%20·%20Linux-blue?style=for-the-badge" alt="Platforms"></a>
   <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/Lang-中文-red?style=for-the-badge" alt="中文"></a>
@@ -30,6 +32,16 @@
 <tr><td><b>🪶 Zero-dependency binary</b></td><td>Single ~25MB executable per platform. No Node, no Python, no Docker. Auto-opens your browser on launch.</td></tr>
 <tr><td><b>🔐 Local-first</b></td><td>Sessions, config, and profiles live in <code>~/.dvalincode/</code>. <code>.dvalincodeignore</code> blocks the agent from reading sensitive files. <code>AGENTS.md</code> in your repo becomes persistent project instructions.</td></tr>
 </table>
+
+---
+
+## ⭐ What's New in v0.3.0
+
+> [Full changelog →](https://github.com/arthurpanhku/dvalincode/releases/tag/v0.3.0)
+
+- **Mode-aware sidebar** — Chat shows quick-prompt **Templates**, Cowork shows a **Projects** folder tree, Code shows custom **Routines** (one-click commands like "Run tests" / "Git status" / "Type check"). Add your own routines from the sidebar — they persist in `localStorage`.
+- **One-line installer** — `curl … | bash` auto-detects your OS + arch, drops the binary into `~/.dvalincode/`, and patches your `PATH`. No package manager dependencies.
+- **Marketing-grade README** — embedded GIF previews; Chinese translation; six-row feature table that explains the project in 30 seconds.
 
 ---
 
@@ -213,18 +225,72 @@ bash scripts/build-release.sh windows   # Windows only
 
 ## 🌐 Providers
 
-DvalinCode supports any OpenAI-compatible endpoint. Built-in presets:
+DvalinCode supports any OpenAI-compatible endpoint. Built-in presets, sorted by cost:
 
-| Provider | Notes |
-|---|---|
-| **DeepSeek** | `deepseek-chat`, `deepseek-coder`, `deepseek-reasoner` — cheap and capable |
-| **OpenAI** | `gpt-4o`, `gpt-4o-mini`, `o1`, `o3-mini` |
-| **Groq** | Llama 3.3 70B, Mixtral — fastest open models |
-| **OpenRouter** | 200+ models including Claude, Gemini, Llama |
-| **Ollama** | Local models — `qwen2.5-coder`, `llama3.2`, `codellama` (no API key needed) |
-| **Custom** | Any OpenAI-compatible base URL |
+| Provider | Cheapest model | Input / Output | Notes |
+|---|---|---|---|
+| **Groq** | `llama-3.1-8b-instant` | Free tier | Fastest open models — Llama 3.3 70B, Mixtral |
+| **Ollama** | `qwen2.5-coder` | $0 (local) | No API key needed, runs on your machine |
+| **DeepSeek** | `deepseek-chat` | $0.14 / $0.28 per 1M | Cheap and strong; v3 nearly matches GPT-4 quality |
+| **OpenRouter** | `google/gemini-2.0-flash-001` | $0.10 / $0.40 per 1M | 200+ models including Claude, Gemini, Llama |
+| **OpenAI** | `gpt-4o-mini` | $0.15 / $0.60 per 1M | Reliable; `o1` available for deep reasoning |
+| **Custom** | — | depends | Any OpenAI-compatible base URL |
 
-All configured via the **LLM Configuration** modal in the GUI.
+DvalinCode shows the per-session cost live in the topbar — flip between providers in the **LLM Configuration** modal, save named profiles, and compare on the fly.
+
+---
+
+## ❓ FAQ
+
+<details>
+<summary><b>Does it send my code to a third party?</b></summary>
+<br>
+Only what the agent sends to the LLM you configured. Sessions, configs, and profiles all live on your machine in <code>~/.dvalincode/</code>. To exclude sensitive files from the agent's view, drop a <code>.dvalincodeignore</code> in your repo root (gitignore-style patterns).
+</details>
+
+<details>
+<summary><b>Can I run this without an API key?</b></summary>
+<br>
+Yes — use Ollama. Pull a model (<code>ollama pull qwen2.5-coder</code>), then in the LLM Configuration modal pick the <b>Ollama</b> provider. No key, no internet, no per-token cost.
+</details>
+
+<details>
+<summary><b>Why three modes? Can't I just use one?</b></summary>
+<br>
+Each mode has different <b>tool access</b> and <b>safety</b> defaults: Chat is read-only, Cowork requires approval per write, Code is full-auto. Each also has a different sidebar (Templates / Projects / Routines) optimized for that workflow. You can switch any time — the conversation continues.
+</details>
+
+<details>
+<summary><b>Is the shell tool sandboxed?</b></summary>
+<br>
+On macOS, yes — every <code>shell</code> tool invocation is wrapped in <code>sandbox-exec</code> with a profile that <i>denies network access</i> and allows file writes only inside <code>cwd</code>, <code>/tmp</code>, and <code>/var</code>. Linux and Windows sandboxing is planned.
+</details>
+
+<details>
+<summary><b>Will it overwrite my files without asking?</b></summary>
+<br>
+Depends on the mode. <b>Chat</b> never writes. <b>Cowork</b> requires approval per file (with inline red/green diff before you click Allow). <b>Code</b> is full-auto — use it for trusted tasks or in a feature branch.
+</details>
+
+<details>
+<summary><b>The macOS binary won't open — "unverified developer"</b></summary>
+<br>
+The binary is unsigned. Run this once to clear the quarantine flag:
+<pre><code>xattr -dr com.apple.quarantine ~/.dvalincode/bin/dvalincode</code></pre>
+Or right-click the binary in Finder → Open → confirm.
+</details>
+
+<details>
+<summary><b>How do I save a routine in Code mode?</b></summary>
+<br>
+Switch to Code mode, click the <b>+</b> next to "ROUTINES" in the sidebar. Enter a name (e.g. "Deploy preview") and a prompt or slash command (e.g. "<code>/git</code>" or "Build the project and deploy to staging"). Routines persist in your browser's <code>localStorage</code>.
+</details>
+
+<details>
+<summary><b>Does <code>AGENTS.md</code> get sent every turn?</b></summary>
+<br>
+Yes — DvalinCode reads <code>AGENTS.md</code> from the project root before each turn and injects it under <code>=== PROJECT INSTRUCTIONS ===</code> in the system prompt. Keep it focused — it counts toward your token budget.
+</details>
 
 ---
 
