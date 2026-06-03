@@ -40,6 +40,7 @@ declare -a ALL_TARGETS=(
   "bun-darwin-x64:dvalincode-macos-x64"
   "bun-linux-arm64:dvalincode-linux-arm64"
   "bun-linux-x64:dvalincode-linux-x64"
+  "bun-windows-x64:dvalincode-windows-x64"
 )
 
 # ── Optional filter from args / env ───────────────────────────────────
@@ -58,10 +59,11 @@ if [ -n "${TARGETS:-}" ]; then
 else
   for pair in "${ALL_TARGETS[@]}"; do
     case "$FILTER" in
-      all)    SELECTED+=("$pair") ;;
-      darwin) [[ "$pair" == *darwin* ]] && SELECTED+=("$pair") ;;
-      linux)  [[ "$pair" == *linux* ]]  && SELECTED+=("$pair") ;;
-      *)      echo "error: unknown filter '$FILTER' (use: all | darwin | linux)" >&2; exit 1 ;;
+      all)     SELECTED+=("$pair") ;;
+      darwin)  [[ "$pair" == *darwin*  ]] && SELECTED+=("$pair") ;;
+      linux)   [[ "$pair" == *linux*   ]] && SELECTED+=("$pair") ;;
+      windows) [[ "$pair" == *windows* ]] && SELECTED+=("$pair") ;;
+      *)       echo "error: unknown filter '$FILTER' (use: all | darwin | linux | windows)" >&2; exit 1 ;;
     esac
   done
 fi
