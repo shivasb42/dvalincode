@@ -9,8 +9,16 @@ export type LLMConfig = {
   model?: string;
 };
 
+export type Profile = {
+  provider: string;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+};
+
 export type AppConfig = {
   llm: LLMConfig;
+  profiles?: Record<string, Profile>;
 };
 
 const CONFIG_DIR = join(homedir(), '.dvalincode');
@@ -32,6 +40,7 @@ export async function readConfig(): Promise<AppConfig> {
     // Merge with defaults (env vars are overridden by saved config)
     return {
       llm: { ...DEFAULTS.llm, ...parsed.llm },
+      profiles: parsed.profiles,
     };
   } catch {
     return DEFAULTS;
@@ -45,6 +54,15 @@ export async function writeConfig(config: AppConfig): Promise<void> {
 
 /** Return config safe for the browser (API key masked). */
 export function maskConfig(config: AppConfig): AppConfig & { llm: { apiKeySet: boolean } } {
+  const maskedProfiles: Record<string, Profile> | undefined = config.profiles
+    ? Object.fromEntries(
+        Object.entries(config.profiles).map(([name, profile]) => [
+          name,
+          { ...profile, apiKey: profile.apiKey ? '••••••••' : undefined },
+        ]),
+      )
+    : undefined;
+
   return {
     ...config,
     llm: {
@@ -52,5 +70,6 @@ export function maskConfig(config: AppConfig): AppConfig & { llm: { apiKeySet: b
       apiKey: config.llm.apiKey ? '••••••••' : undefined,
       apiKeySet: !!config.llm.apiKey,
     },
+    profiles: maskedProfiles,
   };
 }

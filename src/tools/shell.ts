@@ -19,7 +19,8 @@ export const shellTool: Tool<Input> = {
   inputSchema,
   isConcurrencySafe: () => false,
   async run(input, context) {
-    const result = await runProcess(input.command, input.args, context.cwd, input.timeoutMs);
+    const sandboxEnabled = process.platform === 'darwin';
+    const result = await runProcess(input.command, input.args, context.cwd, input.timeoutMs, sandboxEnabled);
     return {
       title: `Ran ${input.command}`,
       output: result.output || '(no output)',
@@ -36,9 +37,29 @@ function runProcess(
   args: string[],
   cwd: string,
   timeoutMs: number,
+  sandboxEnabled: boolean,
 ): Promise<{ output: string; exitCode: number | null; timedOut: boolean }> {
+  // On macOS, wrap in sandbox-exec to deny network access while allowing file operations
+  let spawnCommand: string;
+  let spawnArgs: string[];
+
+  if (sandboxEnabled) {
+    const profile = [
+      '(version 1)',
+      '(allow default)',
+      '(deny network*)',
+      '(allow file-read*)',
+      `(allow file-write* (subpath "${cwd}")(subpath "/tmp")(subpath "/var"))`,
+    ].join('');
+    spawnCommand = 'sandbox-exec';
+    spawnArgs = ['-p', profile, command, ...args];
+  } else {
+    spawnCommand = command;
+    spawnArgs = args;
+  }
+
   return new Promise(resolve => {
-    const child = spawn(command, args, {
+    const child = spawn(spawnCommand, spawnArgs, {
       cwd,
       shell: false,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -70,4 +91,3 @@ function runProcess(
     });
   });
 }
-

@@ -1,6 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { z } from 'zod';
 import { resolveInsideWorkspace } from '../core/workspace.js';
+import { loadIgnorePatterns } from '../core/ignorefile.js';
 import type { Tool } from './types.js';
 
 const inputSchema = z
@@ -20,6 +21,18 @@ export const readFileTool: Tool<Input> = {
   inputSchema,
   isConcurrencySafe: () => true,
   async run(input, context) {
+    const ignorePatterns = await loadIgnorePatterns(context.cwd);
+    for (const pattern of ignorePatterns) {
+      if (
+        input.filePath === pattern ||
+        input.filePath.endsWith('/' + pattern) ||
+        input.filePath.includes('/' + pattern + '/') ||
+        input.filePath.startsWith(pattern + '/')
+      ) {
+        throw new Error(`File excluded by .dvalincodeignore: ${input.filePath}`);
+      }
+    }
+
     const resolvedPath = await resolveInsideWorkspace(context.cwd, input.filePath);
     const info = await stat(resolvedPath);
 

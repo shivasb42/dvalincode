@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble.tsx';
-import type { ChatMessage } from '../types.ts';
+import type { ChatMessage, AgentMode } from '../types.ts';
 
 type Props = {
   messages: ChatMessage[];
   connected: boolean;
+  mode?: AgentMode;
+  onProceed?: (text: string) => void;
 };
 
-export function ChatThread({ messages, connected }: Props) {
+export function ChatThread({ messages, connected, mode, onProceed }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,7 +39,12 @@ export function ChatThread({ messages, connected }: Props) {
     <div className="flex-1 overflow-y-auto px-6 py-6">
       <div className="max-w-2xl mx-auto">
         {messages.map((msg, i) => (
-          <MessageBubble key={i} message={msg} />
+          <MessageBubble
+            key={i}
+            message={msg}
+            mode={mode}
+            onProceed={onProceed}
+          />
         ))}
         <div ref={bottomRef} />
       </div>

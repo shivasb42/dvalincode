@@ -10,6 +10,7 @@ export type RunnerOptions = {
   context: DvalinContext;
   config: TurnConfig;
   systemPrompt: string;
+  sharedUndoStack?: UndoEntry[];
 };
 
 export class AgentRunner {
@@ -21,7 +22,7 @@ export class AgentRunner {
   private iterationCount: number = 0;
 
   /** Stack of executed tool calls for undo support */
-  private undoStack: UndoEntry[] = [];
+  private undoStack: UndoEntry[];
 
   constructor(options: RunnerOptions) {
     this.provider = options.provider;
@@ -29,6 +30,7 @@ export class AgentRunner {
     this.context = options.context;
     this.config = options.config;
     this.systemPrompt = options.systemPrompt;
+    this.undoStack = options.sharedUndoStack ?? [];
   }
 
   /** Undo the last N tool calls. Returns a description of what was undone. */

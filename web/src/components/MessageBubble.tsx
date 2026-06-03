@@ -2,7 +2,9 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import { AgentActivity } from './AgentActivity.tsx';
+import { PlanCard, extractPlanSteps } from './PlanCard.tsx';
 import type { ChatMessage } from '../types.ts';
+import type { AgentMode } from '../types.ts';
 
 function ThinkingDots() {
   return (
@@ -14,11 +16,17 @@ function ThinkingDots() {
   );
 }
 
-export function MessageBubble({ message }: { message: ChatMessage }) {
+type Props = {
+  message: ChatMessage;
+  mode?: AgentMode;
+  onProceed?: (text: string) => void;
+};
+
+export function MessageBubble({ message, mode, onProceed }: Props) {
   if (message.role === 'user') {
     return (
       <div className="flex justify-end mb-4 animate-fade-in">
-        <div className="max-w-[75%] bg-[#1a1a2e] border border-[#2a2a4e] rounded-2xl rounded-tr-sm px-4 py-2.5 text-fg text-sm leading-relaxed">
+        <div className="max-w-[75%] bg-[#1a1a2e] border border-[#2a2a4e] rounded-2xl rounded-tr-sm px-4 py-2.5 text-fg text-sm leading-relaxed whitespace-pre-wrap">
           {message.content}
         </div>
       </div>
@@ -29,14 +37,18 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   const { content, toolCalls, pending } = message;
   const showDots = pending && toolCalls.length === 0 && !content;
 
+  // Detect plan in Cowork mode: ≥3 numbered steps, no tool calls, message done
+  const planSteps =
+    !pending && mode === 'cowork' && toolCalls.length === 0 && content
+      ? extractPlanSteps(content)
+      : null;
+
   return (
     <div className="mb-6 animate-fade-in">
       <div className="flex items-center gap-2 mb-2">
         <img src="/logo.svg" alt="DvalinCode" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
         <span className="text-xs text-muted-fg font-medium">DvalinCode</span>
-        {pending && (
-          <span className="text-xs text-accent/60 animate-pulse">thinking…</span>
-        )}
+        {pending && <span className="text-xs text-accent/60 animate-pulse">thinking…</span>}
       </div>
 
       {/* Agent tool activity */}
@@ -50,6 +62,9 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
       <div className="ml-7">
         {showDots ? (
           <ThinkingDots />
+        ) : planSteps ? (
+          /* Cowork Plan mode: show visual plan card */
+          <PlanCard steps={planSteps} onProceed={onProceed} />
         ) : content ? (
           <div className="prose text-sm">
             <ReactMarkdown
