@@ -158,6 +158,39 @@ Every feature is scored on 5 dimensions (1-5):
 |- **Note**: Interesting case study about structured vibe coding. Could inform guardrails feature. Informational.
 
 
+## Update 2026-06-10 — Release Intelligence (opencode · Claude Code · OpenAI Codex)
+
+> Source data: `data/release_intel_20260610.md` — opencode v1.16.0–v1.17.0 · Claude Code 2.1.157–2.1.170 · Codex rust-v0.134.0–v0.139.0.
+> All three vendors converged on the same three investments this cycle. Development plans: `plans/02-subagent-tasks.md`, `plans/03-mcp-support.md`, `plans/04-execution-safety.md`.
+
+### P1 — New Requirements
+
+#### 14. Subagent & Background Tasks (Score: 13.3)
+- **Pain**: 4/5 · **Align**: 4/5 · **Cost**: 2/5 · **Risk**: 3/5 · **Gap**: 5/5
+- **Signal**: Claude Code dedicated the bulk of 2.1.157–2.1.170 to `claude agents` (dispatch/attach/reply, retire→wake, worktree isolation). opencode v1.16.2 added background subagents. Codex v0.137+ shipped multi-agent v2. Strongest cross-vendor theme of the cycle; DvalinCode has nothing.
+- **What to build**: A `task` tool that spawns a scoped child `AgentRunner` (read-only tool set by default), then a background mode with a task manager, status polling, and WS progress events.
+- **Plan**: `plans/02-subagent-tasks.md`
+
+#### 15. MCP Client Support (Score: 12.5)
+- **Pain**: 4/5 · **Align**: 5/5 · **Cost**: 2/5 · **Risk**: 4/5 · **Gap**: 5/5
+- **Signal**: all three vendors hardened MCP this cycle — opencode v1.17.0 (abort signals, pagination, capability respect), Codex (readOnlyHint concurrency, OAuth, `oneOf`/`allOf` schema fidelity), Claude Code (managed policies, secrets redaction). MCP is now table stakes for an agentic CLI, and it multiplies our provider-neutral, open-ecosystem positioning.
+- **What to build**: zero-dependency stdio JSON-RPC client; map server tools into `ToolRegistry` as `mcp__<server>__<tool>`; reuse the existing approval gates for non-read MCP tools.
+- **Plan**: `plans/03-mcp-support.md`
+
+#### 16. Execution Safety Hardening (Score: 11.1)
+- **Pain**: 5/5 · **Align**: 5/5 · **Cost**: 3/5 · **Risk**: 3/5 · **Gap**: 4/5
+- **Signal**: opencode v1.16.2 now refuses loose edit matches; Claude Code 2.1.160 prompts before writing shell-startup files and build-tool configs that grant code execution; Codex v0.136/v0.139 hardened command safety and sandbox escalation. Continues our #1 community signal (vibe-coding guardrails, ↑7061).
+- **What to build**: unique-match `edit_file` (+ explicit `replaceAll` opt-in), `write_file` overwrite flag, approval-guarded sensitive paths (`.npmrc`, `.git/hooks/`, …), `bwrap` sandbox parity on Linux.
+- **Plan**: `plans/04-execution-safety.md`
+
+### Runner-up (tracked, not planned this cycle)
+- **Session lifecycle v2** — history search, archive, context-overflow recovery (Codex v0.134/v0.136, opencode v1.17.0). Pain 3 · Align 5 · Cost 4 · Risk 4 · Gap 4 → Score 3.8 (P2). Foundation already exists (sessions store + UI restore); revisit next cycle.
+
+### Housekeeping note
+`FEATURE_GAP.md` (2026-05-22) is stale: P0-1 streaming, P0-2 approval flow, P0-3 interrupt/cancel, and P0-4 session restore have all shipped as of v0.3.0.
+
+---
+
 ## Source Log
 
 | Date | Source | Key Signal | Priority |
@@ -191,6 +224,10 @@ Every feature is scored on 5 dimensions (1-5):
 || 2026-05-21 | GitHub CodexCLI #16857 | GPU animation usage (↑182) — not DvalinCode-relevant | P3 |
 || 2026-05-21 | GitHub CodexCLI #11023 | Desktop app for Linux (↑674) — incompatible philosophy | P3 |
 
+| 2026-06-10 | opencode v1.16.0–v1.17.0 releases | Background subagents · MCP hardening · loose-edit-match refusal | P1 |
+| 2026-06-10 | Claude Code 2.1.157–2.1.170 changelog | `claude agents` background sessions · guarded config writes · fallback models | P1 |
+| 2026-06-10 | Codex rust-v0.134.0–v0.139.0 releases | Multi-agent v2 · session search/archive · sandbox escalation + permission profiles | P1 |
+
 ## Shipped
 
 | Date | Feature | Requirement |
@@ -198,3 +235,5 @@ Every feature is scored on 5 dimensions (1-5):
 | 2026-05-20 | ProviderAdapter + OpenAI-compatible provider | Provider neutrality (P2-3) |
 | 2026-05-20 | Session persistence + summary memory | Session management (P2-4) |
 | 2026-05-20 | Permission system (read/write/execute) | Execution safety (P2-5) |
+| 2026-06-03 | Streaming · interrupt/cancel · 3-mode approval flow + dialog UI · session restore in web UI · AGENTS.md memory · token usage display (v0.3.0) | FEATURE_GAP P0-1…P0-4, P1-1, P1-2 |
+| 2026-06-03 | Undo stack · `git_status` tool · ignore-file · macOS sandbox-exec shell wrapper (v0.2.0–v0.3.0) | Undo (P1-1) · Git awareness · sensitive-file exclusion (P2-7) |
