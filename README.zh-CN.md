@@ -14,8 +14,8 @@
 </p>
 
 <p align="center">
-  <b>本地优先、模型无关的 AI 编码助手 —— 三种工作模式：</b><br>
-  <b>Chat 提问、Cowork 协作规划、Code 自主执行。</b>
+  <b>模型自由、默认安全、小到可审计、开放到可嵌入的本地编码代理。</b><br>
+  <b>三种工作模式 —— Chat 提问、Cowork 协作规划、Code 自主执行。</b>
 </p>
 
 <p align="center">
@@ -32,6 +32,21 @@
 <tr><td><b>🪶 零依赖二进制</b></td><td>每平台单文件可执行程序 ~25MB。无需 Node、Python、Docker。启动后自动打开浏览器。</td></tr>
 <tr><td><b>🔐 本地优先</b></td><td>Session、配置、Profile 均保存在 <code>~/.dvalincode/</code>。<code>.dvalincodeignore</code> 阻止 Agent 访问敏感文件。仓库根目录的 <code>AGENTS.md</code> 作为项目级持久指令自动加载。</td></tr>
 </table>
+
+---
+
+## 🎯 核心目标
+
+> **模型自由、默认安全、小到可审计、开放到可嵌入的本地编码代理。**
+
+DvalinCode 的定位是 **Agent 运行时（runtime）**，而不只是又一个 Agent 应用：
+
+- **模型自由** —— 任何 OpenAI 兼容端点都是一等公民，包括本地模型。你的工作流不应被任何一家厂商的定价、限流或质量波动绑架。
+- **默认安全** —— 三档审批 + diff 预审、撤销栈、沙箱化 shell 执行。一个敢放心开全自动的 Agent。
+- **小到可审计** —— 单个 ~25MB 二进制、个位数运行时依赖、一个周末就能读完的代码库。信任来自可检查，而非口头承诺。
+- **开放到可嵌入** —— Agent 核心通过干净的 REST + WebSocket API 暴露，可直接接入你自己的产品、CI 或内部工具。
+
+自带的 **Web GUI 是这个运行时的参考实现与展示窗** —— 它是这套公开 API 的第一个消费者，演示运行时的全部能力。
 
 ---
 

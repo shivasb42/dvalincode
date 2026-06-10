@@ -2,6 +2,8 @@
 
 > 基于 OpenAI Codex CLI（v0.129–v0.133）与 DvalinCode 现状的对比分析。
 > 优先级：🔴 P0（必须有）· 🟠 P1（强烈建议）· 🟡 P2（锦上添花）
+>
+> **2026-06-10 复核：** 已对照 v0.3.0 实际代码逐项审计，标记 ✅ 已交付 / 🟡 部分交付 / ❌ 未实现。各节「需求」列表保留为当时的规格说明。
 
 ---
 
@@ -10,27 +12,32 @@
 | 维度 | DvalinCode 现有 | Codex |
 |---|---|---|
 | 核心 Agent 循环 | ✅ 8 状态机 | ✅ |
-| 工具集 | ✅ 7 个 (read/write/edit/delete/list/search/shell) | ✅ 更丰富 |
+| 工具集 | ✅ 8 个 (read/write/edit/delete/list/search/shell/git_status) | ✅ 更丰富 |
 | Session 持久化 | ✅ JSON 文件 | ✅ JSONL |
 | 多 Provider 支持 | ✅ OpenAI 兼容 | ✅ |
 | Web GUI | ✅（自研） | ❌ 仅 TUI |
 | Undo/Rollback | ✅ undoStack | ✅ |
-| 流式输出 | ❌ | ✅ SSE |
-| 沙箱隔离 | ❌ | ✅ seatbelt/bwrap |
-| 审批流 | ❌ | ✅ 三档模式 |
-| 项目记忆 | ❌ | ✅ AGENTS.md + SQLite |
-| Token 统计 | ❌ | ✅ |
-| Git 感知 | ❌ | ✅ |
+| 流式输出 | ✅ SSE + token_delta | ✅ SSE |
+| 沙箱隔离 | 🟡 仅 macOS sandbox-exec | ✅ seatbelt/bwrap |
+| 审批流 | ✅ 三档模式 + 审批握手 | ✅ 三档模式 |
+| 项目记忆 | ✅ AGENTS.md | ✅ AGENTS.md + SQLite |
+| Token 统计 | ✅ 用量 + 费用估算 | ✅ |
+| Git 感知 | ✅ 工具 + 提示注入 | ✅ |
 | MCP 支持 | ❌ | ✅ |
-| 中断/取消 | ❌ | ✅ |
+| 中断/取消 | ✅ AbortController | ✅ |
 
 ---
 
 ## 🔴 P0 — 必须实现（影响基本可用性）
 
-### P0-1｜流式输出（Streaming Response）
+### P0-1｜流式输出（Streaming Response）✅
 
-**现状：** `AgentRunner.runTurn()` 等待 LLM 完整响应后才返回，用户无实时反馈。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- SSE 流式解析、`onDelta` 逐块回调、`stream_options.include_usage`、AbortSignal 透传：`src/providers/openaiCompatible.ts`（`chatStreaming`）
+- WebSocket `token_delta` 事件推送：`src/server/wsHandler.ts`
+- 前端逐块追加渲染：`web/src/hooks/useChat.ts`（`token_delta` 分支）
+
+**原现状（2026-05-22）：** `AgentRunner.runTurn()` 等待 LLM 完整响应后才返回，用户无实时反馈。  
 **Codex：** SSE 逐 token 推流，TUI 实时渲染，Web 端通过 WebSocket delta 事件更新。
 
 **需求：**
@@ -43,9 +50,14 @@
 
 ---
 
-### P0-2｜操作审批流（Approval Policy）
+### P0-2｜操作审批流（Approval Policy）✅
 
-**现状：** 仅有全局 `allowWrite`/`allowExecute` 布尔开关，写操作无 per-action 确认。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- 三档审批模式 `readonly` / `auto-edit` / `full-auto` + `requestApproval` 回调：`src/core/context.ts`
+- `approval_request` / `approval_response` 双向握手协议（中断时自动拒绝挂起审批）：`src/server/wsHandler.ts`
+- 前端审批弹窗，含 Diff 预览：`web/src/components/ApprovalDialog.tsx`
+
+**原现状（2026-05-22）：** 仅有全局 `allowWrite`/`allowExecute` 布尔开关，写操作无 per-action 确认。  
 **Codex：** 三档模式 — `suggest`（只读）/ `auto-edit`（文件变更免确认）/ `full-auto`（全自动）。
 
 **需求：**
@@ -61,9 +73,14 @@
 
 ---
 
-### P0-3｜中断 / 取消（Interrupt & Cancel）
+### P0-3｜中断 / 取消（Interrupt & Cancel）✅
 
-**现状：** Agent 一旦开始就无法打断，前端 sending 状态下用户只能等待。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- 每个 WS 连接维护 `AbortController`，收到 `{ type: 'interrupt' }` 即 abort，新消息自动取消当前 turn：`src/server/wsHandler.ts`
+- `AbortSignal` 贯穿 agent 循环与 LLM fetch：`src/agent/runner.ts`、`src/providers/openaiCompatible.ts`
+- 发送中 Composer 显示停止按钮；中断后保留已生成的部分内容：`web/src/components/Composer.tsx`、`web/src/hooks/useChat.ts`（`interrupted` 分支）
+
+**原现状（2026-05-22）：** Agent 一旦开始就无法打断，前端 sending 状态下用户只能等待。  
 **Codex：** `turn/interrupt` 可随时终止，新消息自动取消当前 turn。
 
 **需求：**
@@ -74,9 +91,13 @@
 
 ---
 
-### P0-4｜Session 完整恢复（Session Restore in UI）
+### P0-4｜Session 完整恢复（Session Restore in UI）✅
 
-**现状：** 侧边栏可列出历史 session，但点击只会新建对话，无法恢复历史消息到 UI。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- `loadSession(id)` 拉取历史 session 并恢复到 UI，后续对话沿用原 session ID 追加：`web/src/hooks/useChat.ts`
+- 后端消息（含 tool_calls 与 tool 结果配对）映射回前端消息类型：`web/src/hooks/useChat.ts`（`mapBackendMessages`）
+
+**原现状（2026-05-22）：** 侧边栏可列出历史 session，但点击只会新建对话，无法恢复历史消息到 UI。  
 **Codex：** `/resume` 完整恢复历史 thread，包含所有消息和工具调用记录。
 
 **需求：**
@@ -87,9 +108,13 @@
 
 ---
 
-### P0-5｜Shell 沙箱隔离（Sandbox）
+### P0-5｜Shell 沙箱隔离（Sandbox）🟡
 
-**现状：** `shell` 工具直接 `spawn`，无任何隔离，可执行任意系统命令。  
+**状态（2026-06-10 复核）：🟡 部分交付。**
+- 已有：macOS 上 `shell` 工具经 `sandbox-exec` + seatbelt profile 运行，默认禁网络、写入仅限 workspace + /tmp + /var：`src/tools/shell.ts`
+- 缺口：Linux `bwrap` 未实现；`sandboxMode` 配置项与前端沙箱模式选择未实现。后续工作已立项：`requirements/plans/04-execution-safety.md`
+
+**原现状（2026-05-22）：** `shell` 工具直接 `spawn`，无任何隔离，可执行任意系统命令。  
 **Codex：** macOS 用 `seatbelt`，Linux 用 `bwrap + landlock`，网络默认关闭。
 
 **需求：**
@@ -103,9 +128,13 @@
 
 ## 🟠 P1 — 强烈建议（影响日常使用体验）
 
-### P1-1｜项目记忆 / AGENTS.md
+### P1-1｜项目记忆 / AGENTS.md ✅
 
-**现状：** 无项目级指令加载，每次 session 从零开始。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- 读取 cwd 下的 `AGENTS.md`，注入 system prompt 的 PROJECT INSTRUCTIONS 节：`src/server/wsHandler.ts`
+- 缺口（小）：仅读取 cwd 单层，未沿 git root → cwd 路径链收集；`dvalincode init` 暂不生成模板（`src/commands/init.ts`）
+
+**原现状（2026-05-22）：** 无项目级指令加载，每次 session 从零开始。  
 **Codex：** 从 git root 向下收集所有 `AGENTS.md`，注入 system prompt。
 
 **需求：**
@@ -116,9 +145,15 @@
 
 ---
 
-### P1-2｜Token 用量追踪
+### P1-2｜Token 用量追踪 ✅
 
-**现状：** 无任何 token 计数显示。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- Provider 透传 `usage`，多轮迭代累加：`src/providers/openaiCompatible.ts`、`src/agent/runner.ts`
+- WebSocket `done` 事件携带用量：`src/server/wsHandler.ts`
+- 前端 topbar 显示本轮 token 数（hover 显示输入/输出明细）与 session 累计费用：`web/src/App.tsx`
+- 缺口（小）：未实现 80k 阈值黄色警告
+
+**原现状（2026-05-22）：** 无任何 token 计数显示。  
 **Codex：** `/status` 显示 session token 用量，TUI 状态栏实时更新。
 
 **需求：**
@@ -130,9 +165,13 @@
 
 ---
 
-### P1-3｜真正的上下文压缩（LLM-based Compaction）
+### P1-3｜真正的上下文压缩（LLM-based Compaction）🟡
 
-**现状：** `COMPACT` 状态仅做简单切片（保留最后 40 条），注释写着 `TODO`。  
+**状态（2026-06-10 复核）：🟡 部分交付。**
+- 已有：`/compact` 调用 LLM 生成结构化摘要（Goal / Completed / Decisions / CurrentState / Pending），失败时回退保留最近 20 条：`src/agent/loop.ts`（`handleCompact`）
+- 缺口：自动触发未接线 —— `compactThreshold` 已定义（`src/agent/types.ts`）但状态机从不自动进入 COMPACT 态
+
+**原现状（2026-05-22）：** `COMPACT` 状态仅做简单切片（保留最后 40 条），注释写着 `TODO`。  
 **Codex：** 调用 summary 模型生成摘要，替换历史消息，保留关键决策上下文。
 
 **需求：**
@@ -144,9 +183,15 @@
 
 ---
 
-### P1-4｜Git 感知（Git Awareness）
+### P1-4｜Git 感知（Git Awareness）✅
 
-**现状：** 完全不知道 git 状态。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- System prompt 自动注入当前分支与变更文件数：`src/server/wsHandler.ts`
+- `git_status` 工具（分支 + 最近 5 条 commit + 变更文件，只读）与 `/git` 命令：`src/tools/gitStatus.ts`、`src/agent/loop.ts`
+- 前端 topbar 显示当前分支：`web/src/App.tsx`、`src/server/routes/git.ts`
+- 缺口（小）：`git_diff` 工具未实现
+
+**原现状（2026-05-22）：** 完全不知道 git 状态。  
 **Codex：** 读取 branch、最近 commit、未提交变更，支持 stage/commit。
 
 **需求：**
@@ -158,9 +203,13 @@
 
 ---
 
-### P1-5｜前端 Diff 预览（Diff Viewer in UI）
+### P1-5｜前端 Diff 预览（Diff Viewer in UI）✅
 
-**现状：** 工具调用结果在 AgentActivity 中显示原始文本，`write_file`/`edit_file` 无高亮 diff。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- `write_file` / `edit_file` 生成结构化 diff，随 `tool_result` 的 metadata 下发：`src/core/diffPreview.ts`、`src/tools/writeFile.ts`、`src/tools/editFile.ts`
+- 前端 DiffViewer 渲染（增删行着色），审批弹窗复用同一组件：`web/src/components/DiffViewer.tsx`、`web/src/components/AgentActivity.tsx`、`web/src/components/ApprovalDialog.tsx`
+
+**原现状（2026-05-22）：** 工具调用结果在 AgentActivity 中显示原始文本，`write_file`/`edit_file` 无高亮 diff。  
 **Codex：** 内置 diff_model 模块，文件变更以 unified diff + 语法高亮展示。
 
 **需求：**
@@ -171,9 +220,13 @@
 
 ---
 
-### P1-6｜@ 文件引用（File Mention）
+### P1-6｜@ 文件引用（File Mention）✅
 
-**现状：** 用户只能用自然语言描述文件路径，无法精确引用。  
+**状态（2026-06-10 复核）：✅ 已交付。**
+- Composer 监听 `@` 弹出文件搜索浮层，支持键盘导航与多文件引用：`web/src/components/Composer.tsx`
+- 后端解析 `@path` 并将文件内容注入 user 消息（限制在 cwd 内）：`src/server/wsHandler.ts`（`expandAtMentions`）
+
+**原现状（2026-05-22）：** 用户只能用自然语言描述文件路径，无法精确引用。  
 **Codex：** TUI 和 API 都支持 `@filename` 语法，自动展开文件内容注入 context。
 
 **需求：**
@@ -184,7 +237,11 @@
 
 ---
 
-### P1-7｜多审批模式 UI（Approval Mode Switcher）
+### P1-7｜多审批模式 UI（Approval Mode Switcher）✅
+
+**状态（2026-06-10 复核）：✅ 已交付（形态不同）。**
+- 以 Chat / Cowork / Code 三模式切换器落地，分别映射 `readonly` / `auto-edit` / `full-auto`：`web/src/components/ModeSwitcher.tsx`（经 Sidebar 渲染）、`src/server/wsHandler.ts`（`MODE_APPROVAL`）
+- 备注：独立的 `web/src/components/ApprovalModeSwitch.tsx` 组件存在但当前未被引用
 
 配合 P0-2，前端需要直观切换审批模式：
 
@@ -198,7 +255,9 @@
 
 ## 🟡 P2 — 锦上添花（差异化竞争力）
 
-### P2-1｜MCP 支持（Model Context Protocol）
+### P2-1｜MCP 支持（Model Context Protocol）❌
+
+**状态（2026-06-10 复核）：❌ 未实现。** 实施方案已立项：`requirements/plans/03-mcp-support.md`。
 
 接入 MCP 生态，让用户自定义工具集（如 Slack、Linear、数据库查询）。
 
@@ -210,7 +269,9 @@
 
 ---
 
-### P2-2｜内置 Web 搜索工具
+### P2-2｜内置 Web 搜索工具 ❌
+
+**状态（2026-06-10 复核）：❌ 未实现。**
 
 **需求：**
 - 新增 `web_search` 工具（access: read）
@@ -219,7 +280,9 @@
 
 ---
 
-### P2-3｜生命周期 Hooks
+### P2-3｜生命周期 Hooks ❌
+
+**状态（2026-06-10 复核）：❌ 未实现。**
 
 **需求：**
 - `config.json` 支持 `hooks.preToolUse` / `hooks.postToolUse` 脚本配置
@@ -228,7 +291,11 @@
 
 ---
 
-### P2-4｜多 Profile 配置
+### P2-4｜多 Profile 配置 🟡
+
+**状态（2026-06-10 复核）：🟡 部分交付。**
+- 已有：`config.json` 支持命名 `profiles`，LLM Config 页面可保存 / 应用 / 删除 Profile：`src/server/configStore.ts`、`src/server/routes/config.ts`、`web/src/components/LLMConfigModal.tsx`
+- 缺口：CLI `--profile <name>` 参数未实现
 
 **需求：**
 - `config.json` 支持 `profiles` 命名配置（不同项目不同 provider/model/permissions）
@@ -237,7 +304,11 @@
 
 ---
 
-### P2-5｜计划模式（Plan Mode）
+### P2-5｜计划模式（Plan Mode）✅
+
+**状态（2026-06-10 复核）：✅ 已交付。**
+- `/plan` 指令进入「只提方案不执行」模式：`src/agent/loop.ts`
+- 前端以 PlanCard 展示步骤列表并支持继续执行：`web/src/components/PlanCard.tsx`、`web/src/components/MessageBubble.tsx`
 
 **需求：**
 - Composer 支持 `/plan` 指令，进入「只提方案不执行」模式
@@ -246,7 +317,11 @@
 
 ---
 
-### P2-6｜Token 费用估算
+### P2-6｜Token 费用估算 ✅
+
+**状态（2026-06-10 复核）：✅ 已交付（形态不同）。**
+- 内置各 provider/model 单价表 + 费用计算（含模型名部分匹配回退），topbar 显示 session 累计费用：`web/src/lib/pricing.ts`、`web/src/App.tsx`
+- 备注：单价为内置硬编码表，未做成 LLM Config 可配置项（`price_per_1k_tokens`）
 
 **需求：**
 - 基于 provider 的 token 单价配置，实时计算本 session 费用
@@ -257,28 +332,28 @@
 
 ## 优先级路线图
 
+> 2026-06-10 更新：原 Q1–Q3 计划项已基本全部交付（v0.3.0），路线图改为按实际状态划分。
+
 ```
-Q1（当前冲刺）
-├── P0-1 流式输出
-├── P0-3 中断/取消
-└── P0-4 Session 完整恢复
+✅ 已交付（截至 v0.3.0）
+├── P0-1 流式输出 · P0-2 审批流 · P0-3 中断/取消 · P0-4 Session 恢复
+├── P1-1 AGENTS.md · P1-2 Token 统计 · P1-4 Git 感知 · P1-5 Diff 预览
+├── P1-6 @ 文件引用 · P1-7 审批模式 UI（模式切换器形态）
+└── P2-5 计划模式 · P2-6 费用估算
 
-Q2
-├── P0-2 审批流 + P1-7 审批模式 UI
-├── P1-1 AGENTS.md 项目记忆
-├── P1-2 Token 统计
-└── P1-5 Diff 预览
+🟡 部分交付（待收尾）
+├── P0-5 沙箱：已有 macOS sandbox-exec，缺 Linux bwrap + sandboxMode 配置
+├── P1-3 上下文压缩：/compact 已用 LLM 摘要，缺自动触发（compactThreshold 接线）
+└── P2-4 Profile：后端 + GUI 已支持，缺 CLI --profile 参数
 
-Q3
-├── P0-5 Shell 沙箱
-├── P1-3 LLM 上下文压缩
-├── P1-4 Git 感知
-└── P1-6 @ 文件引用
+⏭ 下一阶段（详见 requirements/plans/）
+├── 子代理与后台任务（plans/02-subagent-tasks.md）
+├── P2-1 MCP 支持（plans/03-mcp-support.md）
+└── P0-5 收尾 + 执行安全加固（plans/04-execution-safety.md）
 
-Q4（差异化）
-├── P2-1 MCP 支持
-├── P2-3 生命周期 Hooks
-└── P2-5 计划模式
+未排期
+├── P2-2 内置 Web 搜索
+└── P2-3 生命周期 Hooks
 ```
 
 ---
@@ -294,4 +369,4 @@ Q4（差异化）
 
 ---
 
-*生成日期：2026-05-22 | 参考版本：Codex v0.133.x*
+*生成日期：2026-05-22 | 参考版本：Codex v0.133.x | 状态复核：2026-06-10，对照 DvalinCode v0.3.0 代码*
