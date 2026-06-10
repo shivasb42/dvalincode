@@ -14,8 +14,8 @@
 </p>
 
 <p align="center">
-  <b>A local-first, provider-neutral AI coding agent with three modes —</b><br>
-  <b>Chat for questions, Cowork for plan-then-execute, Code for autonomous work.</b>
+  <b>A local-first coding agent: any model, safe by default, small enough to audit, open enough to embed.</b><br>
+  <b>Three modes — Chat for questions, Cowork for plan-then-execute, Code for autonomous work.</b>
 </p>
 
 <p align="center">
@@ -32,6 +32,21 @@
 <tr><td><b>🪶 Zero-dependency binary</b></td><td>Single ~25MB executable per platform. No Node, no Python, no Docker. Auto-opens your browser on launch.</td></tr>
 <tr><td><b>🔐 Local-first</b></td><td>Sessions, config, and profiles live in <code>~/.dvalincode/</code>. <code>.dvalincodeignore</code> blocks the agent from reading sensitive files. <code>AGENTS.md</code> in your repo becomes persistent project instructions.</td></tr>
 </table>
+
+---
+
+## 🎯 Core Goal
+
+> **A local-first coding agent: any model, safe by default, small enough to audit, open enough to embed.**
+
+DvalinCode is built as an **agent runtime**, not just another agent app:
+
+- **Any model** — every OpenAI-compatible endpoint is a first-class citizen, local models included. Your workflow should never be hostage to one vendor's pricing, rate limits, or quality swings.
+- **Safe by default** — three-tier approvals with diff preview, an undo stack, and sandboxed shell execution. An agent you can trust on full-auto.
+- **Small enough to audit** — one ~25MB binary, a handful of runtime dependencies, a codebase you can read in a weekend. Trust through inspection, not promises.
+- **Open enough to embed** — the agent core speaks a clean REST + WebSocket API, ready to be wired into your own product, CI, or internal tools.
+
+The bundled **web GUI is the runtime's reference implementation and showcase** — the first consumer of that public API, demonstrating everything the runtime can do.
 
 ---
 
