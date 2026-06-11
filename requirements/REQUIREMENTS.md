@@ -191,6 +191,74 @@ Every feature is scored on 5 dimensions (1-5):
 
 ---
 
+## Update 2026-06-11 — Gemini Competitive Analysis
+
+> Source: Gemini review of DvalinCode positioning vs. Cline / Aider / Cursor / Claude Code.
+> Two net-new items surfaced; three pain points confirmed existing direction. Plans: `plans/05-compact-command.md`, `plans/06-team-playbook.md`.
+
+### Assessment: what Gemini confirmed (no new work needed)
+
+| Pain point | DvalinCode answer | Status |
+|---|---|---|
+| 黑盒焦虑 / 权限失控 | 3-mode physical isolation (Chat=read-only, Cowork=plan-then-approve, Code=full-auto) | ✅ Shipped v0.3.0 |
+| 环境依赖重 | Single ~25 MB zero-dep binary, `install.sh` one-liner | ✅ Shipped |
+| LLM 厂商绑定 | `ProviderAdapter` treats DeepSeek / Ollama / OpenAI as first-class | ✅ Shipped |
+| CLI vs. heavy GUI | CLI start → auto-launch Web UI with code highlight + diff view | ✅ Shipped v0.3.0 |
+| 团队 AI 指令无法共享 | `AGENTS.md` committed to repo, shared with whole team | ✅ Shipped v0.3.0 |
+
+### P2 — New Requirements (from Gemini)
+
+#### 17. `/compact` — User-Triggered Context Compression (Score: 8.0) ⬆️ Upgrade from P2 #2
+
+> Replaces / supersedes P2 #2 (Token Efficiency / Cost Awareness). AgentLoop already has a COMPACT state; this turns it into an explicit user command with a structured output format.
+
+- **Pain**: 4/5 · **Align**: 5/5 · **Cost**: 4/5 · **Risk**: 5/5 · **Gap**: 4/5
+- **Score**: (4×5×4) / (4×5) = **8.0** → P2 (was 6.4, upgrading based on local-model framing)
+- **Signal**: Local and cheap model users (DeepSeek, Ollama/Qwen) hit context limits and start hallucinating far sooner than Claude/GPT-4 users. `/compact` is the mechanism that makes a 32k-context local model viable for a full coding session. Gemini specifically called out that no competitor surfaces this as a first-class user command with a structured output.
+- **What to build**:
+  1. `/compact` slash-command in the Web UI chat input
+  2. Backend: call existing `summarizeSession()` → rewrite conversation to a structured summary:
+     ```
+     ## Goal
+     <one-sentence statement of the session's objective>
+     ## Completed
+     - <list of tasks finished, with file paths>
+     ## Key Decisions
+     - <architectural choices, API design, non-obvious picks>
+     ## Pending
+     - <remaining work items>
+     ```
+  3. Replace the full message history with a single `system` message containing this summary + a `user` message with the pending list
+  4. Show a "Context compressed: 12 400 → 800 tokens (−94%)" toast in the UI
+- **Value prop**: Explicitly framed as "the feature that makes local and cheap models viable for long sessions."
+- **Plan**: `plans/05-compact-command.md`
+
+---
+
+#### 18. Team AI Playbook — `dvalin.json` (Score: 4.0)
+
+- **Pain**: 4/5 · **Align**: 5/5 · **Cost**: 4/5 · **Risk**: 5/5 · **Gap**: 4/5
+- **Score**: (4×5×4) / (4×5) = **4.0** → P2
+- **Signal**: Currently, the Routines panel (Run tests / Type check / Build / Git status / Lint) is stored in `localStorage`. When a new teammate clones the repo or you switch machines, all those AI quick-commands are gone. AGENTS.md shares the AI context, but not the runbook of automation commands. Gemini identified this as the next natural extension: commit a `dvalin.json` to the repo and ship everyone the same AI automation playbook.
+- **What to build**:
+  1. On startup, DvalinCode reads `<workspace>/.dvalin.json` (if present) and merges its `routines` list into the Routines panel
+  2. In the Routines panel UI, add an **Export** button: writes current routines to `.dvalin.json` in the workspace root
+  3. Schema (minimal):
+     ```json
+     {
+       "version": 1,
+       "routines": [
+         { "label": "Run tests", "prompt": "Run the full test suite and report failures" },
+         { "label": "Type check", "prompt": "Run tsc --noEmit and list all type errors" }
+       ]
+     }
+     ```
+  4. `.dvalin.json` committed to git → every `git clone` delivers the same AI playbook
+- **DvalinCode differentiator**: No other tool makes "team AI automation commands" a first-class git artifact. AGENTS.md gives context; `dvalin.json` gives commands. Together they form a complete "AI onboarding file" for a project.
+- **Plan**: `plans/06-team-playbook.md`
+
+---
+
 ## Source Log
 
 | Date | Source | Key Signal | Priority |
@@ -227,6 +295,7 @@ Every feature is scored on 5 dimensions (1-5):
 | 2026-06-10 | opencode v1.16.0–v1.17.0 releases | Background subagents · MCP hardening · loose-edit-match refusal | P1 |
 | 2026-06-10 | Claude Code 2.1.157–2.1.170 changelog | `claude agents` background sessions · guarded config writes · fallback models | P1 |
 | 2026-06-10 | Codex rust-v0.134.0–v0.139.0 releases | Multi-agent v2 · session search/archive · sandbox escalation + permission profiles | P1 |
+| 2026-06-11 | Gemini competitive review | `/compact` critical for local/cheap models; `dvalin.json` team playbook differentiator | P2 |
 
 ## Shipped
 

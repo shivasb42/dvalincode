@@ -79,6 +79,17 @@ DvalinCode 的定位是 **Agent 运行时（runtime）**，而不只是又一个
 
 ---
 
+## 🆚 什么时候选择 DvalinCode
+
+| 如果你厌倦了… | DvalinCode 的解法 |
+|---|---|
+| **Cline / Cursor** — 绑定 IDE、安装包庞大、代码上传到云端让人不安 | 单二进制 (~25 MB)，无需任何 IDE。macOS shell 调用默认运行在 `sandbox-exec` 沙箱中——拒绝网络访问，写入范围限制在 `cwd`。 |
+| **Claude Code / Aider** — 纯命令行看 Diff 太痛苦，环境配置繁琐 | CLI 启动后自动打开现代 Web UI，支持代码高亮和红绿 Diff 逐文件审批。一行安装命令，无需其他依赖。 |
+| **任何云端 Agent** — 厂商锁定、频繁限速、无法使用本地模型 | 所有 OpenAI Compatible 端点均为一等公民。用 Ollama 跑 Qwen2.5-Coder：无需 API Key，无需联网，零 Token 费用。 |
+| **任何 Agent** — 新队友无法复现你的 AI 配置，Routines 被锁在你的 IDE 里 | `AGENTS.md` 提交到仓库，随 `git clone` 把 AI 上下文同步给所有人。`dvalin.json`（v0.4 计划）以同样方式共享团队自动化命令集。 |
+
+---
+
 ## 🚀 一行安装
 
 ### macOS / Linux
