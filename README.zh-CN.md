@@ -26,7 +26,7 @@
 <tr><td><b>🗨️ Chat 模式</b></td><td>只读问答，附带一键提示词模板 —— 解释代码库、查找 TODO、审查变更、写测试。Agent 可读文件、可搜索，但绝不写入。</td></tr>
 <tr><td><b>👥 Cowork 模式</b></td><td>先规划后执行。Agent 写出编号步骤，你点 <b>Proceed</b>，每次文件写入都需要明确批准——批准前会看到红绿 diff。</td></tr>
 <tr><td><b>⚡ Code 模式</b></td><td>自主代理，全工具权限。一键运行测试、类型检查、构建、Lint（侧栏 <b>Routines</b> 面板）。macOS shell 调用在 <code>sandbox-exec</code> 沙箱内执行，网络被禁用。</td></tr>
-<tr><td><b>🎯 一流的 GUI</b></td><td>现代化 Web UI，包含代码语法高亮、<code>@</code> 文件引用、<code>/</code> 斜杠命令、Git 分支显示、实时 Token 与费用统计、多 LLM Profile。</td></tr>
+<tr><td><b>🖥️ 一流的 GUI</b></td><td>现代化 Web UI，包含代码语法高亮、<code>@</code> 文件引用、<code>/</code> 斜杠命令、Git 分支显示、实时 Token 与费用统计、多 LLM Profile。</td></tr>
 <tr><td><b>🪶 零依赖二进制</b></td><td>每平台单文件可执行程序 ~25MB。无需 Node、Python、Docker。启动后自动打开浏览器。</td></tr>
 <tr><td><b>🔐 本地优先</b></td><td>Session、配置、Profile 均保存在 <code>~/.dvalincode/</code>。<code>.dvalincodeignore</code> 阻止 Agent 访问敏感文件。仓库根目录的 <code>AGENTS.md</code> 作为项目级持久指令自动加载。</td></tr>
 </table>
@@ -54,11 +54,15 @@ DvalinCode 的定位是 **Agent 运行时（runtime）**，而不只是又一个
 
 - **模式感知的侧边栏** —— Chat 显示快速提示 **Templates**，Cowork 显示 **Projects** 文件夹树，Code 显示自定义 **Routines**（一键命令如 "Run tests" / "Git status" / "Type check"）。可在侧栏中添加自己的 Routine，保存在 `localStorage`。
 - **一行安装脚本** —— `curl … | bash` 自动检测系统和架构，将二进制放入 `~/.dvalincode/`，自动配置 `PATH`，无需任何包管理器依赖。
-- **营销级 README** —— 嵌入 GIF 演示；中文版完整对照；6 行卖点表让用户 30 秒看懂项目。
+- **多 Profile LLM 配置** —— 保存命名的 (provider, model, API key) 组合，侧栏一键切换；顶栏实时显示当前 session 费用，随时横向对比不同 Provider。
 
 ---
 
 ## 📸 预览
+
+<p align="center">
+  <img src="assets/hero.png" alt="DvalinCode UI" width="100%">
+</p>
 
 **切换模式 —— 每种模式都有不同的侧边栏：**
 
