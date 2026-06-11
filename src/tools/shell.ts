@@ -1,6 +1,13 @@
-import { spawn } from 'node:child_process';
+import { spawn, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { z } from 'zod';
 import type { Tool } from './types.js';
+
+const execAsync = promisify(execFile);
+
+async function isSandboxExecAvailable(): Promise<boolean> {
+  try { await execAsync('which', ['sandbox-exec']); return true; } catch { return false; }
+}
 
 const inputSchema = z
   .object({
@@ -19,7 +26,7 @@ export const shellTool: Tool<Input> = {
   inputSchema,
   isConcurrencySafe: () => false,
   async run(input, context) {
-    const sandboxEnabled = process.platform === 'darwin';
+    const sandboxEnabled = process.platform === 'darwin' && await isSandboxExecAvailable();
     const result = await runProcess(input.command, input.args, context.cwd, input.timeoutMs, sandboxEnabled);
     return {
       title: `Ran ${input.command}`,
