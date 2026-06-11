@@ -16,9 +16,28 @@ export type Profile = {
   model?: string;
 };
 
+export type RotationPolicy = 'round-robin' | 'random' | 'weighted-random';
+
+export type PoolEntry = {
+  id: string;
+  provider: string;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+  weight: number;
+  enabled: boolean;
+};
+
+export type ProviderPoolConfig = {
+  enabled: boolean;
+  policy: RotationPolicy;
+  entries: PoolEntry[];
+};
+
 export type AppConfig = {
   llm: LLMConfig;
   profiles?: Record<string, Profile>;
+  pool?: ProviderPoolConfig;
 };
 
 const CONFIG_DIR = join(homedir(), '.dvalincode');
@@ -52,7 +71,7 @@ export async function writeConfig(config: AppConfig): Promise<void> {
   await writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
 }
 
-/** Return config safe for the browser (API key masked). */
+/** Return config safe for the browser (API keys masked). */
 export function maskConfig(config: AppConfig): AppConfig & { llm: { apiKeySet: boolean } } {
   const maskedProfiles: Record<string, Profile> | undefined = config.profiles
     ? Object.fromEntries(
@@ -63,6 +82,16 @@ export function maskConfig(config: AppConfig): AppConfig & { llm: { apiKeySet: b
       )
     : undefined;
 
+  const maskedPool: ProviderPoolConfig | undefined = config.pool
+    ? {
+        ...config.pool,
+        entries: config.pool.entries.map(e => ({
+          ...e,
+          apiKey: e.apiKey ? '••••••••' : undefined,
+        })),
+      }
+    : undefined;
+
   return {
     ...config,
     llm: {
@@ -71,5 +100,6 @@ export function maskConfig(config: AppConfig): AppConfig & { llm: { apiKeySet: b
       apiKeySet: !!config.llm.apiKey,
     },
     profiles: maskedProfiles,
+    pool: maskedPool,
   };
 }

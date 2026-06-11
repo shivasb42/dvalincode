@@ -6,8 +6,27 @@ export type LLMConfig = {
   model?: string;
 };
 
+export type RotationPolicy = 'round-robin' | 'random' | 'weighted-random';
+
+export type PoolEntry = {
+  id: string;
+  provider: string;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+  weight: number;
+  enabled: boolean;
+};
+
+export type ProviderPoolConfig = {
+  enabled: boolean;
+  policy: RotationPolicy;
+  entries: PoolEntry[];
+};
+
 export type AppConfig = {
   llm: LLMConfig;
+  pool?: ProviderPoolConfig;
 };
 
 export type SessionMeta = {
@@ -71,4 +90,5 @@ export type ServerEvent =
   | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
   | { type: 'interrupted' }
   | { type: 'error'; message: string }
-  | { type: 'compact_done'; tokensBefore: number; tokensAfter: number; summary: string };
+  | { type: 'compact_done'; tokensBefore: number; tokensAfter: number; summary: string }
+  | { type: 'provider_selected'; providerId: string };
