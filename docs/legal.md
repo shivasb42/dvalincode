@@ -10,3 +10,5 @@ DvalinCode is not affiliated with Anthropic, Claude, or Claude Code.
 
 The MIT license in this repository applies only to DvalinCode source code and documentation created for this project.
 
+See [docs/REFERENCES.md](REFERENCES.md) for third-party attributions.
+
