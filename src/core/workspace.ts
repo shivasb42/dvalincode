@@ -10,9 +10,19 @@ export async function resolveInsideWorkspace(cwd: string, inputPath: string): Pr
   // Resolve the target relative to the resolved root
   const target = path.resolve(root, inputPath);
   const resolvedTarget = await realpath(target).catch(async () => {
-    // If target doesn't exist yet, resolve its parent to check boundaries
-    const parent = await realpath(path.dirname(target));
-    return path.join(parent, path.basename(target));
+    // Target doesn't exist yet — walk up the tree to find the nearest existing ancestor.
+    let ancestor = path.dirname(target);
+    const segments: string[] = [path.basename(target)];
+    while (ancestor !== path.dirname(ancestor)) {
+      try {
+        const resolvedAncestor = await realpath(ancestor);
+        return path.join(resolvedAncestor, ...segments);
+      } catch {
+        segments.unshift(path.basename(ancestor));
+        ancestor = path.dirname(ancestor);
+      }
+    }
+    throw new Error(`Cannot resolve path: no existing ancestor found for ${target}`);
   });
   const relative = path.relative(root, resolvedTarget);
 
