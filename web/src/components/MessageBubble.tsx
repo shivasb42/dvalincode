@@ -33,6 +33,8 @@ export function MessageBubble({ message, mode, onProceed }: Props) {
     );
   }
 
+  if (message.role === 'compact') return null;
+
   // Assistant message
   const { content, toolCalls, pending } = message;
   const showDots = pending && toolCalls.length === 0 && !content;

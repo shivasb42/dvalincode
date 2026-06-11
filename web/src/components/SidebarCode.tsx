@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Plus, MessageSquare, Trash2, Zap, ChevronRight, X, Check,
+  Plus, MessageSquare, Trash2, Zap, ChevronRight, X, Check, Download,
 } from 'lucide-react';
 import type { SessionMeta } from '../types.ts';
+import { fetchPlaybook, savePlaybook } from '../lib/client.ts';
 
 // ── Local-storage routines ────────────────────────────────────────────────────
 
@@ -137,6 +138,7 @@ type Props = {
   onSelectSession: (id: string) => void;
   onDeleteSession: (e: React.MouseEvent, id: string) => void;
   onSend: (text: string) => void;
+  cwd?: string;
 };
 
 export function SidebarCode({
@@ -146,12 +148,33 @@ export function SidebarCode({
   onSelectSession,
   onDeleteSession,
   onSend,
+  cwd,
 }: Props) {
   const [routines, setRoutines] = useRoutines();
   const [addingRoutine, setAddingRoutine] = useState(false);
+  const [projectRoutines, setProjectRoutines] = useState<Routine[]>([]);
+  const [exportToast, setExportToast] = useState(false);
+
+  useEffect(() => {
+    if (!cwd) { setProjectRoutines([]); return; }
+    fetchPlaybook(cwd).then((items) => {
+      setProjectRoutines(items.map((r) => ({ name: r.label, prompt: r.prompt })));
+    }).catch(() => {});
+  }, [cwd]);
 
   const removeRoutine = (name: string) =>
     setRoutines(routines.filter((r) => r.name !== name));
+
+  const handleExport = async () => {
+    if (!cwd) return;
+    await savePlaybook(cwd, routines.map((r) => ({ label: r.name, prompt: r.prompt })));
+    setExportToast(true);
+    setTimeout(() => setExportToast(false), 3000);
+  };
+
+  // My routines: exclude any whose name matches a project routine label
+  const projectLabels = new Set(projectRoutines.map((r) => r.name));
+  const myRoutines = routines.filter((r) => !projectLabels.has(r.name));
 
   return (
     <>
@@ -173,19 +196,64 @@ export function SidebarCode({
           <span className="text-[10px] font-semibold text-muted-fg/50 uppercase tracking-wider">
             Routines
           </span>
-          <button
-            onClick={() => setAddingRoutine((v) => !v)}
-            className={`text-[10px] transition-colors ${
-              addingRoutine ? 'text-orange-400' : 'text-muted-fg/50 hover:text-muted-fg'
-            }`}
-            title={addingRoutine ? 'Cancel' : 'Add routine'}
-          >
-            {addingRoutine ? <X size={11} /> : <Plus size={11} />}
-          </button>
+          <div className="flex items-center gap-1.5">
+            {cwd && (
+              <button
+                onClick={() => void handleExport()}
+                className="text-[10px] text-muted-fg/50 hover:text-muted-fg transition-colors"
+                title="Export routines to dvalin.json"
+              >
+                <Download size={11} />
+              </button>
+            )}
+            <button
+              onClick={() => setAddingRoutine((v) => !v)}
+              className={`text-[10px] transition-colors ${
+                addingRoutine ? 'text-orange-400' : 'text-muted-fg/50 hover:text-muted-fg'
+              }`}
+              title={addingRoutine ? 'Cancel' : 'Add routine'}
+            >
+              {addingRoutine ? <X size={11} /> : <Plus size={11} />}
+            </button>
+          </div>
         </div>
 
+        {exportToast && (
+          <div className="mb-1.5 px-2 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 text-[10px] text-green-400">
+            Saved to dvalin.json — commit it to share with your team
+          </div>
+        )}
+
+        {/* Project routines */}
+        {projectRoutines.length > 0 && (
+          <div className="mb-1">
+            <div className="text-[9px] font-semibold text-muted-fg/40 uppercase tracking-wider px-1 mb-0.5">
+              Project
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {projectRoutines.map((r) => (
+                <button
+                  key={r.name}
+                  onClick={() => onSend(r.prompt)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-fg hover:text-fg hover:bg-[#1a1a1a] transition-colors text-left w-full"
+                >
+                  <Zap size={11} className="text-blue-400/70 flex-shrink-0" />
+                  <span className="truncate flex-1">{r.name}</span>
+                  <ChevronRight size={10} className="opacity-30 flex-shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* My routines */}
+        {(projectRoutines.length > 0 || myRoutines.length > 0) && projectRoutines.length > 0 && (
+          <div className="text-[9px] font-semibold text-muted-fg/40 uppercase tracking-wider px-1 mb-0.5">
+            My routines
+          </div>
+        )}
         <div className="flex flex-col gap-0.5">
-          {routines.map((r) => (
+          {myRoutines.map((r) => (
             <div key={r.name} className="group flex items-center gap-1">
               <button
                 onClick={() => onSend(r.prompt)}

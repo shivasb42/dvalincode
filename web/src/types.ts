@@ -46,7 +46,8 @@ export type ChatMessage =
       content: string;
       toolCalls: ToolCallEvent[];
       pending?: boolean;
-    };
+    }
+  | { role: 'compact'; tokensBefore: number; tokensAfter: number };
 
 export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto';
 export type AgentMode = 'chat' | 'cowork' | 'code';
@@ -69,4 +70,5 @@ export type ServerEvent =
   | { type: 'response'; content: string }
   | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
   | { type: 'interrupted' }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  | { type: 'compact_done'; tokensBefore: number; tokensAfter: number; summary: string };

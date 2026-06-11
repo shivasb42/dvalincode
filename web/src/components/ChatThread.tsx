@@ -38,14 +38,28 @@ export function ChatThread({ messages, connected, mode, onProceed }: Props) {
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6">
       <div className="max-w-2xl mx-auto">
-        {messages.map((msg, i) => (
-          <MessageBubble
-            key={i}
-            message={msg}
-            mode={mode}
-            onProceed={onProceed}
-          />
-        ))}
+        {messages.map((msg, i) => {
+          if (msg.role === 'compact') {
+            const pct = msg.tokensBefore > 0
+              ? Math.round((1 - msg.tokensAfter / msg.tokensBefore) * 100)
+              : 0;
+            return (
+              <div key={i} className="flex items-center gap-3 my-5 text-xs text-muted-fg select-none">
+                <div className="flex-1 border-t border-border" />
+                <span>context compacted · {msg.tokensBefore.toLocaleString()} → {msg.tokensAfter.toLocaleString()} tokens (−{pct}%)</span>
+                <div className="flex-1 border-t border-border" />
+              </div>
+            );
+          }
+          return (
+            <MessageBubble
+              key={i}
+              message={msg}
+              mode={mode}
+              onProceed={onProceed}
+            />
+          );
+        })}
         <div ref={bottomRef} />
       </div>
     </div>

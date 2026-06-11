@@ -11,6 +11,7 @@ import { toolsRouter } from './routes/tools.js';
 import { configRouter } from './routes/config.js';
 import { filesRouter } from './routes/files.js';
 import { gitRouter } from './routes/git.js';
+import { getPlaybook, savePlaybook } from './playbookHandler.js';
 import { handleWebSocket } from './wsHandler.js';
 
 const __serverDir = path.dirname(fileURLToPath(import.meta.url));
@@ -34,6 +35,8 @@ app.use('/api/tools', toolsRouter);
 app.use('/api/config', configRouter);
 app.use('/api/files', filesRouter);
 app.use('/api/git', gitRouter);
+app.get('/api/playbook', (req, res) => void getPlaybook(req, res));
+app.post('/api/playbook', (req, res) => void savePlaybook(req, res));
 
 // Serve built frontend
 app.use(express.static(webDist));

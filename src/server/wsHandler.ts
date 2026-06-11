@@ -16,6 +16,7 @@ import {
   loadSession,
   summarizeSession,
 } from '../sessions/store.js';
+import { estimateTokens, summarizeWithLLM, buildCompactedHistory } from '../agent/compact.js';
 import { readConfig } from './configStore.js';
 import type { AgentEvent } from '../agent/types.js';
 
@@ -55,7 +56,8 @@ type ClientMessage =
       provider?: string;
     }
   | { type: 'interrupt' }
-  | { type: 'approval_response'; id: string; approved: boolean };
+  | { type: 'approval_response'; id: string; approved: boolean }
+  | { type: 'compact'; sessionId?: string };
 
 type ServerMessage =
   | { type: 'session_id'; sessionId: string }
@@ -67,7 +69,8 @@ type ServerMessage =
   | { type: 'response'; content: string }
   | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
   | { type: 'interrupted' }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  | { type: 'compact_done'; tokensBefore: number; tokensAfter: number; summary: string };
 
 function send(ws: WebSocket, msg: ServerMessage): void {
   if (ws.readyState === 1 /* OPEN */) {
@@ -130,6 +133,41 @@ export function handleWebSocket(ws: WebSocket): void {
         pendingApprovals.delete(msg.id);
         resolve(msg.approved);
       }
+      return;
+    }
+
+    if (msg.type === 'compact') {
+      if (!msg.sessionId) {
+        send(ws, { type: 'error', message: 'compact requires a sessionId' });
+        return;
+      }
+      const session = await loadSession(msg.sessionId);
+      if (!session) {
+        send(ws, { type: 'error', message: `Session not found: ${msg.sessionId}` });
+        return;
+      }
+      let provider;
+      try {
+        const cfg = await readConfig();
+        const manager = new ProviderManager();
+        manager.addOpenAI(cfg.llm.provider, {
+          apiKey: cfg.llm.apiKey,
+          baseUrl: cfg.llm.baseUrl,
+          model: cfg.llm.model,
+        });
+        provider = manager.get(cfg.llm.provider);
+      } catch (err) {
+        send(ws, { type: 'error', message: `Provider error: ${err instanceof Error ? err.message : String(err)}` });
+        return;
+      }
+      const tokensBefore = estimateTokens(session.messages);
+      const summary = await summarizeWithLLM(session.messages, provider);
+      const compacted = buildCompactedHistory(summary);
+      const tokensAfter = estimateTokens(compacted);
+      session.messages = compacted;
+      session.updatedAt = new Date().toISOString();
+      await saveSession(session);
+      send(ws, { type: 'compact_done', tokensBefore, tokensAfter, summary });
       return;
     }
 

@@ -214,6 +214,14 @@ export function useChat(opts: UseChatOptions = {}) {
             });
             setSending(false);
             break;
+
+          case 'compact_done':
+            setMessages((prev) => [
+              ...prev,
+              { role: 'compact', tokensBefore: event.tokensBefore, tokensAfter: event.tokensAfter },
+            ]);
+            setSending(false);
+            break;
         }
       },
     });
@@ -248,6 +256,12 @@ export function useChat(opts: UseChatOptions = {}) {
     [sending, currentSessionId, opts.cwd, opts.approvalMode],
   );
 
+  const compact = useCallback(() => {
+    if (!currentSessionId) return;
+    setSending(true);
+    client.compact(currentSessionId);
+  }, [currentSessionId]);
+
   const respondToApproval = useCallback((id: string, approved: boolean) => {
     setPendingApprovals((prev) => prev.filter((a) => a.id !== id));
     client.sendApprovalResponse(id, approved);
@@ -278,5 +292,5 @@ export function useChat(opts: UseChatOptions = {}) {
     setLastUsage(undefined);
   }, []);
 
-  return { messages, connected, sending, currentSessionId, lastUsage, pendingApprovals, connect, send, interrupt, loadSession, reset, respondToApproval };
+  return { messages, connected, sending, currentSessionId, lastUsage, pendingApprovals, connect, send, compact, interrupt, loadSession, reset, respondToApproval };
 }

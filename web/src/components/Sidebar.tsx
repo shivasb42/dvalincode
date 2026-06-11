@@ -16,6 +16,7 @@ type Props = {
   refreshKey?: number;
   mode: AgentMode;
   onModeChange: (m: AgentMode) => void;
+  cwd?: string;
 };
 
 export function Sidebar({
@@ -27,6 +28,7 @@ export function Sidebar({
   refreshKey,
   mode,
   onModeChange,
+  cwd,
 }: Props) {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [collapsed, setCollapsed] = useState(false);
@@ -124,6 +126,7 @@ export function Sidebar({
             onSelectSession={onSelectSession}
             onDeleteSession={handleDelete}
             onSend={onSend}
+            cwd={cwd}
           />
         )}
       </div>

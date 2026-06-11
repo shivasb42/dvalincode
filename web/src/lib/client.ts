@@ -83,6 +83,13 @@ export class DvalinClient {
     }
   }
 
+  compact(sessionId?: string): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket not connected');
+    }
+    this.ws.send(JSON.stringify({ type: 'compact', sessionId }));
+  }
+
   disconnect(): void {
     this.ws?.close();
     this.ws = null;
@@ -189,4 +196,27 @@ export async function applyProfile(name: string): Promise<AppConfig> {
   const res = await fetch(`/api/config/profiles/${encodeURIComponent(name)}/apply`, { method: 'POST' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<AppConfig>;
+}
+
+// ── Playbook ──────────────────────────────────────────────────────────────────
+
+export type PlaybookRoutine = { label: string; prompt: string };
+
+export async function fetchPlaybook(cwd: string): Promise<PlaybookRoutine[]> {
+  try {
+    const res = await fetch(`/api/playbook?cwd=${encodeURIComponent(cwd)}`);
+    if (!res.ok) return [];
+    const data = (await res.json()) as { routines: PlaybookRoutine[] };
+    return Array.isArray(data.routines) ? data.routines : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function savePlaybook(cwd: string, routines: PlaybookRoutine[]): Promise<void> {
+  await fetch('/api/playbook', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cwd, routines }),
+  });
 }

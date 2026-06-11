@@ -84,6 +84,10 @@ export default function App() {
 
   const handleSend = useCallback(
     (text: string) => {
+      if (text.trim() === '/compact') {
+        chat.compact();
+        return;
+      }
       if (!chat.connected) {
         chat.connect();
         setTimeout(() => chat.send(text), 300);
@@ -136,6 +140,7 @@ export default function App() {
         refreshKey={sidebarRefresh}
         mode={mode}
         onModeChange={handleModeChange}
+        cwd={settings.cwd || undefined}
       />
 
       {/* Main area */}
