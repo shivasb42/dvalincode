@@ -6,6 +6,7 @@ import path from 'node:path';
 const execAsync = promisify(execFile);
 import type { WebSocket } from 'ws';
 import { ProviderManager } from '../providers/manager.js';
+import { ProviderPool } from '../providers/pool.js';
 import { scanProject } from '../core/projectScanner.js';
 import { AgentLoop } from '../agent/loop.js';
 import { createDvalinContext } from '../core/context.js';
@@ -70,7 +71,8 @@ type ServerMessage =
   | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
   | { type: 'interrupted' }
   | { type: 'error'; message: string }
-  | { type: 'compact_done'; tokensBefore: number; tokensAfter: number; summary: string };
+  | { type: 'compact_done'; tokensBefore: number; tokensAfter: number; summary: string }
+  | { type: 'provider_selected'; providerId: string };
 
 function send(ws: WebSocket, msg: ServerMessage): void {
   if (ws.readyState === 1 /* OPEN */) {
@@ -149,13 +151,17 @@ export function handleWebSocket(ws: WebSocket): void {
       let provider;
       try {
         const cfg = await readConfig();
-        const manager = new ProviderManager();
-        manager.addOpenAI(cfg.llm.provider, {
-          apiKey: cfg.llm.apiKey,
-          baseUrl: cfg.llm.baseUrl,
-          model: cfg.llm.model,
-        });
-        provider = manager.get(cfg.llm.provider);
+        if (cfg.pool?.enabled && cfg.pool.entries.some(e => e.enabled)) {
+          provider = new ProviderPool(cfg.pool.entries, cfg.pool.policy).next().adapter;
+        } else {
+          const manager = new ProviderManager();
+          manager.addOpenAI(cfg.llm.provider, {
+            apiKey: cfg.llm.apiKey,
+            baseUrl: cfg.llm.baseUrl,
+            model: cfg.llm.model,
+          });
+          provider = manager.get(cfg.llm.provider);
+        }
       } catch (err) {
         send(ws, { type: 'error', message: `Provider error: ${err instanceof Error ? err.message : String(err)}` });
         return;
@@ -195,19 +201,28 @@ export function handleWebSocket(ws: WebSocket): void {
 
     send(ws, { type: 'session_id', sessionId: session.id });
 
-    // Set up provider
+    // Set up provider (pool takes priority when enabled)
     let provider;
+    let activeProviderId: string;
     try {
       const cfg = await readConfig();
-      const llm = cfg.llm;
-      const providerName = msg.provider ?? llm.provider;
-      const manager = new ProviderManager();
-      manager.addOpenAI(providerName, {
-        apiKey: llm.apiKey,
-        baseUrl: llm.baseUrl,
-        model: llm.model,
-      });
-      provider = manager.get(providerName);
+      if (cfg.pool?.enabled && cfg.pool.entries.some(e => e.enabled)) {
+        const pool = new ProviderPool(cfg.pool.entries, cfg.pool.policy);
+        const picked = pool.next();
+        provider = picked.adapter;
+        activeProviderId = picked.id;
+      } else {
+        const llm = cfg.llm;
+        const providerName = msg.provider ?? llm.provider;
+        const manager = new ProviderManager();
+        manager.addOpenAI(providerName, {
+          apiKey: llm.apiKey,
+          baseUrl: llm.baseUrl,
+          model: llm.model,
+        });
+        provider = manager.get(providerName);
+        activeProviderId = providerName;
+      }
     } catch (err) {
       send(ws, {
         type: 'error',
@@ -215,6 +230,7 @@ export function handleWebSocket(ws: WebSocket): void {
       });
       return;
     }
+    send(ws, { type: 'provider_selected', providerId: activeProviderId });
 
     // Expand @mentions in user message
     const userContent = await expandAtMentions(msg.content, cwd);

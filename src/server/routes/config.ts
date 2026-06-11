@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { readConfig, writeConfig, maskConfig } from '../configStore.js';
-import type { LLMConfig, Profile } from '../configStore.js';
+import type { LLMConfig, Profile, ProviderPoolConfig } from '../configStore.js';
+import { resetRRCursor } from '../../providers/pool.js';
 
 export const configRouter = Router();
 
@@ -108,4 +109,46 @@ configRouter.post('/', async (req, res) => {
 
   await writeConfig(updated);
   res.json(maskConfig(updated));
+});
+
+// ── Provider pool ─────────────────────────────────────────────────────────────
+
+configRouter.get('/pool', async (_req, res) => {
+  const config = await readConfig();
+  const masked = maskConfig(config);
+  res.json(masked.pool ?? { enabled: false, policy: 'round-robin', entries: [] });
+});
+
+configRouter.post('/pool', async (req, res) => {
+  const body = req.body as Partial<ProviderPoolConfig>;
+  if (!body || typeof body.enabled !== 'boolean') {
+    res.status(400).json({ error: 'Invalid pool config' });
+    return;
+  }
+
+  const current = await readConfig();
+  const existingEntries = current.pool?.entries ?? [];
+
+  // Preserve real API keys where the browser sent the mask placeholder
+  const entries = (body.entries ?? []).map(incoming => {
+    const existing = existingEntries.find(e => e.id === incoming.id);
+    const apiKey =
+      incoming.apiKey === '••••••••' || incoming.apiKey === undefined
+        ? existing?.apiKey
+        : incoming.apiKey || undefined;
+    return { ...incoming, apiKey };
+  });
+
+  const updated: typeof current = {
+    ...current,
+    pool: {
+      enabled: body.enabled,
+      policy: body.policy ?? 'round-robin',
+      entries,
+    },
+  };
+
+  await writeConfig(updated);
+  resetRRCursor();
+  res.json(maskConfig(updated).pool);
 });

@@ -1,4 +1,4 @@
-import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage, ApprovalMode, AgentMode } from '../types.ts';
+import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage, ApprovalMode, AgentMode, ProviderPoolConfig } from '../types.ts';
 
 const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
 
@@ -196,6 +196,28 @@ export async function applyProfile(name: string): Promise<AppConfig> {
   const res = await fetch(`/api/config/profiles/${encodeURIComponent(name)}/apply`, { method: 'POST' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<AppConfig>;
+}
+
+// ── Provider pool ─────────────────────────────────────────────────────────────
+
+export async function fetchPool(): Promise<ProviderPoolConfig> {
+  try {
+    const res = await fetch('/api/config/pool');
+    if (!res.ok) return { enabled: false, policy: 'round-robin', entries: [] };
+    return res.json() as Promise<ProviderPoolConfig>;
+  } catch {
+    return { enabled: false, policy: 'round-robin', entries: [] };
+  }
+}
+
+export async function savePool(pool: ProviderPoolConfig): Promise<ProviderPoolConfig> {
+  const res = await fetch('/api/config/pool', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(pool),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<ProviderPoolConfig>;
 }
 
 // ── Playbook ──────────────────────────────────────────────────────────────────
