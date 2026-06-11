@@ -49,13 +49,22 @@ The bundled **web GUI is the runtime's reference implementation and showcase** �
 
 ---
 
-## ⭐ What's New in v0.3.0
+## ⭐ What's New in v0.4.0
 
-> [Full changelog →](https://github.com/arthurpanhku/dvalincode/releases/tag/v0.3.0)
+> [Full changelog →](https://github.com/arthurpanhku/dvalincode/releases/tag/v0.4.0)
+
+- **`/compact`** — LLM-based context compaction: replaces conversation history with a structured five-section summary (Goal / Completed / Decisions / Current State / Pending). A divider in the chat thread shows the token reduction (e.g. `8,412 → 1,203 tokens −85%`).
+- **`dvalin.json` team playbook** — commit a shared set of automation prompts to your repo. The sidebar loads them automatically and lets teammates run the same one-click routines without any manual setup. Export button converts your personal routines to `dvalin.json` in one click.
+- **Self-contained binaries** — single ~25 MB executable per platform; no Node, no Python, no Docker. Auto-opens your browser on launch. Built with `bun --compile` so the web UI is bundled alongside the server binary.
+
+<details>
+<summary>v0.3.0 — Mode-aware sidebar · one-line installer · multi-profile LLM config</summary>
 
 - **Mode-aware sidebar** — Chat shows quick-prompt **Templates**, Cowork shows a **Projects** folder tree, Code shows custom **Routines** (one-click commands like "Run tests" / "Git status" / "Type check"). Add your own routines from the sidebar — they persist in `localStorage`.
 - **One-line installer** — `curl … | bash` auto-detects your OS + arch, drops the binary into `~/.dvalincode/`, and patches your `PATH`. No package manager dependencies.
 - **Multi-profile LLM config** — save named (provider, model, API key) sets and switch in one click from the sidebar; live per-session cost counter in the topbar so you can compare providers on the fly.
+
+</details>
 
 ---
 
@@ -86,7 +95,7 @@ The bundled **web GUI is the runtime's reference implementation and showcase** �
 | **Cline / Cursor** — IDE-locked, huge install, privacy concerns | Zero-dep binary (~25 MB). Runs anywhere, no IDE required. macOS shell is sandboxed by default — network denied, writes capped to `cwd`. |
 | **Claude Code / Aider** — pure terminal, diff output is a wall of text, env setup is painful | CLI start → auto-opens a modern Web UI with code highlighting and red/green diff approval. One install command, nothing else needed. |
 | **Any cloud agent** — vendor lock-in, rate limits, can't use a local model | Every OpenAI-compatible endpoint is a first-class citizen. Run Ollama with Qwen2.5-Coder: no key, no internet, no per-token cost. |
-| **Any agent** — new teammate can't reproduce your AI setup, routines are stuck in your IDE | `AGENTS.md` committed to the repo ships AI context to every clone. `dvalin.json` (coming in v0.4) ships the team's automation commands the same way. |
+| **Any agent** — new teammate can't reproduce your AI setup, routines are stuck in your IDE | `AGENTS.md` committed to the repo ships AI context to every clone. `dvalin.json` ships the team's automation commands the same way — export from the sidebar, commit, done. |
 
 ---
 
@@ -346,4 +355,6 @@ MIT — see [LICENSE](LICENSE).
 
 DvalinCode is **not affiliated** with Anthropic, Claude, OpenAI, or any other vendor.
 
-The design process included studying common patterns in modern coding agents (Codex CLI, Claude Code, Hermes Agent, etc.) for architectural learning. The implementation is intentionally original — its own state machine, UI language, tool schemas, and module layout. No source code, prompts, or UI text from other projects is copied.
+The design process included studying common patterns in modern coding agents for architectural learning. The `TurnState` state-machine design was informed by [HKUDS/nanobot](https://github.com/HKUDS/nanobot) (MIT). The agent loop follows the [ReAct paradigm](https://arxiv.org/abs/2210.03629) (Yao et al., 2022), and the tool-calling interface follows the OpenAI `tool_calls` format. The implementation — state machine, UI, tool schemas, module layout — is otherwise original; no source code, prompts, or UI text from other projects is copied.
+
+Full source references: [docs/REFERENCES.md](docs/REFERENCES.md)
