@@ -123,7 +123,7 @@ dvalincode         # 启动服务并自动打开浏览器
 
 每个 release 都附带 `SHA256SUMS.txt` 用于校验。
 
-> **macOS Gatekeeper：** 二进制未签名。首次运行可执行 `xattr -dr com.apple.quarantine ~/.dvalincode/bin/dvalincode`，或在 Finder 中右键 → 打开一次。
+> **macOS Gatekeeper：** 二进制未签名。首次运行可执行 `xattr -dr com.apple.quarantine ~/.dvalincode`，或在 Finder 中右键 → 打开一次。
 
 ---
 
@@ -296,7 +296,7 @@ macOS 上有 —— 每次 <code>shell</code> 调用都包在 <code>sandbox-exec
 <summary><b>macOS 二进制无法打开 —— "未验证的开发者"</b></summary>
 <br>
 二进制未签名。执行一次清除隔离标记：
-<pre><code>xattr -dr com.apple.quarantine ~/.dvalincode/bin/dvalincode</code></pre>
+<pre><code>xattr -dr com.apple.quarantine ~/.dvalincode</code></pre>
 或在 Finder 中右键 → 打开 → 确认。
 </details>
 

@@ -108,18 +108,32 @@ fi
 ARCHIVE_ROOT="$(find "$TMP" -mindepth 1 -maxdepth 1 -type d -name 'dvalincode-*' | head -1)"
 [ -n "$ARCHIVE_ROOT" ] || fail "Could not find extracted directory."
 
-# Copy contents into $INSTALL_DIR/
-rm -rf "${INSTALL_DIR}/web" "${INSTALL_DIR}/bin"
+# The binary resolves web/dist/ relative to its own location, so the binary
+# must live at $INSTALL_DIR/ (not a bin/ subdirectory) and web/ must be
+# adjacent: $INSTALL_DIR/web/dist/.  A thin wrapper at bin/dvalincode
+# exec's the real binary so PATH stays tidy.
+
+rm -rf "${INSTALL_DIR}/web" "${INSTALL_DIR}/bin" "${INSTALL_DIR}/dvalincode"
 mkdir -p "${INSTALL_DIR}/bin"
 cp -r "${ARCHIVE_ROOT}/web" "${INSTALL_DIR}/web"
 
-# Place binary at bin/dvalincode (or .exe)
+# Find and place the actual binary at $INSTALL_DIR/ root
 BIN_SRC="$(find "$ARCHIVE_ROOT" -maxdepth 1 -type f \( -name 'dvalincode-*' -o -name 'dvalincode-*.exe' \) ! -name '*.sh' ! -name '*.bat' | head -1)"
 [ -n "$BIN_SRC" ] || fail "Could not find binary inside archive."
+
 if [ "$EXT" = "zip" ]; then
-  cp "$BIN_SRC" "${INSTALL_DIR}/bin/dvalincode.exe"
+  cp "$BIN_SRC" "${INSTALL_DIR}/dvalincode.exe"
+  # Windows doesn't run this script, but keep structure consistent
+  printf '@echo off\r\n"%s\\dvalincode.exe" %%*\r\n' "${INSTALL_DIR}" > "${INSTALL_DIR}/bin/dvalincode.bat"
 else
-  cp "$BIN_SRC" "${INSTALL_DIR}/bin/dvalincode"
+  cp "$BIN_SRC" "${INSTALL_DIR}/dvalincode"
+  chmod +x "${INSTALL_DIR}/dvalincode"
+
+  # Wrapper at bin/dvalincode exec's the real binary (preserves import.meta.url)
+  cat > "${INSTALL_DIR}/bin/dvalincode" << 'WRAPPER'
+#!/usr/bin/env bash
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/dvalincode" "$@"
+WRAPPER
   chmod +x "${INSTALL_DIR}/bin/dvalincode"
 fi
 ok "Installed to ${C_BOLD}${INSTALL_DIR}${C_RESET}"

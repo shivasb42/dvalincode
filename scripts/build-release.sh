@@ -48,12 +48,13 @@ BIN_NAMES=()
 add() {
   local bun_tgt="$1" bin_name="$2"
   case "$FILTER" in
-    all)     BUN_TARGETS+=("$bun_tgt"); BIN_NAMES+=("$bin_name") ;;
-    darwin)  [[ "$bun_tgt" == *darwin*  ]] && { BUN_TARGETS+=("$bun_tgt"); BIN_NAMES+=("$bin_name"); } ;;
-    linux)   [[ "$bun_tgt" == *linux*   ]] && { BUN_TARGETS+=("$bun_tgt"); BIN_NAMES+=("$bin_name"); } ;;
-    windows) [[ "$bun_tgt" == *windows* ]] && { BUN_TARGETS+=("$bun_tgt"); BIN_NAMES+=("$bin_name"); } ;;
+    all) ;;
+    darwin)  if [[ "$bun_tgt" != *darwin*  ]]; then return 0; fi ;;
+    linux)   if [[ "$bun_tgt" != *linux*   ]]; then return 0; fi ;;
+    windows) if [[ "$bun_tgt" != *windows* ]]; then return 0; fi ;;
     *) echo "error: unknown filter '$FILTER'" >&2; exit 1 ;;
   esac
+  BUN_TARGETS+=("$bun_tgt"); BIN_NAMES+=("$bin_name")
 }
 
 add "bun-darwin-arm64"  "dvalincode-macos-arm64"
@@ -77,7 +78,7 @@ for i in "${!BUN_TARGETS[@]}"; do
   bin_name="${BIN_NAMES[$i]}"
 
   is_windows=false
-  [[ "$bun_target" == *windows* ]] && is_windows=true
+  if [[ "$bun_target" == *windows* ]]; then is_windows=true; fi
 
   # Bun adds .exe only for Windows
   if $is_windows; then

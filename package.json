@@ -1,6 +1,6 @@
 {
   "name": "dvalincode",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A local-first, provider-neutral CLI foundation for agentic coding workflows.",
   "type": "module",
   "license": "MIT",
@@ -19,6 +19,10 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check": "npm run typecheck && npm test",
+    "build:release": "bash scripts/build-release.sh",
+    "build:release:darwin": "bash scripts/build-release.sh darwin",
+    "build:release:linux": "bash scripts/build-release.sh linux",
+    "build:release:windows": "bash scripts/build-release.sh windows",
     "build:binaries": "bash scripts/build-binaries.sh",
     "build:binaries:darwin": "bash scripts/build-binaries.sh darwin",
     "build:binaries:linux": "bash scripts/build-binaries.sh linux",

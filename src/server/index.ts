@@ -16,12 +16,18 @@ import { handleWebSocket } from './wsHandler.js';
 
 const __serverDir = path.dirname(fileURLToPath(import.meta.url));
 
+// Bun compiled binaries embed source files at a virtual $bunfs path
+// (import.meta.url is "file:///$bunfs/..."), so use process.execPath for location.
+const isBunBinary = import.meta.url.includes('$bunfs');
+
 // Dev mode: __serverDir is src/server/ → tsconfig.json is 2 levels up
-// Compiled binary: __serverDir is the install dir → no tsconfig.json above
-const isDev = existsSync(path.join(__serverDir, '../../tsconfig.json'));
-const webDist = isDev
-  ? path.join(__serverDir, '../../web/dist')
-  : path.join(__serverDir, 'web', 'dist');
+const isDev = !isBunBinary && existsSync(path.join(__serverDir, '../../tsconfig.json'));
+
+const webDist = isBunBinary
+  ? path.join(path.dirname(process.execPath), 'web', 'dist')
+  : isDev
+    ? path.join(__serverDir, '../../web/dist')
+    : path.join(__serverDir, 'web', 'dist');
 
 const app = express();
 const server = createServer(app);

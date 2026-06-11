@@ -123,7 +123,7 @@ Grab the archive for your platform from the [Releases page](https://github.com/a
 
 Verify against `SHA256SUMS.txt` (included in each release).
 
-> **macOS Gatekeeper:** binaries are unsigned. On first run, either clear the quarantine flag with `xattr -dr com.apple.quarantine ~/.dvalincode/bin/dvalincode`, or right-click → Open in Finder once.
+> **macOS Gatekeeper:** binaries are unsigned. On first run, either clear the quarantine flag with `xattr -dr com.apple.quarantine ~/.dvalincode`, or right-click the binary in Finder → Open → confirm.
 
 ---
 
@@ -305,8 +305,8 @@ Depends on the mode. <b>Chat</b> never writes. <b>Cowork</b> requires approval p
 <summary><b>The macOS binary won't open — "unverified developer"</b></summary>
 <br>
 The binary is unsigned. Run this once to clear the quarantine flag:
-<pre><code>xattr -dr com.apple.quarantine ~/.dvalincode/bin/dvalincode</code></pre>
-Or right-click the binary in Finder → Open → confirm.
+<pre><code>xattr -dr com.apple.quarantine ~/.dvalincode</code></pre>
+Or right-click the binary in Finder → Open → confirm once.
 </details>
 
 <details>

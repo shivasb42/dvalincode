@@ -1,12 +1,13 @@
 name: Release Binaries
 
-# Build standalone single-file binaries (macOS + Linux, arm64 + x64) and
-# attach them to a GitHub Release. Bun cross-compiles all targets from a
-# single host, so one runner produces every artifact.
+# Build standalone GUI binaries (macOS arm64/x64, Linux arm64/x64, Windows x64)
+# and attach them to a GitHub Release as downloadable archives.
 #
-# Trigger by pushing a version tag, e.g.:
-#   git tag v0.1.0 && git push origin v0.1.0
-# Or run manually from the Actions tab (workflow_dispatch).
+# Each archive is self-contained:  binary  +  web/dist/  (no Node runtime needed)
+#
+# Trigger: push a version tag, e.g.
+#   git tag v0.4.0 && git push origin v0.4.0
+# Or run manually from the Actions tab.
 
 on:
   push:
@@ -20,19 +21,23 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         run: npm ci
 
-      - name: Verify build and tests
+      - name: Install web frontend dependencies
+        run: cd web && npm ci
+
+      - name: Type-check and test
         run: npm run check
 
       - name: Setup Bun
@@ -40,27 +45,30 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Build cross-platform binaries
-        run: npm run build:binaries
+      - name: Build release archives (all platforms)
+        run: npm run build:release
 
       - name: List artifacts
-        run: ls -lh dist-bin
+        run: ls -lh release/
 
-      - name: Upload artifacts (workflow_dispatch)
+      # ── Upload artifacts (workflow_dispatch) ─────────────────────
+      - name: Upload artifacts (manual trigger)
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: dvalincode-binaries
-          path: dist-bin/*
+          name: dvalincode-release
+          path: release/*
 
-      - name: Publish GitHub Release (tag push)
+      # ── Publish GitHub Release (tag push) ────────────────────────
+      - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist-bin/dvalincode-macos-arm64
-            dist-bin/dvalincode-macos-x64
-            dist-bin/dvalincode-linux-arm64
-            dist-bin/dvalincode-linux-x64
-            dist-bin/SHA256SUMS.txt
           generate_release_notes: true
+          files: |
+            release/dvalincode-v*-macos-arm64.tar.gz
+            release/dvalincode-v*-macos-x64.tar.gz
+            release/dvalincode-v*-linux-arm64.tar.gz
+            release/dvalincode-v*-linux-x64.tar.gz
+            release/dvalincode-v*-windows-x64.zip
+            release/SHA256SUMS.txt
