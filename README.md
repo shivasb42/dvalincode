@@ -79,6 +79,17 @@ The bundled **web GUI is the runtime's reference implementation and showcase** �
 
 ---
 
+## 🆚 When to choose DvalinCode
+
+| If you're frustrated by… | DvalinCode's answer |
+|---|---|
+| **Cline / Cursor** — IDE-locked, huge install, privacy concerns | Zero-dep binary (~25 MB). Runs anywhere, no IDE required. macOS shell is sandboxed by default — network denied, writes capped to `cwd`. |
+| **Claude Code / Aider** — pure terminal, diff output is a wall of text, env setup is painful | CLI start → auto-opens a modern Web UI with code highlighting and red/green diff approval. One install command, nothing else needed. |
+| **Any cloud agent** — vendor lock-in, rate limits, can't use a local model | Every OpenAI-compatible endpoint is a first-class citizen. Run Ollama with Qwen2.5-Coder: no key, no internet, no per-token cost. |
+| **Any agent** — new teammate can't reproduce your AI setup, routines are stuck in your IDE | `AGENTS.md` committed to the repo ships AI context to every clone. `dvalin.json` (coming in v0.4) ships the team's automation commands the same way. |
+
+---
+
 ## 🚀 Quick Install
 
 ### macOS / Linux (one-liner)
