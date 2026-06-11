@@ -2,6 +2,18 @@
 
 > 本手册记录了使用 DvalinCode v0.3.0 + DeepSeek LLM 完成「提出需求 → 生成代码 → 测试 → 推送 GitHub」全流程的操作步骤。
 
+## 演示截图总览
+
+| 截图 | 说明 |
+|---|---|
+| ![主界面](screenshots/01-main-ui.png) | DvalinCode 主界面，Code 模式已选中 |
+| ![LLM 配置](screenshots/02-llm-config.png) | DeepSeek 配置：支持 DeepSeek / OpenAI / Groq / Ollama 等多个 provider |
+| ![GitHub 仓库](screenshots/03-github-todo-cli.png) | GitHub 上的 todo-cli 仓库（由 DvalinCode 生成并推送） |
+| ![生成的代码](screenshots/04-generated-code.png) | DvalinCode 生成的 `src/index.ts` TypeScript 源码 |
+| ![文档目录](screenshots/05-github-dvalincode-docs.png) | DvalinCode 项目的 docs/ 目录（含操作手册和 Bug 记录） |
+| ![Bug 记录](screenshots/06-github-bugs-doc.png) | 本次 E2E 测试中发现并修复的 Bug 文档 |
+| ![测试通过](screenshots/07-tests-passing.png) | todo-cli 全部 5 个命令测试通过（add / list / done / delete / clear） |
+
 ---
 
 ## 环境准备
