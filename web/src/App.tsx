@@ -9,7 +9,7 @@ import { useChat } from './hooks/useChat.ts';
 import { fetchSessions, fetchConfig, fetchGitInfo } from './lib/client.ts';
 import { estimateCost, formatCost } from './lib/pricing.ts';
 import type { ChatSettings } from './components/SettingsPanel.tsx';
-import type { AgentMode, ApprovalMode } from './types.ts';
+import type { AgentMode, ApprovalMode, CodePermissionMode } from './types.ts';
 
 const MODE_APPROVAL: Record<AgentMode, ApprovalMode> = {
   chat:   'readonly',
@@ -17,11 +17,19 @@ const MODE_APPROVAL: Record<AgentMode, ApprovalMode> = {
   code:   'full-auto',
 };
 
+const CODE_APPROVAL: Record<CodePermissionMode, ApprovalMode> = {
+  ask: 'auto-edit',
+  plan: 'readonly',
+  auto: 'full-auto',
+  bypass: 'bypass',
+};
+
 export default function App() {
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [showLLMConfig, setShowLLMConfig] = useState(false);
   const [activeModel, setActiveModel] = useState('');
   const [mode, setMode] = useState<AgentMode>('code');
+  const [codePermissionMode, setCodePermissionMode] = useState<CodePermissionMode>('auto');
   const [gitBranch, setGitBranch] = useState<string | null>(null);
   const [sessionCost, setSessionCost] = useState(0);
   const [settings, setSettings] = useState<ChatSettings>({
@@ -32,8 +40,9 @@ export default function App() {
 
   const chat = useChat({
     cwd: settings.cwd || undefined,
-    approvalMode: MODE_APPROVAL[mode],
+    approvalMode: mode === 'code' ? CODE_APPROVAL[codePermissionMode] : MODE_APPROVAL[mode],
     mode,
+    codePermissionMode,
   });
 
   // Auto-detect cwd from first session; load saved LLM config
@@ -101,7 +110,23 @@ export default function App() {
 
   const handleModeChange = useCallback((m: AgentMode) => {
     setMode(m);
-    setSettings((s) => ({ ...s, approvalMode: MODE_APPROVAL[m] }));
+    setSettings((s) => ({
+      ...s,
+      approvalMode: m === 'code' ? CODE_APPROVAL[codePermissionMode] : MODE_APPROVAL[m],
+    }));
+  }, [codePermissionMode]);
+
+  const handleCwdChange = useCallback((cwd: string) => {
+    setSettings((s) => ({ ...s, cwd }));
+    chat.reset();
+    setSessionCost(0);
+    setSidebarRefresh((n) => n + 1);
+    fetchGitInfo(cwd).then((g) => setGitBranch(g.branch)).catch(() => {});
+  }, [chat]);
+
+  const handleCodePermissionModeChange = useCallback((next: CodePermissionMode) => {
+    setCodePermissionMode(next);
+    setSettings((s) => ({ ...s, approvalMode: CODE_APPROVAL[next] }));
   }, []);
 
   const handleConfigClose = () => {
@@ -141,6 +166,9 @@ export default function App() {
         mode={mode}
         onModeChange={handleModeChange}
         cwd={settings.cwd || undefined}
+        onCwdChange={handleCwdChange}
+        codePermissionMode={codePermissionMode}
+        onCodePermissionModeChange={handleCodePermissionModeChange}
       />
 
       {/* Main area */}

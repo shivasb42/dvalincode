@@ -1,4 +1,4 @@
-export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto';
+export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto' | 'bypass';
 
 export type DvalinContextOptions = {
   cwd?: string;
@@ -26,7 +26,7 @@ export function createDvalinContext(options: DvalinContextOptions = {}): DvalinC
   if (mode === 'readonly') {
     allowWrite = false;
     allowExecute = false;
-  } else if (mode === 'auto-edit' || mode === 'full-auto') {
+  } else if (mode === 'auto-edit' || mode === 'full-auto' || mode === 'bypass') {
     allowWrite = true;
     allowExecute = true;
   } else {

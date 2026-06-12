@@ -1,4 +1,4 @@
-import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage, ApprovalMode, AgentMode, ProviderPoolConfig } from '../types.ts';
+import type { ServerEvent, SessionMeta, AppConfig, BackendChatMessage, ApprovalMode, AgentMode, ProviderPoolConfig, CodePermissionMode } from '../types.ts';
 
 const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
 
@@ -8,6 +8,7 @@ export type SendOptions = {
   cwd?: string;
   approvalMode?: ApprovalMode;
   mode?: AgentMode;
+  codePermissionMode?: CodePermissionMode;
   provider?: string;
 };
 
@@ -66,6 +67,7 @@ export class DvalinClient {
         cwd: opts.cwd,
         approvalMode: opts.approvalMode,
         mode: opts.mode ?? 'code',
+        codePermissionMode: opts.codePermissionMode,
         provider: opts.provider,
       }),
     );
@@ -241,4 +243,29 @@ export async function savePlaybook(cwd: string, routines: PlaybookRoutine[]): Pr
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cwd, routines }),
   });
+}
+
+// ── Projects ─────────────────────────────────────────────────────────────────
+
+async function projectPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`/api/projects/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string };
+  if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+  return data;
+}
+
+export async function openProjectFolder(cwd?: string): Promise<{ cwd: string }> {
+  return projectPost('open', { cwd });
+}
+
+export async function cloneGitProject(url: string, parentDir?: string, name?: string): Promise<{ cwd: string }> {
+  return projectPost('clone', { url, parentDir, name });
+}
+
+export async function createGitWorktree(cwd: string, branch: string, path: string, createBranch: boolean): Promise<{ cwd: string }> {
+  return projectPost('worktree', { cwd, branch, path, createBranch });
 }

@@ -5,7 +5,7 @@ import { ModeSwitcher } from './ModeSwitcher.tsx';
 import { SidebarChat } from './SidebarChat.tsx';
 import { SidebarCowork } from './SidebarCowork.tsx';
 import { SidebarCode } from './SidebarCode.tsx';
-import type { SessionMeta, AgentMode } from '../types.ts';
+import type { SessionMeta, AgentMode, CodePermissionMode } from '../types.ts';
 
 type Props = {
   currentSessionId?: string;
@@ -17,6 +17,9 @@ type Props = {
   mode: AgentMode;
   onModeChange: (m: AgentMode) => void;
   cwd?: string;
+  onCwdChange: (cwd: string) => void;
+  codePermissionMode: CodePermissionMode;
+  onCodePermissionModeChange: (mode: CodePermissionMode) => void;
 };
 
 export function Sidebar({
@@ -29,6 +32,9 @@ export function Sidebar({
   mode,
   onModeChange,
   cwd,
+  onCwdChange,
+  codePermissionMode,
+  onCodePermissionModeChange,
 }: Props) {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [collapsed, setCollapsed] = useState(false);
@@ -116,6 +122,8 @@ export function Sidebar({
             onNewChat={onNewChat}
             onSelectSession={onSelectSession}
             onDeleteSession={handleDelete}
+            cwd={cwd}
+            onCwdChange={onCwdChange}
           />
         )}
         {mode === 'code' && (
@@ -127,6 +135,9 @@ export function Sidebar({
             onDeleteSession={handleDelete}
             onSend={onSend}
             cwd={cwd}
+            onCwdChange={onCwdChange}
+            codePermissionMode={codePermissionMode}
+            onCodePermissionModeChange={onCodePermissionModeChange}
           />
         )}
       </div>

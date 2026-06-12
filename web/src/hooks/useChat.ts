@@ -1,12 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import { client, fetchSessionDetail } from '../lib/client.ts';
-import type { ChatMessage, ToolCallEvent, ServerEvent, BackendChatMessage, ApprovalMode, AgentMode, PendingApproval } from '../types.ts';
+import type { ChatMessage, ToolCallEvent, ServerEvent, BackendChatMessage, ApprovalMode, AgentMode, PendingApproval, CodePermissionMode } from '../types.ts';
 
 export type UseChatOptions = {
   sessionId?: string;
   cwd?: string;
   approvalMode?: ApprovalMode;
   mode?: AgentMode;
+  codePermissionMode?: CodePermissionMode;
 };
 
 export type UsageStats = {
@@ -244,6 +245,7 @@ export function useChat(opts: UseChatOptions = {}) {
           cwd: opts.cwd,
           approvalMode: opts.approvalMode,
           mode: opts.mode,
+          codePermissionMode: opts.codePermissionMode,
         });
       } catch (err) {
         setMessages((prev) => [
@@ -253,7 +255,7 @@ export function useChat(opts: UseChatOptions = {}) {
         setSending(false);
       }
     },
-    [sending, currentSessionId, opts.cwd, opts.approvalMode],
+    [sending, currentSessionId, opts.cwd, opts.approvalMode, opts.mode, opts.codePermissionMode],
   );
 
   const compact = useCallback(() => {

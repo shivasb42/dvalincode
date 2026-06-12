@@ -68,8 +68,9 @@ export type ChatMessage =
     }
   | { role: 'compact'; tokensBefore: number; tokensAfter: number };
 
-export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto';
+export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto' | 'bypass';
 export type AgentMode = 'chat' | 'cowork' | 'code';
+export type CodePermissionMode = 'ask' | 'plan' | 'auto' | 'bypass';
 
 export type DiffLine = { type: 'add' | 'remove' | 'keep'; content: string };
 

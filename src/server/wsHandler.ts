@@ -25,6 +25,7 @@ import { resolveInsideWorkspace } from '../core/workspace.js';
 import { resolveAllowedCwd } from './security.js';
 
 type AgentMode = 'chat' | 'cowork' | 'code';
+type CodePermissionMode = 'ask' | 'plan' | 'auto' | 'bypass';
 
 const MODE_TOOLS: Record<AgentMode, string[] | null> = {
   chat:   ['read_file', 'list_files', 'search_text'],
@@ -32,7 +33,7 @@ const MODE_TOOLS: Record<AgentMode, string[] | null> = {
   code:   null, // all tools
 };
 
-const MODE_APPROVAL: Record<AgentMode, 'readonly' | 'auto-edit' | 'full-auto'> = {
+const MODE_APPROVAL: Record<AgentMode, 'readonly' | 'auto-edit' | 'full-auto' | 'bypass'> = {
   chat:   'readonly',
   cowork: 'auto-edit',
   code:   'full-auto',
@@ -47,6 +48,13 @@ const MODE_PROMPT: Record<AgentMode, string> = {
     'You are in Code mode. Work autonomously to complete the task efficiently. Use all available tools as needed.',
 };
 
+const CODE_PERMISSION_PROMPT: Record<CodePermissionMode, string> = {
+  ask: 'Code permission mode: Ask Permissions. Request approval before edits, deletes, or shell commands.',
+  plan: 'Code permission mode: Plan Mode. Create a clear plan only. Do not write files, delete files, or run shell commands.',
+  auto: 'Code permission mode: Auto Mode. Complete the task autonomously with normal tool access.',
+  bypass: 'Code permission mode: Bypass Permissions. Complete the task without approval prompts.',
+};
+
 type ClientMessage =
   | {
       type: 'send';
@@ -55,7 +63,8 @@ type ClientMessage =
       cwd?: string;
       allowWrite?: boolean;
       allowExecute?: boolean;
-      approvalMode?: 'readonly' | 'auto-edit' | 'full-auto';
+      approvalMode?: 'readonly' | 'auto-edit' | 'full-auto' | 'bypass';
+      codePermissionMode?: CodePermissionMode;
       mode?: AgentMode;
       provider?: string;
     }
@@ -205,7 +214,8 @@ export function handleWebSocket(ws: WebSocket): void {
       return;
     }
     const mode: AgentMode = msg.mode ?? 'code';
-    const approvalMode = msg.approvalMode ?? MODE_APPROVAL[mode];
+    const codePermissionMode: CodePermissionMode = msg.codePermissionMode ?? 'auto';
+    const approvalMode = msg.approvalMode ?? (mode === 'code' && codePermissionMode === 'plan' ? 'readonly' : MODE_APPROVAL[mode]);
 
     // Load or create session
     let session;
@@ -257,7 +267,9 @@ export function handleWebSocket(ws: WebSocket): void {
 
     // Build tool registry filtered by mode
     const registry = createDefaultToolRegistry();
-    const allowedTools = MODE_TOOLS[mode];
+    const allowedTools = mode === 'code' && codePermissionMode === 'plan'
+      ? MODE_TOOLS.chat
+      : MODE_TOOLS[mode];
     registry.setAllowedTools(allowedTools);
 
     const tools = registry.list();
@@ -288,6 +300,7 @@ export function handleWebSocket(ws: WebSocket): void {
     const systemPrompt = [
       'You are DvalinCode, an AI coding assistant.',
       MODE_PROMPT[mode],
+      mode === 'code' ? CODE_PERMISSION_PROMPT[codePermissionMode] : '',
       '',
       `Project root: ${summary.root}`,
       `Files: ${summary.fileCount} files`,
@@ -325,6 +338,10 @@ export function handleWebSocket(ws: WebSocket): void {
         }, { once: true });
       });
     };
+
+    const turnMessage = mode === 'code' && codePermissionMode === 'plan'
+      ? `Create a detailed step-by-step plan for the following task. Do NOT execute any steps yet.\n\nTask: ${userContent}`
+      : userContent;
 
     const loop = new AgentLoop({
       provider,
@@ -365,7 +382,7 @@ export function handleWebSocket(ws: WebSocket): void {
     };
 
     try {
-      const result = await loop.processMessage(userContent, session.messages, onEvent, abort.signal);
+      const result = await loop.processMessage(turnMessage, session.messages, onEvent, abort.signal);
 
       if (abort.signal.aborted) return;
 

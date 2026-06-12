@@ -1,7 +1,9 @@
-import { realpath } from 'node:fs/promises';
+import { mkdir, realpath } from 'node:fs/promises';
+import { homedir } from 'node:os';
 import path from 'node:path';
 
 let cachedRoots: string[] | undefined;
+const runtimeWorkspaceRoots = new Set<string>();
 
 function normalizeHost(value: string | undefined): string {
   return (value ?? '').replace(/^\[/, '').replace(/\]$/, '').toLowerCase();
@@ -52,7 +54,7 @@ export function isAllowedRequestOrigin(origin: string | undefined, hostHeader: s
 
 function configuredWorkspaceRoots(): string[] {
   const raw = process.env.DVALINCODE_WORKSPACE_ROOTS;
-  if (!raw) return [process.cwd()];
+  if (!raw) return [process.cwd(), path.join(homedir(), '.dvalincode', 'projects')];
   return raw
     .split(path.delimiter)
     .map(root => root.trim())
@@ -61,7 +63,14 @@ function configuredWorkspaceRoots(): string[] {
 
 async function allowedWorkspaceRoots(): Promise<string[]> {
   if (cachedRoots) return cachedRoots;
-  cachedRoots = await Promise.all(configuredWorkspaceRoots().map(root => realpath(path.resolve(root))));
+  const roots = [...configuredWorkspaceRoots(), ...runtimeWorkspaceRoots];
+  const resolved: string[] = [];
+  for (const root of roots) {
+    const absolute = path.resolve(root);
+    await mkdir(absolute, { recursive: true }).catch(() => {});
+    resolved.push(await realpath(absolute));
+  }
+  cachedRoots = resolved;
   return cachedRoots;
 }
 
@@ -77,4 +86,11 @@ export async function resolveAllowedCwd(input?: string): Promise<string> {
     throw new Error(`Workspace is not allowed: ${requested}`);
   }
   return requested;
+}
+
+export async function allowWorkspaceRoot(input: string): Promise<string> {
+  const resolved = await realpath(path.resolve(input));
+  runtimeWorkspaceRoots.add(resolved);
+  cachedRoots = undefined;
+  return resolved;
 }

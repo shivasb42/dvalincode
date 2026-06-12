@@ -11,6 +11,7 @@ import { toolsRouter } from './routes/tools.js';
 import { configRouter } from './routes/config.js';
 import { filesRouter } from './routes/files.js';
 import { gitRouter } from './routes/git.js';
+import { projectsRouter } from './routes/projects.js';
 import { getPlaybook, savePlaybook } from './playbookHandler.js';
 import { handleWebSocket } from './wsHandler.js';
 import { isAllowedRequestOrigin } from './security.js';
@@ -56,6 +57,7 @@ app.use('/api/tools', toolsRouter);
 app.use('/api/config', configRouter);
 app.use('/api/files', filesRouter);
 app.use('/api/git', gitRouter);
+app.use('/api/projects', projectsRouter);
 app.get('/api/playbook', (req, res) => void getPlaybook(req, res));
 app.post('/api/playbook', (req, res) => void savePlaybook(req, res));
 
@@ -73,7 +75,12 @@ const PORT = parseInt(process.env.PORT ?? '3000', 10);
 const HOST = process.env.HOST ?? '127.0.0.1';
 server.listen(PORT, HOST, () => {
   const url = `http://localhost:${PORT}`;
-  console.log(`DvalinCode  →  ${url}`);
+  console.log('');
+  console.log('DvalinCode is running.');
+  console.log(`Open the Web GUI to use the coding assistant: ${url}`);
+  console.log('Keep this terminal window open while you work.');
+  console.log(`Workspace roots: ${process.env.DVALINCODE_WORKSPACE_ROOTS ?? `${process.cwd()} plus ~/.dvalincode/projects`}`);
+  console.log('');
 
   // Auto-open browser when running as a compiled release binary
   if (!isDev && process.env.DVALINCODE_NO_OPEN !== '1') {
