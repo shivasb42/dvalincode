@@ -39,6 +39,13 @@ const MODE_APPROVAL: Record<AgentMode, 'readonly' | 'auto-edit' | 'full-auto' | 
   code:   'full-auto',
 };
 
+const CODE_PERMISSION_APPROVAL: Record<CodePermissionMode, 'readonly' | 'auto-edit' | 'full-auto' | 'bypass'> = {
+  ask: 'auto-edit',
+  plan: 'readonly',
+  auto: 'full-auto',
+  bypass: 'bypass',
+};
+
 const MODE_PROMPT: Record<AgentMode, string> = {
   chat:
     'You are in Chat mode. Answer questions, explain code, and discuss ideas. Do NOT write, edit, delete files or run shell commands — read-only tools only.',
@@ -215,7 +222,7 @@ export function handleWebSocket(ws: WebSocket): void {
     }
     const mode: AgentMode = msg.mode ?? 'code';
     const codePermissionMode: CodePermissionMode = msg.codePermissionMode ?? 'auto';
-    const approvalMode = msg.approvalMode ?? (mode === 'code' && codePermissionMode === 'plan' ? 'readonly' : MODE_APPROVAL[mode]);
+    const approvalMode = msg.approvalMode ?? (mode === 'code' ? CODE_PERMISSION_APPROVAL[codePermissionMode] : MODE_APPROVAL[mode]);
 
     // Load or create session
     let session;

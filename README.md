@@ -154,6 +154,8 @@ That's it — start chatting in the composer at the bottom.
 | Category | Feature | Notes |
 |---|---|---|
 | **Modes** | Chat / Cowork / Code | Each with a distinct sidebar (Templates / Projects / Routines) and tool-access policy |
+| **Code permissions** | Ask Permissions / Plan Mode / Auto Mode / Bypass permissions | Verified behavior: Ask requests approval before writes/commands, Plan is read-only and does not write files, Auto runs operations automatically, Bypass runs without confirmation prompts |
+| **Workspaces** | Open folder / Import Git / Add worktree | Cowork and Code can switch to a local folder, clone a Git project, or create a Git worktree from the UI |
 | **Composer** | `@` file references | Type `@` for a fuzzy file search; selected files get inlined into the prompt |
 | | `/` slash commands | `/clear` `/compact` `/git` `/plan` `/undo` `/help` |
 | | Multiline + interrupt | <kbd>Shift</kbd>+<kbd>Enter</kbd> for newline, stop button to abort mid-stream |
