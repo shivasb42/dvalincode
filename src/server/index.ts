@@ -15,11 +15,12 @@ import { getPlaybook, savePlaybook } from './playbookHandler.js';
 import { handleWebSocket } from './wsHandler.js';
 import { isAllowedRequestOrigin } from './security.js';
 
-const __serverDir = path.dirname(fileURLToPath(import.meta.url));
+const __serverPath = fileURLToPath(import.meta.url);
+const __serverDir = path.dirname(__serverPath);
 
-// Bun compiled binaries embed source files at a virtual $bunfs path
-// (import.meta.url is "file:///$bunfs/..."), so use process.execPath for location.
-const isBunBinary = import.meta.url.includes('$bunfs');
+// Bun compiled binaries embed source files in virtual paths:
+// macOS/Linux use $bunfs, while Windows uses a ~BUN root.
+const isBunBinary = import.meta.url.includes('$bunfs') || __serverPath.split(/[\\/]/).includes('~BUN');
 
 // Dev mode: __serverDir is src/server/ → tsconfig.json is 2 levels up
 const isDev = !isBunBinary && existsSync(path.join(__serverDir, '../../tsconfig.json'));
