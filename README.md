@@ -259,6 +259,18 @@ bash scripts/build-release.sh darwin    # macOS only
 bash scripts/build-release.sh windows   # Windows only
 ```
 
+Before publishing a release:
+
+```sh
+(cd release && shasum -a 256 -c SHA256SUMS.txt)
+unzip -l release/dvalincode-v*-windows-x64.zip | grep 'web/dist/index.html'
+tar tzf release/dvalincode-v*-macos-arm64.tar.gz | grep 'DvalinCode.app/Contents/Resources/AppIcon.icns'
+```
+
+Windows smoke test: unzip `dvalincode-v*-windows-x64.zip` on Windows and run `start.bat` from the extracted folder. The server should open `http://localhost:3000`. If it reports an `ENOENT` path under `B:\~BUN\root\web\dist`, the compiled Bun virtual path detection has regressed; the packaged binary must resolve `web/dist` beside the extracted executable.
+
+Note: Bun only allows Windows `.exe` icon/metadata injection when compiling on Windows. macOS/Linux cross-builds still produce a valid Windows archive, but without an embedded `.exe` icon.
+
 ---
 
 ## 🌐 Providers

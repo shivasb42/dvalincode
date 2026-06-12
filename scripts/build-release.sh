@@ -23,6 +23,10 @@ else
   exit 1
 fi
 
+is_windows_host() {
+  [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* || "$(uname -s)" == CYGWIN* ]]
+}
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
@@ -174,7 +178,7 @@ for i in "${!BUN_TARGETS[@]}"; do
   )
 
   if $is_windows; then
-    if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* || "$(uname -s)" == CYGWIN* ]]; then
+    if is_windows_host; then
       build_args+=(
         --windows-icon="$ICON_SOURCE"
         --windows-title="DvalinCode"
@@ -184,7 +188,9 @@ for i in "${!BUN_TARGETS[@]}"; do
         --windows-copyright="MIT"
       )
     else
-      echo "  ! Windows exe icon/metadata require Bun compilation on Windows; skipping for cross-compiled exe"
+      echo "  ! Windows exe icon/metadata are skipped in cross-builds."
+      echo "    Bun only accepts --windows-icon/metadata when this script runs on Windows."
+      echo "    The Windows archive is still valid; verify it by unzipping and running start.bat."
     fi
   fi
 
@@ -242,3 +248,11 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  Artifacts in ${RELEASE_DIR}/:"
 ls -1 "$RELEASE_DIR"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo
+echo "Release verification checklist:"
+echo "  1. Run: (cd ${RELEASE_DIR} && shasum -a 256 -c SHA256SUMS.txt)"
+echo "  2. macOS archives: confirm DvalinCode.app/Contents/Resources/AppIcon.icns exists."
+echo "  3. Windows archive: unzip it and run start.bat from the extracted folder."
+echo "     Expected: DvalinCode opens http://localhost:3000."
+echo "     Regression signal: ENOENT mentioning B:\\~BUN\\root\\web\\dist\\index.html."
+echo "  4. Keep web/dist adjacent to each binary in packaged archives; compiled Bun paths are virtual."
