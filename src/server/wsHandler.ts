@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
@@ -20,6 +20,9 @@ import {
 import { estimateTokens, summarizeWithLLM, buildCompactedHistory } from '../agent/compact.js';
 import { readConfig } from './configStore.js';
 import type { AgentEvent } from '../agent/types.js';
+import { loadIgnorePatterns } from '../core/ignorefile.js';
+import { resolveInsideWorkspace } from '../core/workspace.js';
+import { resolveAllowedCwd } from './security.js';
 
 type AgentMode = 'chat' | 'cowork' | 'code';
 
@@ -84,19 +87,30 @@ async function readTextFileSafe(filePath: string): Promise<string | null> {
   try { return await readFile(filePath, 'utf8'); } catch { return null; }
 }
 
+function isIgnoredPath(filePath: string, patterns: string[]): boolean {
+  return patterns.some(pattern =>
+    filePath === pattern ||
+    filePath.endsWith('/' + pattern) ||
+    filePath.includes('/' + pattern + '/') ||
+    filePath.startsWith(pattern + '/'),
+  );
+}
+
 /** Expand @filepath references in the user's message by injecting file contents. */
 async function expandAtMentions(content: string, cwd: string): Promise<string> {
   const mentionRegex = /@([\w./\-]+)/g;
   const mentions = [...content.matchAll(mentionRegex)];
   if (mentions.length === 0) return content;
 
+  const ignorePatterns = await loadIgnorePatterns(cwd);
   let result = content;
   for (const match of mentions) {
     const relPath = match[1];
-    const absPath = path.resolve(cwd, relPath);
-    // Safety: must stay inside cwd
-    if (!absPath.startsWith(path.resolve(cwd))) continue;
+    if (isIgnoredPath(relPath, ignorePatterns)) continue;
     try {
+      const absPath = await resolveInsideWorkspace(cwd, relPath);
+      const info = await stat(absPath);
+      if (info.isDirectory() || info.size > 256_000) continue;
       const fileContent = await readFile(absPath, 'utf8');
       result = result.replace(
         match[0],
@@ -183,7 +197,13 @@ export function handleWebSocket(ws: WebSocket): void {
     const abort = new AbortController();
     currentAbort = abort;
 
-    const cwd = msg.cwd ?? process.cwd();
+    let cwd: string;
+    try {
+      cwd = await resolveAllowedCwd(msg.cwd);
+    } catch (err) {
+      send(ws, { type: 'error', message: err instanceof Error ? err.message : 'Workspace is not allowed' });
+      return;
+    }
     const mode: AgentMode = msg.mode ?? 'code';
     const approvalMode = msg.approvalMode ?? MODE_APPROVAL[mode];
 

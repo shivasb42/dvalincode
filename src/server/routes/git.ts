@@ -1,17 +1,22 @@
 import { Router } from 'express';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { resolveAllowedCwd } from '../security.js';
 
 const execAsync = promisify(execFile);
 export const gitRouter = Router();
 
 gitRouter.get('/', async (req, res) => {
-  const cwd = typeof req.query.cwd === 'string' ? req.query.cwd : process.cwd();
   try {
+    const cwd = await resolveAllowedCwd(typeof req.query.cwd === 'string' ? req.query.cwd : undefined);
     const { stdout: branch } = await execAsync('git', ['branch', '--show-current'], { cwd });
     const { stdout: log } = await execAsync('git', ['log', '--oneline', '-1'], { cwd });
     res.json({ branch: branch.trim() || null, lastCommit: log.trim() || null });
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith('Workspace is not allowed')) {
+      res.status(403).json({ error: err.message });
+      return;
+    }
     res.json({ branch: null, lastCommit: null });
   }
 });

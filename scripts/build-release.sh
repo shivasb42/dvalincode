@@ -29,6 +29,8 @@ cd "$ROOT_DIR"
 FILTER="${1:-all}"
 VERSION="$(node -p "require('./package.json').version" 2>/dev/null || echo "0.0.0")"
 RELEASE_DIR="release"
+ICON_SOURCE="web/public/logo.svg"
+MACOS_ICON="${RELEASE_DIR}/tmp/AppIcon.icns"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  DvalinCode v${VERSION} — GUI Release Build"
@@ -70,6 +72,81 @@ fi
 rm -rf "$RELEASE_DIR"
 mkdir -p "$RELEASE_DIR/tmp" "$RELEASE_DIR/pkg"
 
+prepare_macos_icon() {
+  if ! command -v sips >/dev/null 2>&1 || ! command -v iconutil >/dev/null 2>&1; then
+    echo "  ! sips/iconutil not found; macOS .app icon will be skipped"
+    return 0
+  fi
+
+  local base_png="${RELEASE_DIR}/tmp/AppIcon-1024.png"
+  local iconset="${RELEASE_DIR}/tmp/AppIcon.iconset"
+  mkdir -p "$iconset"
+
+  sips -s format png "$ICON_SOURCE" --out "$base_png" >/dev/null
+  for size in 16 32 128 256 512; do
+    sips -z "$size" "$size" "$base_png" --out "${iconset}/icon_${size}x${size}.png" >/dev/null
+    sips -z "$((size * 2))" "$((size * 2))" "$base_png" --out "${iconset}/icon_${size}x${size}@2x.png" >/dev/null
+  done
+  iconutil -c icns "$iconset" -o "$MACOS_ICON"
+}
+
+create_macos_app() {
+  local pkg_dir="$1"
+  local bin_file="$2"
+  local arch_suffix="$3"
+
+  if [ ! -f "$MACOS_ICON" ]; then
+    return 0
+  fi
+
+  local app_dir="${pkg_dir}/DvalinCode.app"
+  mkdir -p "${app_dir}/Contents/MacOS/web" "${app_dir}/Contents/Resources"
+  cp "${pkg_dir}/${bin_file}" "${app_dir}/Contents/MacOS/dvalincode"
+  cp -r web/dist "${app_dir}/Contents/MacOS/web/dist"
+  cp "$MACOS_ICON" "${app_dir}/Contents/Resources/AppIcon.icns"
+  chmod +x "${app_dir}/Contents/MacOS/dvalincode"
+
+  cat > "${app_dir}/Contents/Info.plist" << PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <key>CFBundleDisplayName</key>
+  <string>DvalinCode</string>
+  <key>CFBundleExecutable</key>
+  <string>dvalincode</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
+  <key>CFBundleIdentifier</key>
+  <string>dev.dvalincode.${arch_suffix}</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>DvalinCode</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>${VERSION}</string>
+  <key>CFBundleVersion</key>
+  <string>${VERSION}</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>11.0</string>
+  <key>LSUIElement</key>
+  <true/>
+</dict>
+</plist>
+PLIST
+}
+
+if [ "$FILTER" = "all" ] || [ "$FILTER" = "darwin" ]; then
+  echo "▶ Preparing macOS app icon from ${ICON_SOURCE}…"
+  prepare_macos_icon
+  [ -f "$MACOS_ICON" ] && echo "  ✓ AppIcon.icns ready"
+  echo
+fi
+
 # ── 3. Compile + package each target ──────────────────────────────────
 ENTRY="src/server/index.ts"
 
@@ -88,11 +165,30 @@ for i in "${!BUN_TARGETS[@]}"; do
   fi
 
   echo "▶ Compiling ${bin_file}  (${bun_target})"
-  "$BUN" build "$ENTRY" \
+  build_args=(
+    "$ENTRY"
     --compile \
     --minify \
     --target="$bun_target" \
     --outfile "${RELEASE_DIR}/tmp/${bin_file}"
+  )
+
+  if $is_windows; then
+    if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* || "$(uname -s)" == CYGWIN* ]]; then
+      build_args+=(
+        --windows-icon="$ICON_SOURCE"
+        --windows-title="DvalinCode"
+        --windows-publisher="DvalinCode"
+        --windows-version="${VERSION}.0"
+        --windows-description="Local-first coding agent"
+        --windows-copyright="MIT"
+      )
+    else
+      echo "  ! Windows exe icon/metadata require Bun compilation on Windows; skipping for cross-compiled exe"
+    fi
+  fi
+
+  "$BUN" build "${build_args[@]}"
 
   # ── Package ──────────────────────────────────────────────────────
   pkg_dir="${RELEASE_DIR}/pkg/${bin_name}"
@@ -108,6 +204,10 @@ for i in "${!BUN_TARGETS[@]}"; do
     (cd "${RELEASE_DIR}/pkg" && zip -r "../dvalincode-v${VERSION}-windows-x64.zip" "${bin_name}" -x "*.DS_Store")
     echo "  ✓ dvalincode-v${VERSION}-windows-x64.zip  ($(du -sh "$archive" | cut -f1))"
   else
+    if [[ "$bun_target" == *darwin* ]]; then
+      create_macos_app "$pkg_dir" "$bin_file" "${bin_name#dvalincode-macos-}"
+    fi
+
     # macOS / Linux tar.gz
     cat > "${pkg_dir}/start.sh" << 'SH'
 #!/usr/bin/env bash

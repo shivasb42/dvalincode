@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { Request, Response } from 'express';
+import { resolveAllowedCwd } from './security.js';
 
 type PlaybookRoutine = { label: string; prompt: string };
 
@@ -14,9 +15,12 @@ async function loadPlaybook(cwd: string): Promise<PlaybookRoutine[]> {
 }
 
 export async function getPlaybook(req: Request, res: Response): Promise<void> {
-  const cwd = req.query.cwd as string;
-  if (!cwd) { res.status(400).json({ error: 'cwd required' }); return; }
-  res.json({ routines: await loadPlaybook(cwd) });
+  try {
+    const cwd = await resolveAllowedCwd(req.query.cwd as string | undefined);
+    res.json({ routines: await loadPlaybook(cwd) });
+  } catch (err) {
+    res.status(403).json({ error: err instanceof Error ? err.message : 'Workspace is not allowed' });
+  }
 }
 
 export async function savePlaybook(req: Request, res: Response): Promise<void> {
@@ -25,9 +29,16 @@ export async function savePlaybook(req: Request, res: Response): Promise<void> {
     res.status(400).json({ error: 'cwd and routines required' });
     return;
   }
+  let safeCwd: string;
+  try {
+    safeCwd = await resolveAllowedCwd(cwd);
+  } catch (err) {
+    res.status(403).json({ error: err instanceof Error ? err.message : 'Workspace is not allowed' });
+    return;
+  }
   const out = JSON.stringify({ version: 1, routines }, null, 2) + '\n';
-  const tmp = path.join(cwd, '.dvalin.json.tmp');
-  const dest = path.join(cwd, 'dvalin.json');
+  const tmp = path.join(safeCwd, '.dvalin.json.tmp');
+  const dest = path.join(safeCwd, 'dvalin.json');
   await fs.writeFile(tmp, out, 'utf-8');
   await fs.rename(tmp, dest);
   res.json({ ok: true });

@@ -14,7 +14,7 @@ export function buildProgram(): Command {
   program
     .name('dvalincode')
     .description('Local-first CLI foundation for agentic coding workflows')
-    .version('0.1.0');
+    .version('0.4.1');
 
   registerScanCommand(program);
   registerToolsCommand(program, registry);
@@ -29,4 +29,3 @@ export function buildProgram(): Command {
 export async function runCli(argv: string[]): Promise<void> {
   await buildProgram().parseAsync(argv);
 }
-

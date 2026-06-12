@@ -13,6 +13,7 @@ import { filesRouter } from './routes/files.js';
 import { gitRouter } from './routes/git.js';
 import { getPlaybook, savePlaybook } from './playbookHandler.js';
 import { handleWebSocket } from './wsHandler.js';
+import { isAllowedRequestOrigin } from './security.js';
 
 const __serverDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -31,8 +32,21 @@ const webDist = isBunBinary
 
 const app = express();
 const server = createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
+const wss = new WebSocketServer({
+  server,
+  path: '/ws',
+  verifyClient: ({ origin, req }, done) => {
+    done(isAllowedRequestOrigin(origin, req.headers.host), 403, 'Forbidden');
+  },
+});
 
+app.use((req, res, next) => {
+  if (!isAllowedRequestOrigin(req.headers.origin, req.headers.host)) {
+    res.status(403).json({ error: 'Forbidden origin' });
+    return;
+  }
+  next();
+});
 app.use(cors());
 app.use(express.json());
 
@@ -55,7 +69,8 @@ wss.on('connection', (ws) => {
 });
 
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
-server.listen(PORT, () => {
+const HOST = process.env.HOST ?? '127.0.0.1';
+server.listen(PORT, HOST, () => {
   const url = `http://localhost:${PORT}`;
   console.log(`DvalinCode  →  ${url}`);
 
