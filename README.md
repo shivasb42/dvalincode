@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://github.com/arthurpanhku/dvalincode/releases/latest"><img src="https://img.shields.io/github/v/release/arthurpanhku/dvalincode?style=for-the-badge&color=818cf8&label=Release" alt="Release"></a>
   <a href="https://github.com/arthurpanhku/dvalincode/releases"><img src="https://img.shields.io/github/downloads/arthurpanhku/dvalincode/total?style=for-the-badge&color=blue&label=Downloads" alt="Downloads"></a>
-  <a href="#-tests"><img src="https://img.shields.io/badge/Tests-47%20%2F%2047%20%E2%9C%93-success?style=for-the-badge" alt="Tests"></a>
+  <a href="#-tests"><img src="https://img.shields.io/badge/Tests-65%20%2F%2065%20%E2%9C%93-success?style=for-the-badge" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License"></a>
   <a href="#-quick-install"><img src="https://img.shields.io/badge/Platforms-macOS%20·%20Windows%20·%20Linux-blue?style=for-the-badge" alt="Platforms"></a>
   <a href="#-providers"><img src="https://img.shields.io/badge/LLM-OpenAI%20·%20Claude%20·%20DeepSeek%20·%20Ollama%20·%20Groq-7C3AED?style=for-the-badge" alt="LLM Support"></a>
@@ -27,9 +27,10 @@
 <tr><td><b>🗨️ Chat mode</b></td><td>Read-only Q&A with one-click prompt templates — explain a codebase, find TODOs, review changes, write tests. The agent can read files and search, but never writes.</td></tr>
 <tr><td><b>👥 Cowork mode</b></td><td>Plan-then-execute. The agent drafts a numbered plan, you click <b>Proceed</b>, and every file write asks for explicit approval — with an inline red/green diff before you say yes.</td></tr>
 <tr><td><b>⚡ Code mode</b></td><td>Autonomous agent with full tool access. Run tests, type-check, build, lint — one click via the <b>Routines</b> panel. macOS shell calls run inside a <code>sandbox-exec</code> profile with network denied.</td></tr>
-<tr><td><b>🖥️ First-class GUI</b></td><td>Modern web UI with code highlighting, file <code>@</code>-references, <code>/</code> slash commands, Git branch indicator, live token + cost counter, multi-profile LLM config.</td></tr>
+<tr><td><b>🛡️ Audit trail</b></td><td>Every run emits a tamper-evident, hash-chained JSONL log — every file read/written, every command, every approval. A Run Report renders it as Markdown; <code>dvalincode report verify</code> proves the chain is intact. <a href="docs/AUDIT-TRAIL.md">Threat model →</a></td></tr>
+<tr><td><b>🖥️ First-class GUI</b></td><td>Modern web UI with code highlighting, file <code>@</code>-references, <code>/</code> slash commands, Git branch indicator, live token + cost counter, multi-profile LLM config, and a dark / light / system theme switcher.</td></tr>
 <tr><td><b>🪶 Zero-dependency binary</b></td><td>Single ~25MB executable per platform. No Node, no Python, no Docker. Auto-opens your browser on launch.</td></tr>
-<tr><td><b>🔐 Local-first</b></td><td>Sessions, config, and profiles live in <code>~/.dvalincode/</code>. <code>.dvalincodeignore</code> blocks the agent from reading sensitive files. <code>AGENTS.md</code> in your repo becomes persistent project instructions.</td></tr>
+<tr><td><b>🔐 Local-first</b></td><td>Sessions, config, profiles, and audit logs live in <code>~/.dvalincode/</code>. <code>.dvalincodeignore</code> blocks the agent from reading sensitive files. <code>AGENTS.md</code> in your repo becomes persistent project instructions.</td></tr>
 </table>
 
 ---
@@ -42,20 +43,34 @@ DvalinCode is built as an **agent runtime**, not just another agent app:
 
 - **Any model** — every OpenAI-compatible endpoint is a first-class citizen, local models included. Your workflow should never be hostage to one vendor's pricing, rate limits, or quality swings.
 - **Safe by default** — three-tier approvals with diff preview, an undo stack, and sandboxed shell execution. An agent you can trust on full-auto.
-- **Small enough to audit** — one ~25MB binary, a handful of runtime dependencies, a codebase you can read in a weekend. Trust through inspection, not promises.
+- **Small enough to audit** — one ~25MB binary, a handful of runtime dependencies, a codebase you can read in a weekend. Trust through inspection, not promises. As of v0.5, **every agent run is auditable too**: a tamper-evident, hash-chained log of every action, verifiable after the fact.
 - **Open enough to embed** — the agent core speaks a clean REST + WebSocket API, ready to be wired into your own product, CI, or internal tools.
 
 The bundled **web GUI is the runtime's reference implementation and showcase** — the first consumer of that public API, demonstrating everything the runtime can do.
 
 ---
 
-## ⭐ What's New in v0.4.0
+## ⭐ What's New in v0.5.0
 
-> [Full changelog →](https://github.com/arthurpanhku/dvalincode/releases/tag/v0.4.0)
+> [Full changelog →](https://github.com/arthurpanhku/dvalincode/releases/tag/v0.5.0)
+
+- **🛡️ Security-grade audit trail** — every Cowork/Code run writes a tamper-evident, hash-chained JSONL log to `~/.dvalincode/audit/` (`run_start`, every `tool_call` / `file_*` / `shell_exec` / `approval`, `run_end`). The hash chain makes any after-the-fact edit detectable. No local coding agent ships verifiable behavior logs. [Format + threat model →](docs/AUDIT-TRAIL.md)
+- **📋 Run Report + `dvalincode report` CLI** — a Markdown summary of each run (files read/changed, commands, decisions, test result), rendered as a collapsible card in the GUI and from the CLI:
+  ```sh
+  dvalincode report --last           # render the most recent run
+  dvalincode report <run-id> --format json
+  dvalincode report verify <run-id>  # ✓ chain intact / ✗ broken at seq N
+  ```
+- **🎨 Theme switcher** — choose **dark / light / system** in Settings. `system` follows your OS live; the choice persists across sessions.
+
+<details>
+<summary>v0.4.0 — <code>/compact</code> · <code>dvalin.json</code> team playbook · self-contained binaries</summary>
 
 - **`/compact`** — LLM-based context compaction: replaces conversation history with a structured five-section summary (Goal / Completed / Decisions / Current State / Pending). A divider in the chat thread shows the token reduction (e.g. `8,412 → 1,203 tokens −85%`).
 - **`dvalin.json` team playbook** — commit a shared set of automation prompts to your repo. The sidebar loads them automatically and lets teammates run the same one-click routines without any manual setup. Export button converts your personal routines to `dvalin.json` in one click.
 - **Self-contained binaries** — single ~25 MB executable per platform; no Node, no Python, no Docker. Auto-opens your browser on launch. Built with `bun --compile` so the web UI is bundled alongside the server binary.
+
+</details>
 
 <details>
 <summary>v0.3.0 — Mode-aware sidebar · one-line installer · multi-profile LLM config</summary>
@@ -164,11 +179,14 @@ That's it — start chatting in the composer at the bottom.
 | | Live tool counter + token + cost | Topbar shows session totals in real time |
 | **Agent** | LLM-based context compaction | `/compact` summarises into Goal / Completed / Decisions / Pending |
 | | Persistent undo stack | `/undo [N]` reverses the last N tool calls |
+| | Run Report | Markdown summary per run (files, commands, decisions, test result) — GUI card + `dvalincode report` |
 | | Git awareness | Branch name in topbar; `git_status` tool; git context auto-injected into prompt |
 | | `AGENTS.md` project memory | Per-repo persistent instructions, auto-loaded each turn |
-| **Security** | macOS shell sandbox | `sandbox-exec` denies network; allows writes only inside cwd + `/tmp` |
+| **Security** | Tamper-evident audit trail | Hash-chained JSONL per run in `~/.dvalincode/audit/`; `dvalincode report verify` detects edits |
+| | macOS shell sandbox | `sandbox-exec` denies network; allows writes only inside cwd + `/tmp` |
 | | `.dvalincodeignore` | gitignore-style exclusion; blocks `read_file` / `list_files` / `search_text` |
 | | Per-action approval | Approve/deny each write / delete / shell call in Cowork mode |
+| **Appearance** | Theme switcher | Dark / light / system, persisted; `system` follows the OS live |
 | **Providers** | OpenAI-compatible endpoints | DeepSeek · OpenAI · Groq · OpenRouter · Ollama · custom |
 | | Multi-profile config | Save and switch between named (provider, model, API key) sets |
 | **Sessions** | Auto-save + restore | All sessions persisted to `~/.dvalincode/sessions/` as JSON |
@@ -206,10 +224,12 @@ That's it — start chatting in the composer at the bottom.
 │                    Agent Engine                          │
 │  AgentLoop (8-state machine) → AgentRunner              │
 │  Streaming · Interrupt · Undo stack · LLM compaction    │
+│  run_start / run_end → AuditSink (hash-chained JSONL)   │
 └──────────────────────────┬──────────────────────────────┘
                            │ run()
 ┌──────────────────────────▼──────────────────────────────┐
 │  ToolRegistry — Zod schemas + permission gating         │
+│  + audit taps: tool_call · file_* · shell_exec          │
 │  read_file · list_files · search_text · git_status ·    │
 │  write_file · edit_file · delete_file · shell           │
 └─────────────────────────────────────────────────────────┘
@@ -238,7 +258,7 @@ RESTORE → COMPACT → COMMAND → BUILD → RUN → SAVE → RESPOND → DONE
 npm test
 ```
 
-**47 tests · 9 files · all green.**
+**65 tests · 12 files · all green.**
 
 ---
 
@@ -319,6 +339,12 @@ On macOS, yes — every <code>shell</code> tool invocation is wrapped in <code>s
 </details>
 
 <details>
+<summary><b>How do I see what the agent actually did — and is the log trustworthy?</b></summary>
+<br>
+Every run writes a JSONL audit log to <code>~/.dvalincode/audit/run-&lt;timestamp&gt;-&lt;id&gt;.jsonl</code>. Render it with <code>dvalincode report --last</code> (or see the collapsible Run Report card in the GUI). Each record is chained to the previous one with a SHA-256 hash, so any after-the-fact edit is detectable — <code>dvalincode report verify &lt;run-id&gt;</code> reports <code>✓ chain intact</code> or the exact position of a break. It's tamper-<b>evident</b>, not tamper-<b>proof</b>: a local attacker who can rewrite the whole file could recompute the chain. The value is forensic/accountability. See <a href="docs/AUDIT-TRAIL.md">docs/AUDIT-TRAIL.md</a> for the full threat model.
+</details>
+
+<details>
 <summary><b>Will it overwrite my files without asking?</b></summary>
 <br>
 Depends on the mode. <b>Chat</b> never writes. <b>Cowork</b> requires approval per file (with inline red/green diff before you click Allow). <b>Code</b> is full-auto — use it for trusted tasks or in a feature branch.
@@ -353,7 +379,7 @@ Contributions welcome. The codebase is intentionally small and surgical — see 
 ```sh
 git clone https://github.com/arthurpanhku/dvalincode
 cd dvalincode && npm install
-npm test                # 47/47 ✅
+npm test                # 65/65 ✅
 npm run typecheck
 ```
 
