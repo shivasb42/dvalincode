@@ -25,8 +25,11 @@ DvalinCode starts as a normal CLI with subcommands:
 - `tools` lists available capabilities.
 - `run-tool` invokes a specific tool with JSON input.
 - `ask` creates a local execution brief for a goal.
+- `chat` runs the agent loop against a project.
+- `init` scaffolds project config.
+- `report` renders / verifies a run's audit trail (`--last`, `<run-id>`, `verify`).
 
-The interface is plain by design. Richer terminal UI can be added later without changing the core contracts.
+The CLI is plain by design; the bundled web GUI is the richer reference client over the same core contracts.
 
 ## Core Interfaces
 
@@ -39,18 +42,21 @@ type Tool<Input> = {
   access: 'read' | 'write' | 'execute';
   inputSchema: ZodType<Input>;
   isConcurrencySafe?: (input: Input) => boolean;
-  run(input: Input, context: ForgeContext): Promise<ToolResult>;
+  run(input: Input, context: DvalinContext): Promise<ToolResult>;
 };
 ```
 
 ### Context
 
 ```ts
-type ForgeContext = {
+type DvalinContext = {
   cwd: string;
   allowWrite: boolean;
   allowExecute: boolean;
   maxBytes: number;
+  approvalMode: 'readonly' | 'auto-edit' | 'full-auto' | 'bypass';
+  requestApproval?: (id: string, toolName: string, input: unknown) => Promise<boolean>;
+  audit?: AuditSink;   // per-run audit sink; tool taps emit events when present
 };
 ```
 
@@ -68,7 +74,7 @@ type ToolResult = {
 
 Read tools run by default.
 
-Write and execute tools are blocked unless the caller opts in. The current CLI uses `--yes` for explicit permission. Future versions can replace this with an interactive approval prompt or policy file.
+Write and execute tools are blocked unless the caller opts in. The original CLI used a `--yes` flag; the agent runtime now expresses this through `approvalMode` — `readonly` (no writes), `auto-edit` (approve each write), `full-auto`, and `bypass`. Every run is also recorded to a tamper-evident audit log (see [AUDIT-TRAIL.md](AUDIT-TRAIL.md)). A future policy file can enforce constraints at the registry gating layer.
 
 ## Provider Model
 
@@ -80,9 +86,13 @@ Provider adapters should not call tools directly. They should request tool use t
 
 ```text
 src/
-├── commands/      CLI command registration
+├── agent/         AgentLoop state machine, runner, compaction
+├── audit/         hash-chained run log, Run Report renderer, taps
+├── commands/      CLI command registration (incl. `report`)
 ├── core/          context, permissions, workspace scanning
-├── providers/     planner and future model adapters
+├── providers/     planner and model adapters
+├── server/        Express + WebSocket runtime for the GUI
+├── sessions/      session persistence
 ├── tools/         tool contracts and built-in tools
 └── ui/            terminal rendering helpers
 ```
