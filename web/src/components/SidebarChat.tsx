@@ -69,7 +69,7 @@ function SessionRow({
       className={`group flex items-start gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors text-xs border ${
         active
           ? 'bg-blue-500/10 border-blue-500/20 text-fg'
-          : 'hover:bg-[#1a1a1a] text-muted-fg hover:text-fg border-transparent'
+          : 'hover:bg-surface-2 text-muted-fg hover:text-fg border-transparent'
       }`}
     >
       <MessageSquare size={12} className="mt-0.5 flex-shrink-0 opacity-50" />
@@ -137,7 +137,7 @@ export function SidebarChat({
           <button
             key={t.label}
             onClick={() => onSend(t.prompt)}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-fg hover:text-fg hover:bg-[#1a1a1a] transition-colors text-left"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-fg hover:text-fg hover:bg-surface-2 transition-colors text-left"
           >
             <span className="text-blue-400/70 flex-shrink-0">{t.icon}</span>
             <span className="flex-1 truncate">{t.label}</span>

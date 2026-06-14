@@ -47,6 +47,8 @@ export type LoopResult = {
   output: string;
   iterationsUsed: number;
   usage?: { inputTokens: number; outputTokens: number };
+  /** Audit run id for this turn, when auditing is enabled. */
+  runId?: string;
 };
 
 export type ToolResult = {

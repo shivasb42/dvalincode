@@ -30,7 +30,7 @@ function computeDiff(oldStr: string, newStr: string): DiffLine[] {
 function ApprovalContent({ toolName, input }: { toolName: string; input: unknown }) {
   if (!input || typeof input !== 'object') {
     return (
-      <pre className="px-4 py-3 text-xs font-mono text-muted-fg bg-[#0a0a0a] overflow-x-auto max-h-48 whitespace-pre-wrap break-all">
+      <pre className="px-4 py-3 text-xs font-mono text-muted-fg bg-bg overflow-x-auto max-h-48 whitespace-pre-wrap break-all">
         {String(input)}
       </pre>
     );
@@ -45,7 +45,7 @@ function ApprovalContent({ toolName, input }: { toolName: string; input: unknown
     const newStr = typeof obj.newString === 'string' ? obj.newString : '';
     const diff = computeDiff(oldStr, newStr);
     return (
-      <div className="px-4 py-3 bg-[#0a0a0a]">
+      <div className="px-4 py-3 bg-bg">
         <DiffViewer diff={diff} filePath={filePath} />
       </div>
     );
@@ -58,7 +58,7 @@ function ApprovalContent({ toolName, input }: { toolName: string; input: unknown
     const lines = content.split('\n');
     const preview = lines.slice(0, 12).join('\n') + (lines.length > 12 ? `\n… +${lines.length - 12} lines` : '');
     return (
-      <div className="bg-[#0a0a0a]">
+      <div className="bg-bg">
         <div className="px-4 py-2 border-b border-border text-[11px] font-mono text-muted-fg">
           {filePath} <span className="text-muted-fg/50">· {lines.length} lines · {content.length} chars</span>
         </div>
@@ -73,7 +73,7 @@ function ApprovalContent({ toolName, input }: { toolName: string; input: unknown
   if (toolName === 'delete_file') {
     const filePath = typeof obj.filePath === 'string' ? obj.filePath : '?';
     return (
-      <div className="px-4 py-4 bg-[#0a0a0a] flex items-center gap-3">
+      <div className="px-4 py-4 bg-bg flex items-center gap-3">
         <Trash2 size={16} className="text-red-400 flex-shrink-0" />
         <div>
           <div className="text-sm text-red-300 font-medium">{filePath}</div>
@@ -89,7 +89,7 @@ function ApprovalContent({ toolName, input }: { toolName: string; input: unknown
     const args = Array.isArray(obj.args) ? (obj.args as string[]).join(' ') : '';
     const full = args ? `${command} ${args}` : command;
     return (
-      <div className="bg-[#0a0a0a]">
+      <div className="bg-bg">
         <div className="px-4 py-1.5 border-b border-border text-[11px] text-orange-400/60 font-mono">$ shell</div>
         <pre className="px-4 py-3 text-xs font-mono text-orange-200 overflow-x-auto whitespace-pre-wrap break-all">
           {full}
@@ -100,7 +100,7 @@ function ApprovalContent({ toolName, input }: { toolName: string; input: unknown
 
   /* fallback */
   return (
-    <pre className="px-4 py-3 text-xs font-mono text-muted-fg bg-[#0a0a0a] overflow-x-auto max-h-48 whitespace-pre-wrap break-all">
+    <pre className="px-4 py-3 text-xs font-mono text-muted-fg bg-bg overflow-x-auto max-h-48 whitespace-pre-wrap break-all">
       {JSON.stringify(input, null, 2)}
     </pre>
   );

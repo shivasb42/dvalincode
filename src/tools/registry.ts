@@ -1,5 +1,6 @@
 import { assertToolPermission } from '../core/permissions.js';
 import type { DvalinContext } from '../core/context.js';
+import { emitToolAudit } from '../audit/taps.js';
 import { editFileTool } from './editFile.js';
 import { listFilesTool } from './listFiles.js';
 import { readFileTool } from './readFile.js';
@@ -50,12 +51,23 @@ export class ToolRegistry {
     if (context.approvalMode === 'auto-edit' && tool.access !== 'read' && context.requestApproval) {
       const approvalId = `apv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       const approved = await context.requestApproval(approvalId, name, input);
+      context.audit?.append({ type: 'approval', toolName: name, approved });
       if (!approved) {
         throw new Error(`User rejected: ${name}`);
       }
     }
 
-    return tool.run(input, context);
+    // Audit tap: time the call, emit tool_call + a derived file_*/shell_exec event.
+    // All taps are no-ops when no audit sink is attached to the context.
+    const started = Date.now();
+    try {
+      const result = await tool.run(input, context);
+      emitToolAudit(context, tool.access, name, input, result, 'ok', Date.now() - started);
+      return result;
+    } catch (err) {
+      emitToolAudit(context, tool.access, name, input, undefined, 'error', Date.now() - started);
+      throw err;
+    }
   }
 }
 

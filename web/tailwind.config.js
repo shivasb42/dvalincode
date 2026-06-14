@@ -4,14 +4,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#0a0a0a',
-        surface: '#111111',
-        border: '#222222',
-        muted: '#444444',
-        'muted-fg': '#888888',
-        fg: '#e5e5e5',
-        accent: '#818cf8',
-        'tool-bg': '#0f1117',
+        // Semantic tokens — backed by CSS variables (RGB channels) so the
+        // light/dark themes can swap values while keeping Tailwind's opacity
+        // modifiers (e.g. bg-accent/90) working via <alpha-value>.
+        bg: 'rgb(var(--color-bg) / <alpha-value>)',
+        elevated: 'rgb(var(--color-elevated) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        'surface-2': 'rgb(var(--color-surface-2) / <alpha-value>)',
+        border: 'rgb(var(--color-border) / <alpha-value>)',
+        'border-strong': 'rgb(var(--color-border-strong) / <alpha-value>)',
+        muted: 'rgb(var(--color-muted) / <alpha-value>)',
+        'muted-fg': 'rgb(var(--color-muted-fg) / <alpha-value>)',
+        fg: 'rgb(var(--color-fg) / <alpha-value>)',
+        'fg-strong': 'rgb(var(--color-fg-strong) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        'tool-bg': 'rgb(var(--color-tool-bg) / <alpha-value>)',
       },
       fontFamily: {
         mono: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],

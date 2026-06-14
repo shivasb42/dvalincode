@@ -32,8 +32,10 @@ export const shellTool: Tool<Input> = {
       title: `Ran ${input.command}`,
       output: result.output || '(no output)',
       metadata: {
+        command: input.command,
         exitCode: result.exitCode,
         timedOut: result.timedOut,
+        sandbox: sandboxEnabled ? 'seatbelt' : 'none',
       },
     };
   },

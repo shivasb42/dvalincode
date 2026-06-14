@@ -58,7 +58,7 @@ export function ModeSwitcher({ value, onChange, fullWidth }: Props) {
                 i > 0 ? 'border-l border-border' : '',
                 active
                   ? `${mode.color} ${mode.activeBg}`
-                  : 'text-muted-fg hover:text-fg hover:bg-[#1a1a1a]',
+                  : 'text-muted-fg hover:text-fg hover:bg-surface-2',
               ].join(' ')}
             >
               <mode.Icon size={12} />
@@ -72,7 +72,7 @@ export function ModeSwitcher({ value, onChange, fullWidth }: Props) {
 
   /* Compact inline variant (kept for potential reuse) */
   return (
-    <div className="flex items-center bg-[#111] border border-border rounded-lg p-0.5 gap-0.5">
+    <div className="flex items-center bg-surface border border-border rounded-lg p-0.5 gap-0.5">
       {MODES.map((mode) => {
         const active = value === mode.value;
         return (
@@ -82,7 +82,7 @@ export function ModeSwitcher({ value, onChange, fullWidth }: Props) {
             title={mode.title}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
               active
-                ? `${mode.color} bg-[#1a1a1a] border border-border shadow-sm`
+                ? `${mode.color} bg-surface-2 border border-border shadow-sm`
                 : 'text-muted-fg hover:text-fg'
             }`}
           >

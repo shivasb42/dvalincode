@@ -13,7 +13,7 @@ const MODES: { value: ApprovalMode; label: string; title: string; color: string 
 
 export function ApprovalModeSwitch({ value, onChange }: Props) {
   return (
-    <div className="flex items-center bg-[#111] border border-border rounded-lg p-0.5 gap-0.5">
+    <div className="flex items-center bg-surface border border-border rounded-lg p-0.5 gap-0.5">
       {MODES.map((mode) => {
         const active = value === mode.value;
         return (
@@ -23,7 +23,7 @@ export function ApprovalModeSwitch({ value, onChange }: Props) {
             title={mode.title}
             className={`px-2.5 py-1 text-[11px] rounded-md font-medium transition-all ${
               active
-                ? `${mode.color} bg-[#1a1a1a] border border-border shadow-sm`
+                ? `${mode.color} bg-surface-2 border border-border shadow-sm`
                 : 'text-muted-fg hover:text-fg'
             }`}
           >

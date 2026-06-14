@@ -34,7 +34,7 @@ function TaskRow({
       className={`group flex items-start gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors text-xs border ${
         active
           ? 'bg-violet-500/10 border-violet-500/20 text-fg'
-          : 'hover:bg-[#1a1a1a] text-muted-fg hover:text-fg border-transparent'
+          : 'hover:bg-surface-2 text-muted-fg hover:text-fg border-transparent'
       }`}
     >
       <ClipboardList size={12} className="mt-0.5 flex-shrink-0 opacity-50" />
@@ -145,7 +145,7 @@ export function SidebarCowork({
                     onClick={() =>
                       setActiveProject(activeProject === p.cwd ? null : p.cwd)
                     }
-                    className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors"
+                    className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs hover:bg-surface-2 text-muted-fg hover:text-fg transition-colors"
                   >
                     <FolderOpen size={12} className="text-violet-400/70 flex-shrink-0" />
                     <span className="flex-1 font-medium truncate text-left">{p.name}</span>

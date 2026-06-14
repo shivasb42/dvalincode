@@ -56,7 +56,7 @@ export function Sidebar({
       <div className="flex flex-col items-center w-12 h-full bg-surface border-r border-border py-3 gap-3 flex-shrink-0">
         <button
           onClick={() => setCollapsed(false)}
-          className="p-2 rounded-lg hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors"
+          className="p-2 rounded-lg hover:bg-surface-2 text-muted-fg hover:text-fg transition-colors"
           title="Expand sidebar"
         >
           <ChevronRight size={16} />
@@ -76,7 +76,7 @@ export function Sidebar({
         </div>
         <button
           onClick={() => setCollapsed(true)}
-          className="p-1 rounded hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors"
+          className="p-1 rounded hover:bg-surface-2 text-muted-fg hover:text-fg transition-colors"
         >
           <ChevronLeft size={14} />
         </button>

@@ -60,7 +60,7 @@ export function DiffViewer({ diff, filePath }: Props) {
   return (
     <div className="rounded border border-border overflow-hidden text-xs font-mono mt-1.5">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-[#0d0d0d] border-b border-border">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-elevated border-b border-border">
         <div className="flex items-center gap-2 min-w-0">
           {filePath && (
             <span className="text-muted-fg truncate">{filePath}</span>
@@ -80,7 +80,7 @@ export function DiffViewer({ diff, filePath }: Props) {
       </div>
 
       {/* Diff lines */}
-      <div className="overflow-x-auto bg-[#080808]">
+      <div className="overflow-x-auto bg-elevated">
         {lines.map((line, i) => (
           <DiffLineRow key={i} line={line} />
         ))}

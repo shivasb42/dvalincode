@@ -55,7 +55,7 @@ function ModelCard({ preset, selected, onClick }: { preset: ModelPreset; selecte
       className={`relative text-left rounded-xl border px-4 py-3 transition-all ${
         selected
           ? 'border-accent bg-accent/10 text-fg'
-          : 'border-border hover:border-[#333] bg-[#0f0f0f] text-muted-fg hover:text-fg'
+          : 'border-border hover:border-border-strong bg-elevated text-muted-fg hover:text-fg'
       }`}
     >
       {selected && (
@@ -86,7 +86,7 @@ function PoolEntryRow({
 
   return (
     <div className={`flex items-start gap-3 rounded-xl border p-3 transition-colors ${
-      entry.enabled ? 'border-[#222] bg-[#0f0f0f]' : 'border-[#1a1a1a] bg-[#0a0a0a] opacity-50'
+      entry.enabled ? 'border-border bg-elevated' : 'border-border bg-bg opacity-50'
     }`}>
       <GripVertical size={14} className="text-muted-fg mt-1 flex-shrink-0 cursor-grab" />
 
@@ -102,7 +102,7 @@ function PoolEntryRow({
             className="flex-1 bg-transparent text-xs text-fg outline-none cursor-pointer"
           >
             {PROVIDERS.filter(p => p.id !== 'custom').map(p => (
-              <option key={p.id} value={p.id} className="bg-[#111]">{p.name}</option>
+              <option key={p.id} value={p.id} className="bg-surface">{p.name}</option>
             ))}
           </select>
           <label className="flex items-center gap-1 text-[11px] text-muted-fg ml-auto">
@@ -113,7 +113,7 @@ function PoolEntryRow({
               max={10}
               value={entry.weight}
               onChange={e => onChange({ ...entry, weight: Math.max(1, parseInt(e.target.value) || 1) })}
-              className="w-10 bg-[#0a0a0a] border border-[#222] rounded px-1.5 py-0.5 text-xs text-fg outline-none"
+              className="w-10 bg-bg border border-border rounded px-1.5 py-0.5 text-xs text-fg outline-none"
             />
           </label>
         </div>
@@ -123,11 +123,11 @@ function PoolEntryRow({
             value={entry.model}
             onChange={e => onChange({ ...entry, model: e.target.value })}
             placeholder={provider?.models[0]?.model ?? 'model-name'}
-            className="flex-1 bg-[#0a0a0a] border border-[#1e1e1e] rounded-lg px-2.5 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/30 font-mono"
+            className="flex-1 bg-bg border border-border rounded-lg px-2.5 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/30 font-mono"
           />
         </div>
 
-        <div className="flex items-center gap-2 bg-[#0a0a0a] border border-[#1e1e1e] rounded-lg px-2.5 py-1.5 focus-within:border-accent/30 transition-colors">
+        <div className="flex items-center gap-2 bg-bg border border-border rounded-lg px-2.5 py-1.5 focus-within:border-accent/30 transition-colors">
           <input
             type={showKey ? 'text' : 'password'}
             value={entry.apiKey ?? ''}
@@ -284,21 +284,21 @@ export function LLMConfigModal({ onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-[#111] border border-[#222] rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e1e1e]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
             <h2 className="font-semibold text-fg">LLM Configuration</h2>
             <p className="text-xs text-muted-fg mt-0.5">Provider, model, and API key settings</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#1e1e1e] text-muted-fg hover:text-fg transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-2 text-muted-fg hover:text-fg transition-colors">
             <X size={16} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-[#1e1e1e] px-6 pt-3 gap-1">
+        <div className="flex border-b border-border px-6 pt-3 gap-1">
           {(['single', 'pool'] as Tab[]).map(t => (
             <button
               key={t}
@@ -341,7 +341,7 @@ export function LLMConfigModal({ onClose }: Props) {
                       className={`flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-xl border transition-all ${
                         draft.provider === p.id
                           ? 'border-accent bg-accent/10 text-fg'
-                          : 'border-border hover:border-[#333] text-muted-fg hover:text-fg bg-[#0f0f0f]'
+                          : 'border-border hover:border-border-strong text-muted-fg hover:text-fg bg-elevated'
                       }`}
                     >
                       <ProviderIcon id={p.id} size="sm" />
@@ -361,7 +361,7 @@ export function LLMConfigModal({ onClose }: Props) {
                       <span className="ml-2 text-emerald-500/80">(not required for {activeProvider.name})</span>
                     )}
                   </span>
-                  <div className="flex items-center gap-2 bg-[#0a0a0a] border border-[#222] rounded-xl px-3 py-2.5 focus-within:border-accent/40 transition-colors">
+                  <div className="flex items-center gap-2 bg-bg border border-border rounded-xl px-3 py-2.5 focus-within:border-accent/40 transition-colors">
                     <input
                       type={showKey ? 'text' : 'password'}
                       value={draft.apiKey ?? ''}
@@ -380,7 +380,7 @@ export function LLMConfigModal({ onClose }: Props) {
                     value={draft.baseUrl ?? ''}
                     onChange={(e) => setDraft((d) => ({ ...d, baseUrl: e.target.value }))}
                     placeholder={activeProvider.baseUrl || 'https://your-endpoint/v1'}
-                    className="bg-[#0a0a0a] border border-[#222] rounded-xl px-3 py-2.5 text-sm text-fg placeholder-muted-fg outline-none focus:border-accent/40 transition-colors font-mono"
+                    className="bg-bg border border-border rounded-xl px-3 py-2.5 text-sm text-fg placeholder-muted-fg outline-none focus:border-accent/40 transition-colors font-mono"
                   />
                 </label>
               </section>
@@ -393,7 +393,7 @@ export function LLMConfigModal({ onClose }: Props) {
                     value={draft.model ?? ''}
                     onChange={(e) => setDraft((d) => ({ ...d, model: e.target.value }))}
                     placeholder={activeProvider.models[0]?.model ?? 'model-name'}
-                    className="bg-[#0a0a0a] border border-[#222] rounded-xl px-3 py-2.5 text-sm text-fg placeholder-muted-fg outline-none focus:border-accent/40 transition-colors font-mono"
+                    className="bg-bg border border-border rounded-xl px-3 py-2.5 text-sm text-fg placeholder-muted-fg outline-none focus:border-accent/40 transition-colors font-mono"
                   />
                 </label>
                 {activeProvider.models.length > 0 && (
@@ -409,7 +409,7 @@ export function LLMConfigModal({ onClose }: Props) {
                   </div>
                 )}
                 {activeProvider.id === 'ollama' && (
-                  <div className="flex items-start gap-2 text-xs text-muted-fg bg-[#0f0f0f] border border-[#1e1e1e] rounded-xl px-3 py-2.5">
+                  <div className="flex items-start gap-2 text-xs text-muted-fg bg-elevated border border-border rounded-xl px-3 py-2.5">
                     <ChevronRight size={12} className="mt-0.5 flex-shrink-0" />
                     <span>Make sure Ollama is running locally:
                       <code className="ml-1 text-accent font-mono">ollama pull {draft.model ?? 'qwen2.5-coder'}</code>
@@ -418,7 +418,7 @@ export function LLMConfigModal({ onClose }: Props) {
                 )}
               </section>
 
-              <section className="flex flex-col gap-3 pt-2 border-t border-[#1e1e1e]">
+              <section className="flex flex-col gap-3 pt-2 border-t border-border">
                 <h3 className="text-xs font-semibold text-muted-fg uppercase tracking-wider flex items-center gap-1.5">
                   <BookMarked size={11} /> Saved Profiles
                 </h3>
@@ -427,7 +427,7 @@ export function LLMConfigModal({ onClose }: Props) {
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {Object.entries(profiles).map(([name, p]) => (
-                      <div key={name} className="flex items-center gap-2 bg-[#0f0f0f] border border-[#222] rounded-lg px-3 py-2">
+                      <div key={name} className="flex items-center gap-2 bg-elevated border border-border rounded-lg px-3 py-2">
                         <ProviderIcon id={p.provider} size="sm" />
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-semibold text-fg truncate">{name}</div>
@@ -445,12 +445,12 @@ export function LLMConfigModal({ onClose }: Props) {
                     onChange={(e) => setNewProfileName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveProfile(); }}
                     placeholder="Profile name…"
-                    className="flex-1 bg-[#0a0a0a] border border-[#222] rounded-lg px-3 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40"
+                    className="flex-1 bg-bg border border-border rounded-lg px-3 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40"
                   />
                   <button
                     onClick={() => void handleSaveProfile()}
                     disabled={!newProfileName.trim() || savingProfile}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-[#333] text-muted-fg hover:text-fg hover:border-accent/40 disabled:opacity-40 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-border-strong text-muted-fg hover:text-fg hover:border-accent/40 disabled:opacity-40 transition-colors"
                   >
                     {savingProfile ? <Loader size={11} className="animate-spin" /> : <Plus size={11} />}
                     Save
@@ -488,7 +488,7 @@ export function LLMConfigModal({ onClose }: Props) {
                 <select
                   value={pool.policy}
                   onChange={e => setPool(p => ({ ...p, policy: e.target.value as RotationPolicy }))}
-                  className="flex-1 bg-[#0a0a0a] border border-[#222] rounded-xl px-3 py-2 text-xs text-fg outline-none"
+                  className="flex-1 bg-bg border border-border rounded-xl px-3 py-2 text-xs text-fg outline-none"
                 >
                   <option value="round-robin">Round-robin (sequential)</option>
                   <option value="random">Random</option>
@@ -512,14 +512,14 @@ export function LLMConfigModal({ onClose }: Props) {
                 )}
                 <button
                   onClick={addPoolEntry}
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-[#333] text-xs text-muted-fg hover:text-fg hover:border-accent/40 transition-colors"
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border-strong text-xs text-muted-fg hover:text-fg hover:border-accent/40 transition-colors"
                 >
                   <Plus size={12} /> Add Provider
                 </button>
               </div>
 
               {pool.policy === 'weighted-random' && pool.entries.length > 0 && (
-                <div className="flex items-start gap-2 text-xs text-muted-fg bg-[#0f0f0f] border border-[#1e1e1e] rounded-xl px-3 py-2.5">
+                <div className="flex items-start gap-2 text-xs text-muted-fg bg-elevated border border-border rounded-xl px-3 py-2.5">
                   <RefreshCw size={11} className="mt-0.5 flex-shrink-0" />
                   <span>Weight controls selection probability. W:2 means 2× more likely to be picked than W:1.</span>
                 </div>
@@ -529,7 +529,7 @@ export function LLMConfigModal({ onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-[#1e1e1e] flex items-center gap-3">
+        <div className="px-6 py-4 border-t border-border flex items-center gap-3">
           {tab === 'single' ? (
             <>
               {error ? (

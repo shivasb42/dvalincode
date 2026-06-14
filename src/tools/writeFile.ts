@@ -3,6 +3,8 @@ import path from 'node:path';
 import { z } from 'zod';
 import { generateDiff, formatDiff } from '../core/diffPreview.js';
 import { resolveInsideWorkspace } from '../core/workspace.js';
+import { sha256, hashContent } from '../audit/hash.js';
+import { countDiffLines, lineCount } from '../audit/diffStat.js';
 import type { Tool, ReverseOp, ToolResult } from './types.js';
 
 const inputSchema = z
@@ -68,6 +70,10 @@ export const writeFileTool: Tool<Input> = {
 
     await writeFile(filePath, input.content, 'utf8');
 
+    const stat = exists
+      ? countDiffLines(diff)
+      : { added: lineCount(input.content), removed: 0 };
+
     return {
       title: `Write ${input.filePath}`,
       output,
@@ -77,6 +83,10 @@ export const writeFileTool: Tool<Input> = {
         existed: exists,
         originalContent,  // kept for undo; stripped before WebSocket send
         diff,
+        added: stat.added,
+        removed: stat.removed,
+        beforeHash: hashContent(originalContent),
+        afterHash: sha256(input.content),
       },
     };
   },

@@ -2,6 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { z } from 'zod';
 import { resolveInsideWorkspace } from '../core/workspace.js';
 import { loadIgnorePatterns } from '../core/ignorefile.js';
+import { sha256 } from '../audit/hash.js';
 import type { Tool } from './types.js';
 
 const inputSchema = z
@@ -55,10 +56,12 @@ export const readFileTool: Tool<Input> = {
       title: `Read ${input.filePath}`,
       output: numbered.join('\n'),
       metadata: {
+        path: input.filePath,
         bytes: info.size,
         totalLines: lines.length,
         offset: start,
         returnedLines: selected.length,
+        sha256: sha256(text),
       },
     };
   },

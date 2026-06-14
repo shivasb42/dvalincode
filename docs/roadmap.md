@@ -31,3 +31,12 @@
 - Add reusable workflow definitions.
 - Add richer terminal rendering.
 
+## 0.5 Security Differentiation
+
+- **[done] Audit trail (P0-1):** tamper-evident hash-chained JSONL per run;
+  `dvalincode report --last | <id> | verify`; GUI Run Report card. See
+  [AUDIT-TRAIL.md](AUDIT-TRAIL.md).
+- Enforced policy engine (P0-2): `dvalin.json` policies intercepted in the tool
+  gating layer; `policy_violation` audit events; `THREAT-MODEL.md`.
+- Checkpoint / rollback (P1-1): run-level snapshot + one-click rollback.
+

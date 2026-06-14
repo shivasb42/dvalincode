@@ -27,7 +27,7 @@ function ToolCallItem({ tc }: { tc: ToolCallEvent }) {
     <div className="border border-border rounded overflow-hidden text-xs">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-2 px-3 py-2 bg-tool-bg hover:bg-[#141420] transition-colors text-left"
+        className="w-full flex items-center gap-2 px-3 py-2 bg-tool-bg hover:bg-surface-2 transition-colors text-left"
       >
         <StatusIcon status={tc.status} />
         <span className="font-mono text-muted-fg">{icon}</span>
@@ -40,7 +40,7 @@ function ToolCallItem({ tc }: { tc: ToolCallEvent }) {
       </button>
 
       {open && (
-        <div className="border-t border-border bg-[#0a0a0f]">
+        <div className="border-t border-border bg-elevated">
           {/* Input */}
           <div className="px-3 py-2">
             <div className="text-muted-fg mb-1 flex items-center gap-1">

@@ -177,6 +177,10 @@ export function useChat(opts: UseChatOptions = {}) {
             });
             break;
 
+          case 'run_report':
+            setMessages((prev) => [...prev, { role: 'report', runId: event.runId, markdown: event.markdown }]);
+            break;
+
           case 'done':
             setMessages((prev) => {
               const last = prev[prev.length - 1];

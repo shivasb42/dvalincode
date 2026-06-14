@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble.tsx';
+import { RunReportCard } from './RunReportCard.tsx';
 import type { ChatMessage, AgentMode } from '../types.ts';
 
 type Props = {
@@ -50,6 +51,9 @@ export function ChatThread({ messages, connected, mode, onProceed }: Props) {
                 <div className="flex-1 border-t border-border" />
               </div>
             );
+          }
+          if (msg.role === 'report') {
+            return <RunReportCard key={i} runId={msg.runId} markdown={msg.markdown} />;
           }
           return (
             <MessageBubble

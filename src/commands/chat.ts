@@ -110,10 +110,15 @@ export function registerChatCommand(program: Command, registry: ToolRegistry): v
           allowExecute: false,
         }),
         systemPrompt,
+        audit: { model: options.model ?? provider.name },
       });
 
       // Process message through the state machine
       const result = await loop.processMessage(message, session.messages);
+
+      if (result.runId) {
+        console.log(`\n🔒 Audit: run ${result.runId} — \`dvalincode report --last\``);
+      }
 
       // Update session with new messages
       session.messages = result.messages;

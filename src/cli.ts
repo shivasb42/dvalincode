@@ -5,6 +5,7 @@ import { registerInitCommand } from './commands/init.js';
 import { registerRunToolCommand } from './commands/runTool.js';
 import { registerScanCommand } from './commands/scan.js';
 import { registerToolsCommand } from './commands/tools.js';
+import { registerReportCommand } from './commands/report.js';
 import { createDefaultToolRegistry } from './tools/registry.js';
 
 export function buildProgram(): Command {
@@ -14,7 +15,7 @@ export function buildProgram(): Command {
   program
     .name('dvalincode')
     .description('Local-first CLI foundation for agentic coding workflows')
-    .version('0.4.3');
+    .version('0.5.0');
 
   registerScanCommand(program);
   registerToolsCommand(program, registry);
@@ -22,6 +23,7 @@ export function buildProgram(): Command {
   registerAskCommand(program, registry);
   registerChatCommand(program, registry);
   registerInitCommand(program);
+  registerReportCommand(program);
 
   return program;
 }

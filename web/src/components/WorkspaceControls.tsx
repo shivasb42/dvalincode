@@ -45,7 +45,7 @@ export function WorkspaceControls({ cwd, onCwdChange }: Props) {
 
   const folderName = cwd ? cwd.split(/[\\/]/).pop() : undefined;
 
-  const inputClass = 'w-full bg-[#0f0f0f] border border-border rounded-lg px-2.5 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40';
+  const inputClass = 'w-full bg-elevated border border-border rounded-lg px-2.5 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40';
   const buttonClass = 'w-full flex items-center justify-center gap-1.5 py-1.5 text-xs rounded-lg border transition-colors disabled:opacity-45 bg-accent/10 hover:bg-accent/15 border-accent/25 text-accent';
 
   return (
@@ -107,7 +107,7 @@ export function WorkspaceControls({ cwd, onCwdChange }: Props) {
                 placeholder="Branch"
                 className={inputClass}
               />
-              <label className="flex items-center gap-1.5 text-[10px] text-muted-fg bg-[#0f0f0f] border border-border rounded-lg px-2">
+              <label className="flex items-center gap-1.5 text-[10px] text-muted-fg bg-elevated border border-border rounded-lg px-2">
                 <input
                   type="checkbox"
                   checked={createBranch}

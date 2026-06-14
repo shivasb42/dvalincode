@@ -1,3 +1,5 @@
+import type { AuditSink } from '../audit/log.js';
+
 export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto' | 'bypass';
 
 export type DvalinContextOptions = {
@@ -7,6 +9,8 @@ export type DvalinContextOptions = {
   maxBytes?: number;
   approvalMode?: ApprovalMode;
   requestApproval?: (id: string, toolName: string, input: unknown) => Promise<boolean>;
+  /** Optional per-run audit sink. When present, tool taps emit audit events. */
+  audit?: AuditSink;
 };
 
 export type DvalinContext = {
@@ -16,6 +20,8 @@ export type DvalinContext = {
   maxBytes: number;
   approvalMode: ApprovalMode;
   requestApproval?: (id: string, toolName: string, input: unknown) => Promise<boolean>;
+  /** Optional per-run audit sink. When present, tool taps emit audit events. */
+  audit?: AuditSink;
 };
 
 export function createDvalinContext(options: DvalinContextOptions = {}): DvalinContext {
@@ -41,5 +47,6 @@ export function createDvalinContext(options: DvalinContextOptions = {}): DvalinC
     maxBytes: options.maxBytes ?? 256_000,
     approvalMode: mode ?? 'full-auto',
     requestApproval: options.requestApproval,
+    audit: options.audit,
   };
 }

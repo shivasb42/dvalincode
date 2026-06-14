@@ -1,6 +1,47 @@
 import { useState } from 'react';
-import { X, Settings } from 'lucide-react';
+import { X, Settings, Monitor, Sun, Moon } from 'lucide-react';
 import type { ApprovalMode } from '../types.ts';
+import { getStoredTheme, setTheme, type Theme } from '../lib/theme.ts';
+
+const THEME_OPTIONS: { value: Theme; label: string; icon: typeof Monitor }[] = [
+  { value: 'system', label: 'System', icon: Monitor },
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+];
+
+function ThemeSwitcher() {
+  const [theme, setThemeState] = useState<Theme>(getStoredTheme);
+
+  const pick = (value: Theme) => {
+    setTheme(value);
+    setThemeState(value);
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs text-muted-fg font-medium">Theme</span>
+      <div className="flex gap-1 bg-elevated border border-border rounded-lg p-1">
+        {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
+          const active = theme === value;
+          return (
+            <button
+              key={value}
+              onClick={() => pick(value)}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs rounded-md transition-colors ${
+                active
+                  ? 'bg-accent/90 text-white'
+                  : 'text-muted-fg hover:text-fg hover:bg-surface-2'
+              }`}
+            >
+              <Icon size={13} />
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export type ChatSettings = {
   cwd: string;
@@ -17,7 +58,7 @@ export function SettingsButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="p-1.5 rounded-lg hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors"
+      className="p-1.5 rounded-lg hover:bg-surface-2 text-muted-fg hover:text-fg transition-colors"
       title="Settings"
     >
       <Settings size={15} />
@@ -38,7 +79,7 @@ export function SettingsPanel({ settings, onChange }: Props) {
     <>
       <button
         onClick={() => { setDraft(settings); setOpen(true); }}
-        className="p-1.5 rounded-lg hover:bg-[#1a1a1a] text-muted-fg hover:text-fg transition-colors"
+        className="p-1.5 rounded-lg hover:bg-surface-2 text-muted-fg hover:text-fg transition-colors"
         title="Settings"
       >
         <Settings size={15} />
@@ -55,12 +96,14 @@ export function SettingsPanel({ settings, onChange }: Props) {
             </div>
 
             <div className="px-5 py-4 flex flex-col gap-4">
+              <ThemeSwitcher />
+
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs text-muted-fg font-medium">Working directory (cwd)</span>
                 <input
                   value={draft.cwd}
                   onChange={(e) => setDraft({ ...draft, cwd: e.target.value })}
-                  className="bg-[#0f0f0f] border border-border rounded-lg px-3 py-2 text-sm text-fg outline-none focus:border-accent/40 font-mono"
+                  className="bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-fg outline-none focus:border-accent/40 font-mono"
                   placeholder="/path/to/project"
                 />
               </label>
@@ -70,12 +113,12 @@ export function SettingsPanel({ settings, onChange }: Props) {
                 <input
                   value={draft.provider}
                   onChange={(e) => setDraft({ ...draft, provider: e.target.value })}
-                  className="bg-[#0f0f0f] border border-border rounded-lg px-3 py-2 text-sm text-fg outline-none focus:border-accent/40"
+                  className="bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-fg outline-none focus:border-accent/40"
                   placeholder="deepseek"
                 />
               </label>
 
-              <p className="text-xs text-muted-fg/60 bg-[#0f0f0f] border border-border rounded px-2.5 py-2">
+              <p className="text-xs text-muted-fg/60 bg-elevated border border-border rounded px-2.5 py-2">
                 Approval mode is controlled by the switcher in the top bar.
               </p>
             </div>

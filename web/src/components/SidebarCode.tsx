@@ -63,7 +63,7 @@ function SessionRow({
       className={`group flex items-start gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors text-xs border ${
         active
           ? 'bg-orange-500/10 border-orange-500/20 text-fg'
-          : 'hover:bg-[#1a1a1a] text-muted-fg hover:text-fg border-transparent'
+          : 'hover:bg-surface-2 text-muted-fg hover:text-fg border-transparent'
       }`}
     >
       <MessageSquare size={12} className="mt-0.5 flex-shrink-0 opacity-50" />
@@ -106,14 +106,14 @@ function AddRoutineForm({ onAdd }: { onAdd: (r: Routine) => void }) {
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Routine name…"
-        className="w-full bg-[#0f0f0f] border border-border rounded-lg px-2.5 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40"
+        className="w-full bg-elevated border border-border rounded-lg px-2.5 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40"
       />
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         placeholder="Prompt or /command…"
         rows={2}
-        className="w-full bg-[#0f0f0f] border border-border rounded-lg px-2.5 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40 resize-none"
+        className="w-full bg-elevated border border-border rounded-lg px-2.5 py-1.5 text-xs text-fg placeholder-muted-fg outline-none focus:border-accent/40 resize-none"
       />
       <div className="flex gap-1.5">
         <button
@@ -235,7 +235,7 @@ export function SidebarCode({
                 <button
                   key={r.name}
                   onClick={() => onSend(r.prompt)}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-fg hover:text-fg hover:bg-[#1a1a1a] transition-colors text-left w-full"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-fg hover:text-fg hover:bg-surface-2 transition-colors text-left w-full"
                 >
                   <Zap size={11} className="text-blue-400/70 flex-shrink-0" />
                   <span className="truncate flex-1">{r.name}</span>
@@ -257,7 +257,7 @@ export function SidebarCode({
             <div key={r.name} className="group flex items-center gap-1">
               <button
                 onClick={() => onSend(r.prompt)}
-                className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-fg hover:text-fg hover:bg-[#1a1a1a] transition-colors text-left"
+                className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-fg hover:text-fg hover:bg-surface-2 transition-colors text-left"
               >
                 <Zap size={11} className="text-orange-400/70 flex-shrink-0" />
                 <span className="truncate">{r.name}</span>

@@ -1,10 +1,21 @@
 import { TurnState, type TurnConfig, type LoopResult, type SlashCommand, type AgentEventHandler, DEFAULT_TURN_CONFIG, type UndoEntry } from './types.js';
 import { AgentRunner } from './runner.js';
 import { estimateTokens } from './compact.js';
+import { AuditSink, newRunId, resolveGitHead } from '../audit/log.js';
 import type { ChatMessage } from '../providers/types.js';
 import type { ProviderAdapter } from '../providers/types.js';
 import type { ToolRegistry } from '../tools/registry.js';
 import type { DvalinContext } from '../core/context.js';
+
+/** Per-run audit configuration for the agent loop. */
+export type AuditOptions = {
+  /** Disable to skip audit logging entirely (default: enabled). */
+  enabled?: boolean;
+  /** Override the audit directory (defaults to ~/.dvalincode/audit). */
+  dir?: string;
+  /** Model name recorded in run_start (the adapter only exposes its provider name). */
+  model?: string;
+};
 
 export type AgentLoopOptions = {
   provider: ProviderAdapter;
@@ -13,6 +24,7 @@ export type AgentLoopOptions = {
   systemPrompt: string;
   config?: Partial<TurnConfig>;
   slashCommands?: SlashCommand[];
+  audit?: AuditOptions;
 };
 
 export class AgentLoop {
@@ -23,6 +35,7 @@ export class AgentLoop {
   private config: TurnConfig;
   private slashCommands: Map<string, SlashCommand>;
   private sharedUndoStack: UndoEntry[] = [];
+  private auditOptions: AuditOptions;
 
   constructor(options: AgentLoopOptions) {
     this.provider = options.provider;
@@ -30,6 +43,7 @@ export class AgentLoop {
     this.context = options.context;
     this.systemPrompt = options.systemPrompt;
     this.config = { ...DEFAULT_TURN_CONFIG, ...options.config };
+    this.auditOptions = options.audit ?? {};
 
     this.slashCommands = new Map();
     const cmds = options.slashCommands ?? [];
@@ -107,6 +121,7 @@ export class AgentLoop {
     let output = '';
     let iterationsUsed = 0;
     let usage: { inputTokens: number; outputTokens: number } | undefined;
+    let runId: string | undefined;
 
     while (state !== TurnState.DONE) {
       switch (state) {
@@ -156,19 +171,45 @@ export class AgentLoop {
         }
 
         case TurnState.RUN: {
+          // Open a per-run audit sink (one file per user turn) unless disabled.
+          let sink: AuditSink | undefined;
+          let runContext = this.context;
+          if (this.auditOptions.enabled !== false) {
+            runId = newRunId();
+            sink = new AuditSink(runId, this.auditOptions.dir);
+            sink.append({
+              type: 'run_start',
+              task: userMessage,
+              mode: this.context.approvalMode,
+              provider: this.provider.name,
+              model: this.auditOptions.model ?? 'unknown',
+              cwd: this.context.cwd,
+              gitHead: await resolveGitHead(this.context.cwd),
+            });
+            runContext = { ...this.context, audit: sink };
+          }
+
           const runner = new AgentRunner({
             provider: this.provider,
             registry: this.registry,
-            context: this.context,
+            context: runContext,
             config: this.config,
             systemPrompt: this.systemPrompt,
             sharedUndoStack: this.sharedUndoStack,
           });
-          const result = await runner.runTurn(userMessage, messages, onEvent, signal);
-          messages = result.messages;
-          output = result.finalResponse;
-          iterationsUsed = result.iterationsUsed;
-          usage = result.usage;
+
+          try {
+            const result = await runner.runTurn(userMessage, messages, onEvent, signal);
+            messages = result.messages;
+            output = result.finalResponse;
+            iterationsUsed = result.iterationsUsed;
+            usage = result.usage;
+            this.finishRun(sink, 'done', iterationsUsed, usage);
+          } catch (err) {
+            const status = err instanceof Error && err.message === 'interrupted' ? 'interrupted' : 'error';
+            this.finishRun(sink, status, iterationsUsed, usage);
+            throw err;
+          }
           state = TurnState.SAVE;
           break;
         }
@@ -185,7 +226,26 @@ export class AgentLoop {
       }
     }
 
-    return { messages, output, iterationsUsed, usage };
+    return { messages, output, iterationsUsed, usage, runId };
+  }
+
+  /** Emit the terminal run_end event, folding in any best-effort write warnings. */
+  private finishRun(
+    sink: AuditSink | undefined,
+    status: 'done' | 'interrupted' | 'error',
+    iterations: number,
+    usage: { inputTokens: number; outputTokens: number } | undefined,
+  ): void {
+    if (!sink) return;
+    const warnings = sink.getWarnings();
+    sink.append({
+      type: 'run_end',
+      status,
+      iterations,
+      inputTokens: usage?.inputTokens,
+      outputTokens: usage?.outputTokens,
+      warnings: warnings.length > 0 ? warnings : undefined,
+    });
   }
 
   private async handleCompact(messages: ChatMessage[]): Promise<{ messages: ChatMessage[]; output?: string }> {

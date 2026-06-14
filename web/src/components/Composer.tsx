@@ -78,7 +78,7 @@ const CODE_MODES: { id: CodePermissionMode; label: string; icon: React.ReactNode
     id: 'ask',
     label: 'Ask Permissions',
     icon: <ShieldQuestion size={11} />,
-    chipClass: 'text-muted-fg border-border bg-[#1a1a1a]',
+    chipClass: 'text-muted-fg border-border bg-surface-2',
     description: 'Approve each write and command',
   },
   {
@@ -353,7 +353,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                 key={file}
                 onMouseDown={(e) => { e.preventDefault(); insertMention(file); }}
                 className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-colors flex items-center gap-2 ${
-                  i === mentionIndex ? 'bg-accent/10 text-fg' : 'text-muted-fg hover:bg-[#1a1a1a] hover:text-fg'
+                  i === mentionIndex ? 'bg-accent/10 text-fg' : 'text-muted-fg hover:bg-surface-2 hover:text-fg'
                 }`}
               >
                 <File size={10} className="flex-shrink-0 opacity-60" />
@@ -376,7 +376,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                 key={cmd.name}
                 onMouseDown={(e) => { e.preventDefault(); applySlashCommand(cmd); }}
                 className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-start gap-2.5 ${
-                  i === slashIndex ? 'bg-accent/10 text-fg' : 'text-muted-fg hover:bg-[#1a1a1a] hover:text-fg'
+                  i === slashIndex ? 'bg-accent/10 text-fg' : 'text-muted-fg hover:bg-surface-2 hover:text-fg'
                 }`}
               >
                 <span className="mt-0.5 opacity-60">{cmd.icon}</span>
@@ -391,7 +391,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
         )}
 
         {/* Input box */}
-        <div className="bg-[#0f0f0f] border border-border rounded-xl focus-within:border-accent/40 transition-colors">
+        <div className="bg-elevated border border-border rounded-xl focus-within:border-accent/40 transition-colors">
           {/* Textarea + send button */}
           <div className="flex items-end gap-3 px-4 pt-3 pb-2">
             <textarea
@@ -447,7 +447,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                           key={m.id}
                           onMouseDown={(e) => { e.preventDefault(); onCodePermissionModeChange(m.id); setShowModeMenu(false); }}
                           className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-start gap-2 ${
-                            codePermissionMode === m.id ? 'bg-accent/10' : 'hover:bg-[#1a1a1a]'
+                            codePermissionMode === m.id ? 'bg-accent/10' : 'hover:bg-surface-2'
                           }`}
                         >
                           <span className="mt-0.5 opacity-70">{m.icon}</span>
@@ -468,7 +468,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                 <button
                   onClick={() => setShowPlusMenu(v => !v)}
                   title="Add files and commands"
-                  className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-fg hover:text-fg hover:bg-[#1a1a1a] transition-colors"
+                  className="w-6 h-6 rounded-md border border-border flex items-center justify-center text-muted-fg hover:text-fg hover:bg-surface-2 transition-colors"
                 >
                   <Plus size={12} />
                 </button>
@@ -477,7 +477,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                   <div className="absolute bottom-full left-0 mb-1 w-52 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden z-50">
                     <button
                       onMouseDown={(e) => { e.preventDefault(); void startFileMention(); }}
-                      className="w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2.5 text-fg hover:bg-[#1a1a1a]"
+                      className="w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2.5 text-fg hover:bg-surface-2"
                     >
                       <File size={11} className="opacity-60" />
                       <span className="flex-1">Add files</span>
@@ -485,7 +485,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                     </button>
                     <button
                       onMouseDown={(e) => { e.preventDefault(); startSlashCommand(); }}
-                      className="w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2.5 text-fg hover:bg-[#1a1a1a]"
+                      className="w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2.5 text-fg hover:bg-surface-2"
                     >
                       <Terminal size={11} className="opacity-60" />
                       <span className="flex-1">Slash commands</span>
@@ -521,7 +521,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                         key={opt.model}
                         onMouseDown={(e) => { e.preventDefault(); onModelChange?.(opt.model); setShowModelMenu(false); }}
                         className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-start gap-2 ${
-                          activeModel === opt.model ? 'bg-accent/10' : 'hover:bg-[#1a1a1a]'
+                          activeModel === opt.model ? 'bg-accent/10' : 'hover:bg-surface-2'
                         }`}
                       >
                         <div className="flex-1 min-w-0">
@@ -543,7 +543,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                         onMouseDown={(e) => { e.preventDefault(); setIntensity(opt.value); }}
                         className={`flex-1 py-1 text-[11px] rounded-md font-medium transition-colors ${
                           intensity === opt.value
-                            ? `${opt.color} bg-[#1a1a1a] border border-border`
+                            ? `${opt.color} bg-surface-2 border border-border`
                             : 'text-muted-fg hover:text-fg'
                         }`}
                       >
@@ -555,7 +555,7 @@ export function Composer({ onSend, onClear, onInterrupt, disabled, sending, plac
                   {onOpenConfig && (
                     <button
                       onMouseDown={(e) => { e.preventDefault(); onOpenConfig(); setShowModelMenu(false); }}
-                      className="w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 text-muted-fg hover:text-fg hover:bg-[#1a1a1a] border-t border-border"
+                      className="w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 text-muted-fg hover:text-fg hover:bg-surface-2 border-t border-border"
                     >
                       <Settings2 size={11} className="opacity-60" />
                       LLM Configuration…

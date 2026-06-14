@@ -9,6 +9,7 @@ import { ProviderManager } from '../providers/manager.js';
 import { ProviderPool } from '../providers/pool.js';
 import { scanProject } from '../core/projectScanner.js';
 import { AgentLoop } from '../agent/loop.js';
+import { renderReport } from '../audit/report.js';
 import { createDvalinContext } from '../core/context.js';
 import { createDefaultToolRegistry } from '../tools/registry.js';
 import {
@@ -87,6 +88,7 @@ type ServerMessage =
   | { type: 'tool_error'; name: string; id: string; error: string }
   | { type: 'approval_request'; id: string; toolName: string; input: unknown }
   | { type: 'response'; content: string }
+  | { type: 'run_report'; runId: string; markdown: string }
   | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
   | { type: 'interrupted' }
   | { type: 'error'; message: string }
@@ -241,6 +243,7 @@ export function handleWebSocket(ws: WebSocket): void {
     // Set up provider (pool takes priority when enabled)
     let provider;
     let activeProviderId: string;
+    let activeModel = 'unknown';
     try {
       const cfg = await readConfig();
       if (cfg.pool?.enabled && cfg.pool.entries.some(e => e.enabled)) {
@@ -248,6 +251,7 @@ export function handleWebSocket(ws: WebSocket): void {
         const picked = pool.next();
         provider = picked.adapter;
         activeProviderId = picked.id;
+        activeModel = cfg.pool.entries.find(e => e.id === picked.id)?.model ?? 'unknown';
       } else {
         const llm = cfg.llm;
         const providerName = msg.provider ?? llm.provider;
@@ -259,6 +263,7 @@ export function handleWebSocket(ws: WebSocket): void {
         });
         provider = manager.get(providerName);
         activeProviderId = providerName;
+        activeModel = llm.model ?? 'unknown';
       }
     } catch (err) {
       send(ws, {
@@ -359,6 +364,7 @@ export function handleWebSocket(ws: WebSocket): void {
         requestApproval,
       }),
       systemPrompt,
+      audit: { model: activeModel },
     });
 
     const onEvent = (event: AgentEvent): void => {
@@ -399,6 +405,13 @@ export function handleWebSocket(ws: WebSocket): void {
       await saveSession(session);
 
       send(ws, { type: 'response', content: result.output });
+      if (result.runId) {
+        try {
+          send(ws, { type: 'run_report', runId: result.runId, markdown: renderReport(result.runId) });
+        } catch {
+          // Report rendering is best-effort; never block the turn on it.
+        }
+      }
       send(ws, {
         type: 'done',
         sessionId: session.id,

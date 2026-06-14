@@ -2,6 +2,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { generateDiff, formatDiff } from '../core/diffPreview.js';
 import { resolveInsideWorkspace } from '../core/workspace.js';
+import { sha256 } from '../audit/hash.js';
+import { countDiffLines } from '../audit/diffStat.js';
 import type { Tool, ReverseOp, ToolResult } from './types.js';
 
 const inputSchema = z
@@ -58,6 +60,8 @@ export const editFileTool: Tool<Input> = {
 
     await writeFile(filePath, updated, 'utf8');
 
+    const stat = countDiffLines(diff);
+
     return {
       title: `Edit ${input.filePath}`,
       output,
@@ -67,6 +71,10 @@ export const editFileTool: Tool<Input> = {
         bytesAfter: Buffer.byteLength(updated, 'utf8'),
         occurrences,
         diff,
+        added: stat.added,
+        removed: stat.removed,
+        beforeHash: sha256(existing),
+        afterHash: sha256(updated),
       },
     };
   },
