@@ -32,6 +32,10 @@ ICON_SOURCE="web/public/logo.svg"
 MACOS_ICON="${RELEASE_DIR}/tmp/AppIcon.icns"
 ENTRY="src/gui/index.ts"
 
+# "-" = ad-hoc (default); "Developer ID Application: NAME (TEAMID)" for
+# notarization, wired from DVALINCODE_SIGN_IDENTITY by the release workflow.
+SIGN_IDENTITY="${DVALINCODE_SIGN_IDENTITY:--}"
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  DvalinCode v${VERSION} — Desktop GUI Build"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -128,6 +132,18 @@ for i in "${!BUN_TARGETS[@]}"; do
     continue
   fi
 
+  # Ad-hoc sign macOS binaries so Gatekeeper doesn't flag them as "damaged" on
+  # Apple Silicon (not notarization — see scripts/build-release.sh note).
+  if [[ "$bun_target" == *darwin* ]] && command -v codesign >/dev/null 2>&1; then
+    if [ "$SIGN_IDENTITY" = "-" ]; then
+      codesign --force --sign - "${RELEASE_DIR}/tmp/${bin_file}" 2>/dev/null \
+        && echo "  ✓ ad-hoc signed ${bin_file}" || echo "  ! codesign failed for ${bin_file}"
+    else
+      codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "${RELEASE_DIR}/tmp/${bin_file}" 2>/dev/null \
+        && echo "  ✓ Developer ID signed ${bin_file}" || echo "  ! codesign failed for ${bin_file}"
+    fi
+  fi
+
   pkg_dir="${RELEASE_DIR}/pkg/${bin_name}"; mkdir -p "${pkg_dir}/web"
   cp "${RELEASE_DIR}/tmp/${bin_file}" "${pkg_dir}/${bin_file}"
   cp -r web/dist "${pkg_dir}/web/dist"
@@ -139,6 +155,16 @@ for i in "${!BUN_TARGETS[@]}"; do
   else
     if [[ "$bun_target" == *darwin* ]]; then
       create_gui_macos_app "$pkg_dir" "$bin_file" "${bin_name#dvalincode-gui-macos-}"
+      # Deep-sign the bundle so the .app launches without "damaged".
+      if [ -d "${pkg_dir}/DvalinCode.app" ] && command -v codesign >/dev/null 2>&1; then
+        if [ "$SIGN_IDENTITY" = "-" ]; then
+          codesign --force --deep --sign - "${pkg_dir}/DvalinCode.app" 2>/dev/null \
+            && echo "  ✓ ad-hoc signed DvalinCode.app" || echo "  ! codesign failed for DvalinCode.app"
+        else
+          codesign --force --deep --options runtime --timestamp --sign "$SIGN_IDENTITY" "${pkg_dir}/DvalinCode.app" 2>/dev/null \
+            && echo "  ✓ Developer ID signed DvalinCode.app" || echo "  ! codesign failed for DvalinCode.app"
+        fi
+      fi
     fi
     suffix="${bin_name#dvalincode-gui-}"
     archive_name="dvalincode-gui-v${VERSION}-${suffix}.tar.gz"
