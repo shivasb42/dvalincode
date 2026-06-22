@@ -7,6 +7,7 @@ import { registerRunToolCommand } from './commands/runTool.js';
 import { registerScanCommand } from './commands/scan.js';
 import { registerToolsCommand } from './commands/tools.js';
 import { registerReportCommand } from './commands/report.js';
+import { registerTrustCommand } from './commands/trust.js';
 import { registerServeCommand } from './commands/serve.js';
 import { registerTuiCommand } from './commands/tui.js';
 import { registerDataCommands } from './commands/data.js';
@@ -19,7 +20,7 @@ export function buildProgram(): Command {
   program
     .name('dvalincode')
     .description('Local-first coding agent — terminal UI by default, `serve` for the web GUI')
-    .version('0.7.0');
+    .version('0.8.0');
 
   registerScanCommand(program);
   registerToolsCommand(program, registry);
@@ -29,6 +30,7 @@ export function buildProgram(): Command {
   registerInitCommand(program);
   registerMemoryCommand(program);
   registerReportCommand(program);
+  registerTrustCommand(program);
   registerServeCommand(program);
   registerTuiCommand(program);
   registerDataCommands(program);
