@@ -62,6 +62,20 @@ DvalinCode 的定位是 **Agent 运行时（runtime）**，而不只是又一个
 
 ---
 
+## ⭐ Star 增长趋势
+
+<p align="center">
+  <a href="https://www.star-history.com/#arthurpanhku/dvalincode&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date&theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date">
+      <img alt="DvalinCode Star 增长趋势图" src="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date">
+    </picture>
+  </a>
+</p>
+
+---
+
 ## ⭐ v0.8.0 新功能 —— 🔒 治理：可控 · 透明 · 可审计
 
 - **🔒 组织级策略** —— 一个 `dvalin.policy.json` 让*公司*、而非开发者来约束 Agent：允许哪些模式、shell 命令、文件路径、工具与模型。两层(机器级 `~/.dvalincode/policy.json` + 仓库级)按**收窄**解析 —— 仓库策略只能让机器策略更严、永不放宽。没有策略文件时,行为与之前完全一致。在唯一关卡强制执行;每次拦截都是行内 `⛔ Blocked by policy` 加一条 `policy_violation` 审计事件。

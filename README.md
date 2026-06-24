@@ -62,6 +62,20 @@ The bundled **web GUI is the runtime's reference implementation and showcase** �
 
 ---
 
+## ⭐ Star Growth
+
+<p align="center">
+  <a href="https://www.star-history.com/#arthurpanhku/dvalincode&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date&theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date">
+      <img alt="DvalinCode Star History Chart" src="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date">
+    </picture>
+  </a>
+</p>
+
+---
+
 ## ⭐ What's New in v0.8.0 — 🔒 Governance: controllable · transparent · auditable
 
 - **🔒 Org policy** — a `dvalin.policy.json` lets a *company*, not the developer, bound the agent: which modes, shell commands, file paths, tools, and models are allowed. Two layers (machine `~/.dvalincode/policy.json` + repo) resolve by **narrowing** — a repo policy can only ever make the machine policy stricter, never widen it. With no policy file, behavior is identical to before. Enforced at a single chokepoint; every denial is an inline `⛔ Blocked by policy` plus a `policy_violation` audit event.
