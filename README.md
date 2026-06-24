@@ -62,20 +62,6 @@ The bundled **web GUI is the runtime's reference implementation and showcase** �
 
 ---
 
-## ⭐ Star Growth
-
-<p align="center">
-  <a href="https://www.star-history.com/#arthurpanhku/dvalincode&Date">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date&theme=dark">
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date">
-      <img alt="DvalinCode Star History Chart" src="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date">
-    </picture>
-  </a>
-</p>
-
----
-
 ## ⭐ What's New in v0.8.0 — 🔒 Governance: controllable · transparent · auditable
 
 - **🔒 Org policy** — a `dvalin.policy.json` lets a *company*, not the developer, bound the agent: which modes, shell commands, file paths, tools, and models are allowed. Two layers (machine `~/.dvalincode/policy.json` + repo) resolve by **narrowing** — a repo policy can only ever make the machine policy stricter, never widen it. With no policy file, behavior is identical to before. Enforced at a single chokepoint; every denial is an inline `⛔ Blocked by policy` plus a `policy_violation` audit event.
@@ -464,3 +450,17 @@ DvalinCode is **not affiliated** with Anthropic, Claude, OpenAI, or any other ve
 The design process included studying common patterns in modern coding agents for architectural learning. The `TurnState` state-machine design was informed by [HKUDS/nanobot](https://github.com/HKUDS/nanobot) (MIT). The agent loop follows the [ReAct paradigm](https://arxiv.org/abs/2210.03629) (Yao et al., 2022), and the tool-calling interface follows the OpenAI `tool_calls` format. The implementation — state machine, UI, tool schemas, module layout — is otherwise original; no source code, prompts, or UI text from other projects is copied.
 
 Full source references: [docs/REFERENCES.md](docs/REFERENCES.md)
+
+---
+
+## ⭐ Star Growth
+
+<p align="center">
+  <a href="https://www.star-history.com/#arthurpanhku/dvalincode&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date&theme=dark">
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date">
+      <img alt="DvalinCode Star History Chart" src="https://api.star-history.com/svg?repos=arthurpanhku/dvalincode&type=Date">
+    </picture>
+  </a>
+</p>
