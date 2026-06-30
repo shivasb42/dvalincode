@@ -86,12 +86,27 @@ DvalinCode 维护项目级治理证据，便于开源用户和企业安全评审
 
 ---
 
-## ⭐ v0.8.0 新功能 —— 🔒 治理：可控 · 透明 · 可审计
+## ⭐ v0.9.0 新功能 —— 🛡️ 安全修复闭环 · Skills · CodeQL 加固
+
+- **🛡️ 安全修复闭环** —— 支持运行内置本地扫描，或导入 CodeQL、GitHub
+  Code Scanning、Semgrep 及兼容扫描器的 SARIF；发现项会转成本地修复 case，
+  并带有源码上下文、验证说明和隔离 worktree 修复任务。
+- **📚 Skills** —— 支持上传、下载、查看和复用本地 skill bundle。DvalinCode
+  内置 secure-code-scan 与 secure-code-remediation skills，并提供 agent tools
+  用于列出 skill、读取说明、扫描、列出修复 case、准备修复 worktree。
+- **🔐 CodeQL 路径加固** —— workspace、remediation、skill 相关的用户可控路径
+  现在都经过显式 root-containment 校验，并新增路径遍历与 skill 导入边界回归测试。
+- **🎨 应用图标** —— Web bundle 与桌面构建输入现在包含暗色和亮色主题应用图标。
+
+<details>
+<summary>v0.8.0 —— 🔒 治理：可控 · 透明 · 可审计</summary>
 
 - **🔒 组织级策略** —— 一个 `dvalin.policy.json` 让*公司*、而非开发者来约束 Agent：允许哪些模式、shell 命令、文件路径、工具与模型。两层(机器级 `~/.dvalincode/policy.json` + 仓库级)按**收窄**解析 —— 仓库策略只能让机器策略更严、永不放宽。没有策略文件时,行为与之前完全一致。在唯一关卡强制执行;每次拦截都是行内 `⛔ Blocked by policy` 加一条 `policy_violation` 审计事件。
 - **🔎 `dvalincode trust`** —— 一条命令打印本机的实时安全态势:生效策略 + 来源哈希、审计状态、运行时、依赖 —— 让审批人直接核验 Agent 能做什么、不能做什么,而不是听口头承诺。`--json` 供工具消费。
 - **🧾 策略感知的审计** —— 每次运行都在 `run_start` 记录所遵循策略的哈希(以及哪些文件参与),让防篡改日志能证明*当时生效的是哪套规则*。
 - **📐 可审批性方案** —— 这条主线记录在 [docs/APPROVABILITY-PLAN.md](docs/APPROVABILITY-PLAN.md):让 DvalinCode 能被任何公司轻松批准 —— 可控、透明、可审计。
+
+</details>
 
 <details>
 <summary>v0.7.0 —— 🧪 桌面应用（beta）</summary>

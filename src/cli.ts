@@ -20,7 +20,7 @@ export function buildProgram(): Command {
   program
     .name('dvalincode')
     .description('Local-first coding agent — terminal UI by default, `serve` for the web GUI')
-    .version('0.8.1');
+    .version('0.9.0');
 
   registerScanCommand(program);
   registerToolsCommand(program, registry);

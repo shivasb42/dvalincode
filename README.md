@@ -126,12 +126,31 @@ not claim third-party ISO certification.
 
 ---
 
-## ⭐ What's New in v0.8.0 — 🔒 Governance: controllable · transparent · auditable
+## ⭐ What's New in v0.9.0 — 🛡️ Secure remediation · Skills · CodeQL hardening
+
+- **🛡️ Secure remediation workflow** — run a built-in local scan or import SARIF
+  from CodeQL, GitHub Code Scanning, Semgrep, and compatible scanners; findings
+  become local remediation cases with source context, verification guidance, and
+  isolated worktree repair tasks.
+- **📚 Skills** — upload, download, inspect, and reuse local skill bundles.
+  DvalinCode now ships built-in secure-code-scan and secure-code-remediation
+  skills, plus agent tools for listing skills, reading instructions, scanning,
+  listing remediation cases, and preparing remediation worktrees.
+- **🔐 CodeQL path hardening** — user-controlled workspace, remediation, and
+  skill paths now go through explicit root-containment checks, with regression
+  tests covering traversal-safe resolution and skill import boundaries.
+- **🎨 App icons** — dark and light theme application icons now ship with the web
+  bundle and desktop build inputs.
+
+<details>
+<summary>v0.8.0 — 🔒 Governance: controllable · transparent · auditable</summary>
 
 - **🔒 Org policy** — a `dvalin.policy.json` lets a *company*, not the developer, bound the agent: which modes, shell commands, file paths, tools, and models are allowed. Two layers (machine `~/.dvalincode/policy.json` + repo) resolve by **narrowing** — a repo policy can only ever make the machine policy stricter, never widen it. With no policy file, behavior is identical to before. Enforced at a single chokepoint; every denial is an inline `⛔ Blocked by policy` plus a `policy_violation` audit event.
 - **🔎 `dvalincode trust`** — prints this install's live security posture in one command — active policy + source hashes, audit status, runtime, dependencies — so a reviewer can verify what the agent may and may not do directly, instead of taking claims on trust. `--json` for tooling.
 - **🧾 Policy-aware audit** — every run records the hash of the governing policy (and which files contributed) in `run_start`, so the tamper-evident log proves *which* rules were in force.
 - **📐 Approvability plan** — the through-line is documented in [docs/APPROVABILITY-PLAN.md](docs/APPROVABILITY-PLAN.md): make DvalinCode trivially approvable by any company — controllable, transparent, auditable.
+
+</details>
 
 <details>
 <summary>v0.7.0 — 🧪 Desktop app (beta)</summary>
