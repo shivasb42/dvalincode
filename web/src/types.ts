@@ -29,6 +29,16 @@ export type AppConfig = {
   pool?: ProviderPoolConfig;
 };
 
+export type SkillSummary = {
+  name: string;
+  title: string;
+  description: string;
+  version: string;
+  builtIn?: boolean;
+  tools?: string[];
+  installed: boolean;
+};
+
 export type SessionMeta = {
   id: string;
   createdAt: string;
@@ -72,6 +82,59 @@ export type ChatMessage =
 export type ApprovalMode = 'readonly' | 'auto-edit' | 'full-auto' | 'bypass';
 export type AgentMode = 'chat' | 'cowork' | 'code';
 export type CodePermissionMode = 'ask' | 'plan' | 'auto' | 'bypass';
+
+export type RemediationFinding = {
+  id: string;
+  source: string;
+  ruleId: string;
+  ruleName?: string;
+  severity: 'error' | 'warning' | 'note' | 'none';
+  securitySeverity?: string;
+  message: string;
+  path: string;
+  startLine?: number;
+  endLine?: number;
+  helpUri?: string;
+  tags: string[];
+  snippet?: string;
+  prompt: string;
+};
+
+export type SarifImportResult = {
+  source: string;
+  findings: RemediationFinding[];
+  totalResults: number;
+  skippedResults: number;
+};
+
+export type RemediationWorktreeResult = {
+  cwd: string;
+  branch: string;
+  baseCwd: string;
+  prompt: string;
+};
+
+export type RemediationCaseStatus = 'open' | 'worktree_ready' | 'fixing' | 'verified' | 'dismissed';
+
+export type RemediationCase = {
+  id: string;
+  findingId: string;
+  source: string;
+  cwd?: string;
+  ruleId: string;
+  severity: RemediationFinding['severity'];
+  securitySeverity?: string;
+  message: string;
+  path: string;
+  startLine?: number;
+  tags: string[];
+  prompt: string;
+  status: RemediationCaseStatus;
+  worktreeCwd?: string;
+  branch?: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type DiffLine = { type: 'add' | 'remove' | 'keep'; content: string };
 
