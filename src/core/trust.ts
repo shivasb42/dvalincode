@@ -179,6 +179,7 @@ export function renderTrustReport(r: TrustReport): string {
   lines.push(`    tools        ${p.tools.deny.length ? `deny: ${p.tools.deny.join(', ')}` : 'all allowed'}`);
   lines.push(`    mcp          ${p.mcp.allow ? `allow: ${p.mcp.allow.join(', ')}` : 'any configured server'}`);
   lines.push(`    maxToolCalls ${p.maxToolCalls ?? 'unlimited'}`);
+  lines.push('  reference  docs/POLICY-REFERENCE.md — schema, network levels, recipes');
   lines.push('  enforcement');
   lines.push(
     `    provider     ${r.networkEnforcement.provider.status} — ${r.networkEnforcement.provider.mechanism}`,

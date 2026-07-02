@@ -29,7 +29,7 @@ export type AgentMode = (typeof agentModes)[number];
 const NETWORK_RANK: Record<NetworkLevel, number> = { off: 0, 'endpoint-only': 1, on: 2 };
 
 /** The shape of a policy file as authored. Every field is optional; absent = unrestricted. */
-const policyFileSchema = z
+export const orgPolicySchema = z
   .object({
     modes: z.array(z.enum(agentModes)).optional(),
     providers: z.object({ allow: z.array(z.string()).optional() }).strict().optional(),
@@ -56,7 +56,7 @@ const policyFileSchema = z
   })
   .strict();
 
-export type OrgPolicyInput = z.infer<typeof policyFileSchema>;
+export type OrgPolicyInput = z.infer<typeof orgPolicySchema>;
 
 /** A fully-resolved policy: defaults applied, all sources narrowed together. */
 export type ResolvedPolicy = {
@@ -315,7 +315,7 @@ function readSource(layer: PolicySource['layer'], file: string): { source: Polic
   }
   const hash = sha256(raw);
   try {
-    const parsed = policyFileSchema.parse(JSON.parse(raw));
+    const parsed = orgPolicySchema.parse(JSON.parse(raw));
     return { source: { layer, path: file, present: true, hash }, parsed };
   } catch (err) {
     // Fail-safe: a malformed policy is NOT silently treated as "allow everything".
