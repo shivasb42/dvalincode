@@ -197,7 +197,27 @@ export function useChat(opts: UseChatOptions = {}) {
             break;
 
           case 'done':
-            setMessages((prev) => updateLastPendingAssistant(prev, (msg) => ({ ...msg, pending: false })));
+            if (event.replayed && event.sessionId) {
+              void fetchSessionDetail(event.sessionId)
+                .then((detail) => {
+                  const uiMessages = mapBackendMessages(detail.messages);
+                  for (let i = uiMessages.length - 1; i >= 0; i--) {
+                    const msg = uiMessages[i];
+                    if (msg?.role === 'assistant') {
+                      uiMessages[i] = { ...msg, replayed: true };
+                      break;
+                    }
+                  }
+                  setMessages(uiMessages);
+                })
+                .catch(() => {
+                  setMessages((prev) =>
+                    updateLastPendingAssistant(prev, (msg) => ({ ...msg, pending: false, replayed: true })),
+                  );
+                });
+            } else {
+              setMessages((prev) => updateLastPendingAssistant(prev, (msg) => ({ ...msg, pending: false })));
+            }
             if (event.usage) setLastUsage(event.usage);
             pendingToolCallsRef.current.clear();
             setPendingApprovals([]);
@@ -245,16 +265,18 @@ export function useChat(opts: UseChatOptions = {}) {
   const send = useCallback(
     (content: string) => {
       if (sending) return;
+      const messageId = crypto.randomUUID();
       setSending(true);
       pendingToolCallsRef.current.clear();
       setMessages((prev) => [
         ...prev,
-        { role: 'user', content },
+        { role: 'user', content, messageId },
         { role: 'assistant', content: '', toolCalls: [], pending: true },
       ]);
       try {
         client.send({
           content,
+          messageId,
           sessionId: currentSessionId,
           cwd: opts.cwd,
           approvalMode: opts.approvalMode,

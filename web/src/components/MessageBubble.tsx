@@ -37,7 +37,7 @@ export function MessageBubble({ message, mode, onProceed }: Props) {
   if (message.role === 'compact' || message.role === 'report') return null;
 
   // Assistant message
-  const { content, toolCalls, pending } = message;
+  const { content, toolCalls, pending, replayed } = message;
   const showDots = pending && toolCalls.length === 0 && !content;
 
   // Detect plan in Cowork mode: ≥3 numbered steps, no tool calls, message done
@@ -52,6 +52,11 @@ export function MessageBubble({ message, mode, onProceed }: Props) {
         <ThemeLogo className="w-5 h-5 rounded-full flex-shrink-0" />
         <span className="text-xs text-muted-fg font-medium">DvalinCode</span>
         {pending && <span className="text-xs text-accent/60 animate-pulse">thinking…</span>}
+        {replayed && !pending && (
+          <span className="text-[10px] text-muted-fg/50 italic" title="Returned from session journal without re-running the model">
+            replayed
+          </span>
+        )}
       </div>
 
       {/* Agent tool activity */}

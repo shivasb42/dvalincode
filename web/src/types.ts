@@ -69,12 +69,13 @@ export type ToolCallEvent = {
 };
 
 export type ChatMessage =
-  | { role: 'user'; content: string }
+  | { role: 'user'; content: string; messageId?: string }
   | {
       role: 'assistant';
       content: string;
       toolCalls: ToolCallEvent[];
       pending?: boolean;
+      replayed?: boolean;
     }
   | { role: 'compact'; tokensBefore: number; tokensAfter: number }
   | { role: 'report'; runId: string; markdown: string };
@@ -153,7 +154,7 @@ export type ServerEvent =
   | { type: 'approval_request'; id: string; toolName: string; input: unknown }
   | { type: 'response'; content: string }
   | { type: 'run_report'; runId: string; markdown: string }
-  | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number } }
+  | { type: 'done'; sessionId: string; iterations: number; usage?: { inputTokens: number; outputTokens: number }; replayed?: boolean }
   | { type: 'interrupted' }
   | { type: 'error'; message: string }
   | { type: 'compact_done'; tokensBefore: number; tokensAfter: number; summary: string }
