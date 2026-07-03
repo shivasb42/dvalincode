@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import {
   appendJournal,
   completedTurn,
+  completedTurnResponse,
   danglingTurns,
   projectStatus,
   readJournal,
@@ -63,10 +64,21 @@ describe('session journal', () => {
   it('completedTurn enables idempotent replay only for finished turns', () => {
     appendJournal(sid, { type: 'turn_start', messageId: 'm1', content: 'hi', cwd: '/w', mode: 'chat' }, dir);
     expect(completedTurn(readJournal(sid, dir), 'm1')).toBeUndefined();
-    appendJournal(sid, { type: 'turn_end', messageId: 'm1', status: 'done', runId: 'r1', auditHead: 'h1' }, dir);
+    appendJournal(sid, { type: 'turn_end', messageId: 'm1', status: 'done', runId: 'r1', auditHead: 'h1', output: 'hello' }, dir);
     const hit = completedTurn(readJournal(sid, dir), 'm1');
     expect(hit?.runId).toBe('r1');
+    expect(hit?.output).toBe('hello');
     expect(completedTurn(readJournal(sid, dir), 'other')).toBeUndefined();
+  });
+
+  it('completedTurnResponse is keyed by messageId when user content repeats', () => {
+    appendJournal(sid, { type: 'turn_start', messageId: 'id-1', content: 'hi', cwd: '/w', mode: 'chat' }, dir);
+    appendJournal(sid, { type: 'turn_end', messageId: 'id-1', status: 'done', runId: 'r1', output: 'answer A' }, dir);
+    appendJournal(sid, { type: 'turn_start', messageId: 'id-2', content: 'hi', cwd: '/w', mode: 'chat' }, dir);
+    appendJournal(sid, { type: 'turn_end', messageId: 'id-2', status: 'done', runId: 'r2', output: 'answer B' }, dir);
+    const records = readJournal(sid, dir);
+    expect(completedTurnResponse(records, 'id-1')).toBe('answer A');
+    expect(completedTurnResponse(records, 'id-2')).toBe('answer B');
   });
 
   it('an errored turn is terminal, not dangling, and not replayable', () => {

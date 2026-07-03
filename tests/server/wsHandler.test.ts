@@ -125,7 +125,7 @@ describe('wsHandler messageId idempotency', () => {
         sessionId: 'dc_test_2',
         result: {
           messages: journaledMessages,
-          output: '(replayed: this message was already processed)',
+          output: 'The agent loop is an 8-state machine.',
           iterationsUsed: 0,
           runId: 'run-abc',
         },
@@ -159,6 +159,81 @@ describe('wsHandler messageId idempotency', () => {
       content: 'The agent loop is an 8-state machine.',
     });
     expect(second.all.some((m) => m.type === 'run_report')).toBe(false);
+
+    ws.close();
+  });
+
+  it('replays the response for the messageId when duplicate user content exists in session', async () => {
+    const messagesWithDuplicateContent: ChatMessage[] = [
+      { role: 'user', content: 'hi' },
+      { role: 'assistant', content: 'answer A' },
+      { role: 'user', content: 'hi' },
+      { role: 'assistant', content: 'answer B' },
+    ];
+
+    runAgentTurnMock
+      .mockResolvedValueOnce({
+        sessionId: 'dc_test_dup',
+        result: {
+          messages: messagesWithDuplicateContent.slice(0, 2),
+          output: 'answer A',
+          iterationsUsed: 1,
+        },
+        providerId: 'mock',
+        model: 'mock-model',
+      })
+      .mockResolvedValueOnce({
+        sessionId: 'dc_test_dup',
+        result: {
+          messages: messagesWithDuplicateContent,
+          output: 'answer B',
+          iterationsUsed: 1,
+        },
+        providerId: 'mock',
+        model: 'mock-model',
+      })
+      .mockResolvedValueOnce({
+        sessionId: 'dc_test_dup',
+        result: {
+          messages: messagesWithDuplicateContent,
+          output: 'answer A',
+          iterationsUsed: 0,
+        },
+        providerId: 'mock',
+        model: 'mock-model',
+        replayed: true,
+      });
+
+    const ws = await connect();
+
+    const first = {
+      type: 'send',
+      content: 'hi',
+      messageId: 'id-1',
+      sessionId: 'dc_test_dup',
+      cwd: process.cwd(),
+      mode: 'chat',
+    };
+    const second = {
+      type: 'send',
+      content: 'hi',
+      messageId: 'id-2',
+      sessionId: 'dc_test_dup',
+      cwd: process.cwd(),
+      mode: 'chat',
+    };
+
+    ws.send(JSON.stringify(first));
+    await waitForDone(ws);
+    ws.send(JSON.stringify(second));
+    await waitForDone(ws);
+    ws.send(JSON.stringify(first));
+    const replay = await waitForDone(ws);
+
+    expect(replay.done.replayed).toBe(true);
+    expect(replay.all.find((m) => m.type === 'response')).toMatchObject({
+      content: 'answer A',
+    });
 
     ws.close();
   });

@@ -8,7 +8,6 @@ import {
 } from "../agent/compact.js";
 import type { AgentEvent } from "../agent/types.js";
 import type { AgentMode, CodePermissionMode } from "../agent/modes.js";
-import type { ChatMessage } from "../providers/types.js";
 import { resolveAllowedCwd } from "./security.js";
 import {
   checkModel,
@@ -71,26 +70,6 @@ function send(ws: WebSocket, msg: ServerMessage): void {
   if (ws.readyState === 1 /* OPEN */) {
     ws.send(JSON.stringify(msg));
   }
-}
-
-function extractReplayedResponse(
-  messages: ChatMessage[],
-  userContent: string,
-): string {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const msg = messages[i];
-    if (msg?.role === "user" && msg.content === userContent) {
-      for (let j = i + 1; j < messages.length; j++) {
-        const next = messages[j];
-        if (next?.role === "user") break;
-        if (next?.role === "assistant" && next.content.trim()) {
-          return next.content;
-        }
-      }
-      break;
-    }
-  }
-  return "(replayed: prior response unavailable)";
 }
 
 export function handleWebSocket(ws: WebSocket): void {
@@ -288,10 +267,7 @@ export function handleWebSocket(ws: WebSocket): void {
 
       if (abort.signal.aborted) return;
 
-      const responseContent = turn.replayed
-        ? extractReplayedResponse(turn.result.messages, msg.content)
-        : turn.result.output;
-      send(ws, { type: "response", content: responseContent });
+      send(ws, { type: "response", content: turn.result.output });
       if (!turn.replayed && turn.reportMarkdown && turn.result.runId) {
         send(ws, {
           type: "run_report",
