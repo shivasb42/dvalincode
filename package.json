@@ -10,7 +10,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -34,7 +35,8 @@
     "dev:all": "concurrently -n backend,frontend -c cyan,magenta \"PORT=3001 npm run server:dev\" \"npm run web:dev\"",
     "gui:dev": "bun src/gui/index.ts",
     "build:gui": "bash scripts/build-gui.sh",
-    "build:gui:darwin": "bash scripts/build-gui.sh darwin"
+    "build:gui:darwin": "bash scripts/build-gui.sh darwin",
+    "notices:update": "node scripts/generate-third-party-notices.mjs"
   },
   "keywords": [
     "cli",

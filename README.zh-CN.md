@@ -69,7 +69,7 @@ dvalincode report verify    # 重新推导上次运行审计日志的哈希链
 <tr><td><b>🔒 组织级策略 &amp; <code>trust</code></b></td><td>由公司、而非开发者来约束 Agent。一个 <code>dvalin.policy.json</code> 限定模式、shell 命令、文件路径、工具与模型；仓库级策略只能让机器级策略<i>更严</i>、永不放宽。每次运行都记录所遵循策略的哈希。<code>dvalincode trust</code> 直接打印本机的实时安全态势 —— 生效策略 + 哈希、审计状态、运行时 —— 让审批人自行核验。<a href="docs/POLICY-REFERENCE.md">策略参考 →</a> · <a href="docs/APPROVABILITY-PLAN.md">可审批性方案 →</a></td></tr>
 <tr><td><b>🏛️ 治理证据</b></td><td>仓库维护 OpenSSF Scorecard、CodeQL、Dependabot、固定 SHA 的 GitHub Actions、CODEOWNERS，以及 ISO/IEC 42001 AIMS 对齐文档，作为可审查的项目治理证据。<a href="docs/security/OPENSSF-SCORECARD.md">Scorecard 映射 →</a> · <a href="docs/governance/ISO-42001-AIMS.md">ISO 42001 对齐 →</a></td></tr>
 <tr><td><b>🖥️ 一流的 GUI</b></td><td>现代化 Web UI，包含代码语法高亮、<code>@</code> 文件引用、<code>/</code> 斜杠命令、Git 分支显示、实时 Token 与费用统计、多 LLM Profile，以及暗色 / 浅色 / 跟随系统的主题切换。</td></tr>
-<tr><td><b>🖥️ 终端或 Web，同一个二进制</b></td><td>直接运行进入交互式<b>终端代理</b>（像 Claude Code —— 流式输出、行内审批、红绿 diff）；或 <code>dvalincode serve</code> 启动 <b>Web GUI</b> 供浏览器/远程使用。两个前端共用同一套 agent 内核。</td></tr>
+<tr><td><b>🖥️ 终端或 Web，同一个二进制</b></td><td>直接运行进入交互式<b>终端代理</b>，支持流式输出、行内审批和红绿 diff；或 <code>dvalincode serve</code> 启动 <b>Web GUI</b> 供浏览器/远程使用。两个前端共用同一套 agent 内核。</td></tr>
 <tr><td><b>🪶 零依赖二进制</b></td><td>每平台单文件可执行程序 ~25MB。无需 Node、Python、Docker。</td></tr>
 <tr><td><b>🔐 本地优先</b></td><td>Session、配置、Profile、审计日志均保存在 <code>~/.dvalincode/</code>。<code>.dvalincodeignore</code> 阻止 Agent 访问敏感文件。仓库根目录的 <code>AGENTS.md</code> 作为项目级持久指令自动加载。</td></tr>
 <tr><td><b>💾 可导出、可迁移</b></td><td>把<b>所有</b>本地数据（记忆、Session、配置、审计）导出为一个文件，在另一台机器导入 —— 整套环境随身带走。任意对话都能下载为干净的 <b>Markdown</b> 记录。</td></tr>
@@ -264,10 +264,10 @@ DvalinCode 维护项目级治理证据，便于开源用户和企业安全评审
 | **安全团队真正批得下来的 Agent** | 策略约束工具权限、明确审批模式、`dvalincode trust`、审计日志、OpenSSF 证据和 ISO/IEC 42001 对齐文档。 |
 | **在高合规仓库里使用 AI 编码** —— 金融、医疗、企业数据、客户保密代码 | 本地优先运行时、自带模型、`.dvalincodeignore`、受控 egress、最小化审计记录。 |
 | **比通用自主编码 Agent 更安全的选择** | 产品主线是可控 / 透明 / 可审计，而不仅仅是“模型可以改文件”。 |
-| **Cline / Cursor** — 绑定 IDE、安装包庞大、代码上传到云端让人不安 | 单二进制 (~25 MB)，无需任何 IDE。macOS shell 调用默认运行在 `sandbox-exec` 沙箱中——拒绝网络访问，写入范围限制在 `cwd`。 |
-| **Claude Code / Aider** — 纯命令行看 Diff 太痛苦，环境配置繁琐 | CLI 启动后自动打开现代 Web UI，支持代码高亮和红绿 Diff 逐文件审批。一行安装命令，无需其他依赖。 |
-| **任何云端 Agent** — 厂商锁定、频繁限速、无法使用本地模型 | 所有 OpenAI Compatible 端点均为一等公民。用 Ollama 跑 Qwen2.5-Coder：无需 API Key，无需联网，零 Token 费用。 |
-| **任何 Agent** — 新队友无法复现你的 AI 配置，Routines 被锁在你的 IDE 里 | `AGENTS.md` 提交到仓库，随 `git clone` 把 AI 上下文同步给所有人。`dvalin.json` 以同样方式共享团队自动化命令集 —— 从侧栏导出、提交、完成。 |
+| **偏 IDE 的 AI 工作流** | 单二进制 (~25 MB)，无需任何 IDE。macOS shell 调用默认运行在 `sandbox-exec` 沙箱中——拒绝网络访问，写入范围限制在 `cwd`。 |
+| **偏终端的 AI 工作流** | CLI 启动后自动打开现代 Web UI，支持代码高亮和红绿 Diff 逐文件审批。一行安装命令，无需其他依赖。 |
+| **仅云端的 AI 工作流** | 所有 OpenAI Compatible 端点均为一等公民。用 Ollama 跑 Qwen2.5-Coder：无需 API Key，无需联网，零 Token 费用。 |
+| **单机 AI 配置** | `AGENTS.md` 提交到仓库，随 `git clone` 把 AI 上下文同步给所有人。`dvalin.json` 以同样方式共享团队自动化命令集 —— 从侧栏导出、提交、完成。 |
 
 ---
 
@@ -283,7 +283,7 @@ curl -fsSL https://raw.githubusercontent.com/arthurpanhku/dvalincode/main/script
 
 ```sh
 source ~/.zshrc    # 或 ~/.bashrc
-dvalincode                       # 交互式终端代理（像 Claude Code）
+dvalincode                       # 交互式终端代理
 dvalincode serve                 # 启动 Web GUI 并打开浏览器
 dvalincode serve --host 0.0.0.0 --no-open   # 部署到服务器，供远程/浏览器访问
 ```

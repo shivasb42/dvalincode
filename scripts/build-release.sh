@@ -60,6 +60,11 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo
 
 # ── 1. Build web frontend ──────────────────────────────────────────────
+echo "▶ Updating third-party notices…"
+npm run notices:update >/dev/null
+echo "  ✓ THIRD_PARTY_NOTICES.md ready"
+echo
+
 echo "▶ Building web frontend…"
 cd web && npm run build && cd "$ROOT_DIR"
 echo "  ✓ web/dist/ ready"
@@ -167,6 +172,7 @@ for i in "${!BUN_TARGETS[@]}"; do
   mkdir -p "${pkg_dir}/web"
   cp "${RELEASE_DIR}/tmp/${bin_file}" "${pkg_dir}/${bin_file}"
   cp -r web/dist "${pkg_dir}/web/dist"
+  cp LICENSE THIRD_PARTY_NOTICES.md "${pkg_dir}/"
 
   if $is_windows; then
     # Windows ZIP — the launcher starts the web GUI (`serve`); the bare binary

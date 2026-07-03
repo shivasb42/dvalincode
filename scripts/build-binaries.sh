@@ -79,6 +79,11 @@ echo "entry: ${ENTRY}"
 echo "output: ${OUT_DIR}/"
 echo
 
+echo "▶ updating third-party notices"
+npm run notices:update >/dev/null
+echo "  ✓ THIRD_PARTY_NOTICES.md"
+echo
+
 rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
 
@@ -116,4 +121,5 @@ echo "▶ generating SHA256SUMS.txt"
 
 echo
 echo "Done. Artifacts in ${OUT_DIR}/:"
+cp LICENSE THIRD_PARTY_NOTICES.md "$OUT_DIR/"
 ls -1 "$OUT_DIR"

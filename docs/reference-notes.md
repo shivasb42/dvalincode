@@ -1,6 +1,6 @@
 # Reference Notes
 
-These notes summarize high-level architecture ideas observed while studying a public terminal coding-assistant source snapshot. They describe patterns and product behaviors only. They do not include copied source code, prompts, proprietary names, or UI text.
+These notes summarize high-level architecture ideas observed while studying public terminal coding-assistant behavior and documentation. They describe patterns and product behaviors only. They do not include copied source code, prompts, proprietary names, or UI text.
 
 ## Useful Ideas To Learn From
 
@@ -35,4 +35,3 @@ These notes summarize high-level architecture ideas observed while studying a pu
 - Hiding filesystem or process execution behind vague UI language.
 - Treating a model response as trusted input.
 - Mixing provider-specific logic into core tools.
-

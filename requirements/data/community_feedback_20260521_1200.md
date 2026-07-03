@@ -18,7 +18,7 @@ Collected: Thu May 21 12:00:37 HKT 2026
 - [Anthropic shipped 4 context tools between /clear and /compact. Here's when each one wins](https://reddit.com/r/ClaudeCode/comments/1tfjhgj/anthropic_shipped_4_context_tools_between_clear/) (↑174, r/ClaudeCode)
 - [I let my interns vibe code from day one but with rules. here’s what happened after 2 months](https://reddit.com/r/ClaudeCode/comments/1sryeqw/i_let_my_interns_vibe_code_from_day_one_but_with/) (↑167, r/ClaudeCode)
 - [My opinion on Opus 4.7 after heavy use since release](https://reddit.com/r/ClaudeCode/comments/1svzil1/my_opinion_on_opus_47_after_heavy_use_since/) (↑116, r/ClaudeCode)
-- [Claude Code System Prompt v2.1.118](https://reddit.com/r/ClaudeCode/comments/1su54cg/claude_code_system_prompt_v21118/) (↑95, r/ClaudeCode)
+- Prompt-leak discussion omitted from this public research log for IP hygiene.
 - [Inherited a 3-month old repo from a Vibe Engineer. Wrote the most satisfying PR in my career](https://reddit.com/r/ClaudeCode/comments/1tb7edc/inherited_a_3month_old_repo_from_a_vibe_engineer/) (↑7061, r/ClaudeCode)
 - [Anthropic just published a postmortem explaining exactly why Claude felt dumber for the past month](https://reddit.com/r/ClaudeCode/comments/1str8gi/anthropic_just_published_a_postmortem_explaining/) (↑3340, r/ClaudeCode)
 - [Doubled Rate Limits for Claude Code](https://reddit.com/r/ClaudeCode/comments/1t5hs98/doubled_rate_limits_for_claude_code/) (↑2514, r/ClaudeCode)
