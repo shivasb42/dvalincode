@@ -163,8 +163,8 @@ export async function runAgentTurn(input: RunTurnInput, hooks: RunTurnHooks = {}
         sessionId: session.id,
         result: {
           messages: session.messages,
-          output: '(replayed: this message was already processed)',
-          iterationsUsed: 0,
+          output: prior.output ?? '(replayed: prior response unavailable)',
+          iterationsUsed: prior.iterations ?? 0,
           runId: prior.runId,
           auditHead: prior.auditHead,
         },
@@ -246,6 +246,7 @@ export async function runAgentTurn(input: RunTurnInput, hooks: RunTurnHooks = {}
     type: 'turn_end',
     messageId,
     status: 'done',
+    output: result.output,
     runId: result.runId,
     auditHead: result.auditHead,
     iterations: result.iterationsUsed,

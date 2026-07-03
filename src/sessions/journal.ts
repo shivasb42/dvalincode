@@ -24,6 +24,8 @@ export type JournalTurnEnd = {
   type: 'turn_end';
   messageId: string;
   status: 'done' | 'error' | 'interrupted';
+  /** Final assistant text for replay when the same messageId is resent. */
+  output?: string;
   /** Audit run this turn produced, if any. */
   runId?: string;
   /** Audit chain head hash after run_end — the checkpoint anchor. */
@@ -102,6 +104,11 @@ export function completedTurn(records: JournalRecord[], messageId: string): Jour
     (r): r is JournalTurnEnd & { seq: number; ts: string } =>
       r.type === 'turn_end' && r.messageId === messageId && r.status === 'done',
   );
+}
+
+/** Assistant response text for a completed turn, keyed by messageId. */
+export function completedTurnResponse(records: JournalRecord[], messageId: string): string | undefined {
+  return completedTurn(records, messageId)?.output;
 }
 
 /** Turn starts that never reached a terminal record — i.e. crashed mid-turn. */

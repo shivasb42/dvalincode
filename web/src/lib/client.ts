@@ -5,6 +5,7 @@ const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.ho
 export type SendOptions = {
   content: string;
   sessionId?: string;
+  messageId?: string;
   cwd?: string;
   approvalMode?: ApprovalMode;
   mode?: AgentMode;
@@ -64,6 +65,7 @@ export class DvalinClient {
         type: 'send',
         content: opts.content,
         sessionId: opts.sessionId,
+        messageId: opts.messageId,
         cwd: opts.cwd,
         approvalMode: opts.approvalMode,
         mode: opts.mode ?? 'code',
