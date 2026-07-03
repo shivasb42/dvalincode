@@ -4,7 +4,7 @@ import { buildTrustReport, renderTrustReport } from '../core/trust.js';
 export function registerTrustCommand(program: Command): void {
   program
     .command('trust')
-    .description('Print this install\'s security posture: active policy, audit status, runtime')
+    .description('Print this install\'s security posture: active policy, audit status, runtime (see docs/POLICY-REFERENCE.md)')
     .option('--json', 'output the report as JSON')
     .action((options: { json?: boolean }) => {
       const report = buildTrustReport();

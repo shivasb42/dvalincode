@@ -94,8 +94,8 @@ Concrete rules every feature must obey:
   org configures it. The solo dev's edit/run loop gains zero confirmations.
 - **New commands stay out of the way.** `trust`, `approval-pack` are discoverable but
   never on the critical path.
-- **Setup is one file.** A single documented `dvalin.policy.json` with a copy-pasteable
-  commented example — not a config wizard.
+- **Setup is one file.** A single documented `dvalin.policy.json` with copy-pasteable
+  recipes — [docs/POLICY-REFERENCE.md](POLICY-REFERENCE.md) — not a config wizard.
 
 ### 1.3 Where DvalinCode already stands
 
