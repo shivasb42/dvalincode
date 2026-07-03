@@ -12,6 +12,9 @@
   <a href="#-测试"><img src="https://img.shields.io/badge/Tests-183%20%2F%20183%20%E2%9C%93-success?style=for-the-badge" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/arthurpanhku/dvalincode"><img src="https://api.scorecard.dev/projects/github.com/arthurpanhku/dvalincode/badge" alt="OpenSSF Scorecard"></a>
+  <a href="docs/governance/ISO-42001-AIMS.md"><img src="https://img.shields.io/badge/ISO%2FIEC%2042001-AIMS%20Aligned-0F766E?style=for-the-badge" alt="ISO/IEC 42001 AIMS aligned"></a>
+  <a href="docs/EVIDENCE-PACK.md"><img src="https://img.shields.io/badge/Compliance-Evidence%20Pack-2563EB?style=for-the-badge" alt="Compliance evidence pack"></a>
+  <a href="docs/security/OPENSSF-SCORECARD.md"><img src="https://img.shields.io/badge/DevSecOps-Native-B91C1C?style=for-the-badge" alt="DevSecOps native"></a>
   <a href="#-一行安装"><img src="https://img.shields.io/badge/Platforms-macOS%20·%20Windows%20·%20Linux-blue?style=for-the-badge" alt="Platforms"></a>
   <a href="#-providers"><img src="https://img.shields.io/badge/LLM-OpenAI%20·%20Claude%20·%20DeepSeek%20·%20Ollama%20·%20Groq-7C3AED?style=for-the-badge" alt="LLM Support"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/i18n-EN%20·%20中文-orange?style=for-the-badge" alt="English / 中文"></a>
