@@ -8,6 +8,7 @@ import { registerScanCommand } from './commands/scan.js';
 import { registerToolsCommand } from './commands/tools.js';
 import { registerReportCommand } from './commands/report.js';
 import { registerTrustCommand } from './commands/trust.js';
+import { registerPolicyCommand } from './commands/policy.js';
 import { registerEvidenceCommand } from './commands/evidence.js';
 import { registerServeCommand } from './commands/serve.js';
 import { registerTuiCommand } from './commands/tui.js';
@@ -32,6 +33,7 @@ export function buildProgram(): Command {
   registerMemoryCommand(program);
   registerReportCommand(program);
   registerTrustCommand(program);
+  registerPolicyCommand(program);
   registerEvidenceCommand(program);
   registerServeCommand(program);
   registerTuiCommand(program);

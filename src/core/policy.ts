@@ -343,7 +343,109 @@ export function loadPolicy(cwd: string = process.cwd()): LoadedPolicy {
   };
 }
 
+/** One Zod issue per line — used by `dvalincode policy check` for readable authoring feedback. */
+export function formatZodIssues(err: z.ZodError): string[] {
+  return err.issues.map(i => {
+    const field = i.path.length ? i.path.join('.') : '(root)';
+    return `${field}: ${i.message}`;
+  });
+}
+
+export type PolicyValidationFailure = {
+  ok: false;
+  kind: 'missing' | 'read' | 'json' | 'schema';
+  path: string;
+  errors: string[];
+};
+
+export type PolicyValidationSuccess = {
+  ok: true;
+  path: string;
+  fileHash: string;
+  parsed: OrgPolicyInput;
+};
+
+/** Validate a policy file against `orgPolicySchema` without loading other layers. */
+export function validatePolicyFile(file: string): PolicyValidationSuccess | PolicyValidationFailure {
+  const resolved = path.resolve(file);
+  if (!existsSync(resolved)) {
+    return { ok: false, kind: 'missing', path: resolved, errors: ['file does not exist'] };
+  }
+  let raw: string;
+  try {
+    raw = readFileSync(resolved, 'utf8');
+  } catch (err) {
+    return { ok: false, kind: 'read', path: resolved, errors: [errMsg(err)] };
+  }
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch (err) {
+    return {
+      ok: false,
+      kind: 'json',
+      path: resolved,
+      errors: [err instanceof Error ? err.message : String(err)],
+    };
+  }
+  const parsed = orgPolicySchema.safeParse(json);
+  if (!parsed.success) {
+    return { ok: false, kind: 'schema', path: resolved, errors: formatZodIssues(parsed.error) };
+  }
+  return { ok: true, path: resolved, fileHash: sha256(raw), parsed: parsed.data };
+}
+
+export type PolicyCheckSuccess = {
+  ok: true;
+  path: string;
+  policy: ResolvedPolicy;
+  hash: string;
+  sources: PolicySource[];
+  /** Set when the machine layer exists but could not be applied (mirrors runtime). */
+  machineWarning?: string;
+};
+
+export type PolicyCheckFailure = PolicyValidationFailure;
+
+/**
+ * Validate `file` and resolve the effective policy after narrowing with the machine layer.
+ * The checked file must be valid; a malformed machine policy is skipped with `machineWarning`.
+ */
+export function resolveCheckedPolicy(
+  file: string,
+  cwd: string = process.cwd(),
+): PolicyCheckSuccess | PolicyCheckFailure {
+  const resolved = path.resolve(cwd, file);
+  const validation = validatePolicyFile(resolved);
+  if (!validation.ok) return validation;
+
+  const machinePath = path.resolve(machinePolicyPath());
+  const machine = readSource('machine', machinePath);
+  const inputs: OrgPolicyInput[] = [];
+  if (machine.parsed && resolved !== machinePath) inputs.push(machine.parsed);
+  inputs.push(validation.parsed);
+  const policy = resolvePolicy(inputs);
+
+  const sources: PolicySource[] = [];
+  if (resolved !== machinePath) sources.push(machine.source);
+  sources.push({
+    layer: resolved === machinePath ? 'machine' : 'repo',
+    path: resolved,
+    present: true,
+    hash: validation.fileHash,
+  });
+
+  return {
+    ok: true,
+    path: resolved,
+    policy,
+    hash: policyHash(policy),
+    sources,
+    machineWarning: machine.source.error,
+  };
+}
+
 function errMsg(err: unknown): string {
-  if (err instanceof z.ZodError) return err.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
+  if (err instanceof z.ZodError) return formatZodIssues(err).join('; ');
   return err instanceof Error ? err.message : String(err);
 }

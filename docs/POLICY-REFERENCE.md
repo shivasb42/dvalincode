@@ -33,7 +33,13 @@ default). A missing policy file is identical to no policy at all.
 
 Malformed policy files are **not** treated as allow-all: they are skipped and surfaced
 as `IGNORED (…)` in `dvalincode trust` so gatekeepers know a policy was intended but
-did not apply.
+did not apply. While authoring, validate before commit:
+
+```sh
+dvalincode policy check                  # validate ./dvalin.policy.json
+dvalincode policy check path/to/file.json
+dvalincode policy check --json           # machine-readable, CI-friendly (exit 1 on failure)
+```
 
 ---
 
