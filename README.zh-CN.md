@@ -567,9 +567,27 @@ MIT —— 详见 [LICENSE](LICENSE)。
 
 ## 🔗 独立声明与致谢
 
-DvalinCode 与 Anthropic、Claude、OpenAI 或任何其他供应商**无任何关联**。
+DvalinCode 与 Anthropic、Claude、Claude Code、OpenAI、GitHub、Cursor、
+Aider、OpenCode、HKUDS/nanobot，或本节提到的任何其他供应商/项目**无任何关联**。
 
-设计过程参考了现代编码 Agent 的常见模式以学习架构。`TurnState` 状态机设计参考了 [HKUDS/nanobot](https://github.com/HKUDS/nanobot)（MIT）。Agent 循环遵循 [ReAct 范式](https://arxiv.org/abs/2210.03629)（Yao et al., 2022），工具调用接口遵循 OpenAI `tool_calls` 格式。其余实现 —— 状态机、UI、工具 schema、模块布局 —— 均为原创；未抄袭任何其他项目的源代码、prompt 或 UI 文本。
+我们感谢这些项目、论文、工具和标准共同塑造了 agentic coding 的公共语言：
+
+- [HKUDS/nanobot](https://github.com/HKUDS/nanobot)（MIT）帮助验证了
+  DvalinCode `TurnState` 流程中显式 turn-state 的设计方向。
+- [ReAct 论文](https://arxiv.org/abs/2210.03629)（Yao et al., 2022）提出的
+  “reason, act, observe” 循环，是许多现代工具调用型 Agent 的共同基础。
+- OpenAI `tool_calls` 消息格式，以及更广泛的 OpenAI-compatible provider
+  生态，为 DvalinCode 的模型/工具交互提供了可移植接口。
+- Claude Code、Aider、OpenCode、Cursor、Cline 等编码 Agent 帮助明确了用户
+  对终端 Agent、plan/build 模式、权限提示、项目本地上下文和 diff-first 编辑
+  工作流的期待。
+- CodeQL、GitHub Code Scanning、Semgrep、SARIF、OpenSSF Scorecard 与
+  ISO/IEC 42001 影响了 DvalinCode 的安全修复闭环和 approvability 定位。
+- Git worktree、MCP 与 local-first 开发者工具模式，影响了隔离修复、受治理工具
+  访问和可审计执行等产品方向。
+
+除非明确标注，DvalinCode 的实现、UI、工具 schema、prompt、模块布局和文档均为
+原创；未复制上述项目的源代码、prompt 或 UI 文案。
 
 完整来源参考：[docs/REFERENCES.md](docs/REFERENCES.md)
 

@@ -50,3 +50,43 @@ DvalinCode's tool-calling interface (`src/agent/runner.ts: parseToolCalls`) foll
 ## Context Compaction Pattern
 
 The `/compact` feature — summarizing conversation history with the LLM itself when the context window fills — is a pattern independently developed by several agent frameworks, including nanobot (`nanobot/agent/autocompact.py`) and Claude Code. DvalinCode's implementation (`src/agent/compact.ts`) is an independent realization: it calls the configured provider with a structured five-section summarization prompt and replaces the message history with the resulting summary. The general idea is common knowledge in the agent-engineering community; no specific implementation was copied.
+
+---
+
+## Product and Workflow Prior Art
+
+DvalinCode's product direction was informed by public user expectations around
+modern coding agents, including Claude Code, Aider, OpenCode, Cursor, Cline, and
+similar tools. The referenced ideas are high-level workflow patterns:
+
+| Pattern | How DvalinCode interprets it |
+|---|---|
+| Terminal coding agent | A lightweight CLI entrypoint with streaming output and slash commands |
+| Permission modes | Explicit user control over read, write, and command execution behavior |
+| Plan/build separation | A read-only planning mode before applying code changes |
+| Diff-first editing | Show proposed filesystem changes before or during approval |
+| Project-local context | Work against a selected folder, Git clone, or Git worktree |
+
+These products helped clarify what developers expect from agentic coding tools.
+DvalinCode's UI, prompts, tool schemas, command names, and implementation are
+independent.
+
+---
+
+## Security and Governance Ecosystem
+
+DvalinCode's security and approvability features are shaped by established
+security tooling and governance standards:
+
+| Source | Influence |
+|---|---|
+| CodeQL and GitHub Code Scanning | SARIF-based vulnerability intake and CI/code-scanning posture |
+| Semgrep | Lightweight local/static scanning workflow inspiration |
+| SARIF | Interchange format for security findings |
+| OpenSSF Scorecard | Supply-chain security signal and repository hardening evidence |
+| ISO/IEC 42001 | AI management system vocabulary for scope, roles, risk, and evidence |
+| Git worktree | Isolated remediation branches/workspaces for focused fixes |
+| Model Context Protocol (MCP) | Tool discovery/invocation vocabulary, adapted behind DvalinCode's policy and egress controls |
+
+These are ecosystem references and interoperability targets, not affiliation
+claims or certification claims.

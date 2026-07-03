@@ -584,9 +584,33 @@ MIT — see [LICENSE](LICENSE).
 
 ## 🔗 Independence & Attribution
 
-DvalinCode is **not affiliated** with Anthropic, Claude, OpenAI, or any other vendor.
+DvalinCode is **not affiliated** with Anthropic, Claude, Claude Code, OpenAI,
+GitHub, Cursor, Aider, OpenCode, HKUDS/nanobot, or any other vendor or project
+named here.
 
-The design process included studying common patterns in modern coding agents for architectural learning. The `TurnState` state-machine design was informed by [HKUDS/nanobot](https://github.com/HKUDS/nanobot) (MIT). The agent loop follows the [ReAct paradigm](https://arxiv.org/abs/2210.03629) (Yao et al., 2022), and the tool-calling interface follows the OpenAI `tool_calls` format. The implementation — state machine, UI, tool schemas, module layout — is otherwise original; no source code, prompts, or UI text from other projects is copied.
+We are grateful to the projects, papers, tools, and standards that shaped the
+public vocabulary around agentic coding:
+
+- [HKUDS/nanobot](https://github.com/HKUDS/nanobot) (MIT) helped validate the
+  explicit turn-state approach used in DvalinCode's `TurnState` flow.
+- The [ReAct paper](https://arxiv.org/abs/2210.03629) (Yao et al., 2022)
+  provides the widely used "reason, act, observe" loop that informs many modern
+  tool-using agents.
+- OpenAI's `tool_calls` message format, along with the broader
+  OpenAI-compatible provider ecosystem, gives DvalinCode a portable interface
+  for model/tool interaction.
+- Claude Code, Aider, OpenCode, Cursor, Cline, and similar coding agents
+  clarified user expectations around terminal agents, plan/build modes,
+  permission prompts, project-local context, and diff-first editing workflows.
+- CodeQL, GitHub Code Scanning, Semgrep, SARIF, OpenSSF Scorecard, and ISO/IEC
+  42001 informed DvalinCode's security-remediation and approvability posture.
+- Git worktree, MCP, and local-first developer tooling patterns influenced the
+  product direction for isolated remediation, governed tool access, and
+  auditable execution.
+
+DvalinCode's implementation, UI, tool schemas, prompts, module layout, and
+documentation are original unless explicitly noted. No source code, prompts, or
+UI text from the projects above was copied.
 
 Full source references: [docs/REFERENCES.md](docs/REFERENCES.md)
 
