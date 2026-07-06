@@ -60,11 +60,15 @@ dvalincode trust
 
 `trust` prints this install's **live security posture**: the resolved org policy and its hash, per-boundary network enforcement (provider · shell · MCP), and the tamper-evident audit status — the exact evidence a security reviewer needs, straight from the tool itself.
 
+![dvalincode trust — live security posture under an org policy](/cli-trust.gif)
+
 Then let the agent work, and prove what it did after the fact:
 
 ```sh
 dvalincode report verify    # re-derive the hash chain of the last run's audit log
 ```
+
+![dvalincode report verify — tamper-evident audit trail and run report](/cli-audit.gif)
 
 Windows builds and manual downloads for every platform are on the
 [releases page](https://github.com/arthurpanhku/dvalincode/releases/latest),
@@ -94,3 +98,18 @@ Start with the [threat model](/THREAT-MODEL) to see the full attack surface —
 malicious `AGENTS.md`, poisoned MCP servers, prompt-injection escalation,
 egress, audit tampering — each mapped to the control that defends it and the
 honest residual gap.
+
+## Is DvalinCode for you?
+
+An honest fit check — we compete on approvability, not on being everything.
+
+**Choose DvalinCode when…**
+
+- A security or compliance review stands between your team and AI coding — you need **evidence** (policy hash, verifiable audit chain, an exportable Evidence Pack), not vendor claims.
+- The org — not each developer — must set the boundaries: allowed commands, paths, models, MCP servers, network egress.
+- You need model freedom or fully offline operation (local models, any OpenAI-compatible endpoint), with data staying on your machines.
+
+**Look elsewhere when…**
+
+- You just want the strongest general coding autopilot and governance isn't a constraint — Claude Code or Codex will serve you better today.
+- You want in-IDE autocomplete — that's Copilot/Cursor territory; DvalinCode is a terminal/web agent runtime.
